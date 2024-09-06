@@ -3,6 +3,7 @@ const fastCsv = require('fast-csv');
 const pool = require("../config/db1");
 const schema = require('../schema/schema');
 const moment = require('moment');
+const {encrypt, decrypt} = require('./../config/encrypt');
 
 exports.importCSV = async (req, res) => {
   if (!req.file) {
@@ -140,6 +141,14 @@ async function insertChunk(tableName, columns, chunk) {
       // Process loggedin and done columns
       if (column === 'loggedin' || column === 'done') {
         return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
+      }
+
+      if(column === 'centerpass' && tableName === 'examcenterdb'){
+        return encrypt(value);
+      }
+
+      if(column === 'password' && tableName === 'students'){
+        return encrypt(value);
       }
 
       // Process time columns

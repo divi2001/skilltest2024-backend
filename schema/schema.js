@@ -1,5 +1,9 @@
 // schema.js
 const schema = {
+    admindb:{
+        adminid: 'BIGINT PRIMARY KEY',
+        password: 'LONGTEXT'
+    },
     students: {
         student_id: 'BIGINT PRIMARY KEY',
         password: 'LONGTEXT',
@@ -7,7 +11,9 @@ const schema = {
         batchNo: 'INT REFERENCES batchdb(batchNo)',
         batchdate: 'DATE',
         fullname: 'VARCHAR(100)',
-        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        subjectsId: 'INT REFERENCES subjectsdb(subjectId)',
+        shorthandSubjectId: 'INT', //Need to add reference from separate shorthand subject table error...!
+        typewritingSubjectId: 'INT', //Need to add reference from separate typewriting subject tableerror...!
         courseId: 'INT',
         batch_year: 'VARCHAR(100)',
         loggedin: 'BOOLEAN',
@@ -19,6 +25,11 @@ const schema = {
         end_time: 'TIME',
         day: 'INT',
         qset: 'INT',
+        shorthandQset: 'INT',
+        typewritingQset: 'INT',
+        base64: 'LONGTEXT',
+        IsShorthand: 'BOOLEAN',
+        IsTypewriting: 'BOOLEAN'
     },
     subjectsdb: {
         subjectId: 'INT PRIMARY KEY',
@@ -46,9 +57,9 @@ const schema = {
         id: 'BIGINT PRIMARY KEY',
         student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         login_time: 'TIMESTAMP',
-        ip_address: 'VARCHAR(50)',
-        disk_id: 'VARCHAR(100)',
-        mac_address: 'VARCHAR(50)'
+        ip_address: 'LOGNTEXT REFERENCES pcregistration(ip_address)',
+        disk_id: 'LONGTEXT',
+        mac_address: 'LOGNTEXT'
     },
     examcenterdb: {
         center: 'INT PRIMARY KEY',
@@ -82,6 +93,23 @@ const schema = {
     audiodb: {
         id: 'INT PRIMARY KEY',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        qset: 'INT',
+        code_a: 'VARCHAR(10)',
+        code_b: 'VARCHAR(10)',
+        code_t: 'VARCHAR(10)',
+        audio1: 'VARCHAR(255)',
+        passage1: 'LONGTEXT',
+        audio2: 'VARCHAR(255)',
+        passage2: 'LONGTEXT',
+        testaudio: 'VARCHAR(255)'
+    },
+    computerTyping: {
+        id: 'INT PRIMARY KEY',
+        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        qset: 'INT',
+        code_a: 'VARCHAR(10)',
+        code_b: 'VARCHAR(10)',
+        code_t: 'VARCHAR(10)',
         audio1: 'VARCHAR(255)',
         passage1: 'LONGTEXT',
         audio2: 'VARCHAR(255)',
@@ -116,7 +144,8 @@ const schema = {
         question10: 'LONGTEXT'
     },
     textlogs: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES studentlogs(student_id)',
+        id: 'BIGINT PRIMARY KEY',
+        student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         mina: 'DECIMAL',
         texta: 'LONGTEXT',
         minb: 'DECIMAL',
@@ -127,6 +156,11 @@ const schema = {
         student_id: 'BIGINT PRIMARY KEY REFERENCES students(student_id), REFERENCES studentlogs(student_id)',
         passageA: 'LONGTEXT',
         passageB: 'LONGTEXT',
+    },
+    requestLogs: {
+        id: 'INT PRIMARY KEY',
+        ip_address: 'LONGTEXT',
+        request_time: 'DATETIME'
     },
     expertreviewlog: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
