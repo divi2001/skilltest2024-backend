@@ -10,6 +10,7 @@ const examcentereRoutes = require('./routes/examcenter_routes')
 
 // routes 
 const dataInputRoutes = require('./routes/data_input_routes')
+const testingRoutes = require('./routes/test')
 const studentRoutes = require('./routes/student_exam_routes')
 
 const app = express();
@@ -36,7 +37,7 @@ app.use(examcentereRoutes)
 app.use(dataInputRoutes)
 app.use(studentRoutes)
 app.use(adminFunctionRouter)
-
+app.use(testingRoutes);
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });

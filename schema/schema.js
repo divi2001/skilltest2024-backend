@@ -5,7 +5,7 @@ const schema = {
         password: 'LONGTEXT',
         instituteId: 'BIGINT',
         batchNo: 'INT REFERENCES batchdb(batchNo)',
-        batchdate: 'DATE',
+        batchdate: 'TEXT',
         fullname: 'VARCHAR(100)',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
         courseId: 'INT',
@@ -43,7 +43,7 @@ const schema = {
         feedback_time: 'TIMESTAMP'
     },
     loginlogs: {
-        id: 'BIGINT PRIMARY KEY',
+        id: 'BIGINT  AUTO_INCREMENT PRIMARY KEY ',
         student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         login_time: 'TIMESTAMP',
         ip_address: 'VARCHAR(50)',

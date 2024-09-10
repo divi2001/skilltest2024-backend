@@ -1,5 +1,6 @@
 const connection = require('../../config/db1');
 const PdfToDownloadDTO = require('../../dto/pdfsToDownloadDTO');
+const moment = require('moment-timezone');
 
 exports.getPdfFromExamCenterDb = async (req, res) => {
     
@@ -26,5 +27,21 @@ exports.getPdfFromExamCenterDb = async (req, res) => {
         }
     }catch (err) {
         res.status(500).send(err.message);
+    }
+},
+exports.getBatches = async(req,res) =>{
+        const today = moment().format('YYYY-MM-DD');
+        getTodaysBatches(today)
+        res.send("DOne");
+}
+async function getTodaysBatches(date){
+    try {
+        console.log(date);
+        const query = 'SELECT * FROM batchdb WHERE batchdate = 2024-06-25;'
+        const [rows] = await connection.execute(query);
+        console.log(rows);
+    } catch (error) {
+        console.error('Error in fetchTodayBatches:', error);
+        throw error;
     }
 }
