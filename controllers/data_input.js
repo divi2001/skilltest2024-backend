@@ -132,7 +132,7 @@ async function insertChunk(tableName, columns, chunk) {
       }
 
       // Process courseId and subjectId columns
-      if (column === 'courseId' || column === 'subjectId') {
+      if (column === 'courseId' || column === 'subjectId' || column == 'subjectsId') {
         if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
           value = parseInt(value.replace(/[\[\]\s]/g, ''), 10);
         }

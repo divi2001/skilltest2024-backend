@@ -27,7 +27,7 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
-// Use CORS with the above options
+// // Use CORS with the above options
 app.use(cors(corsOptions));
 
 app.use(session({
@@ -46,9 +46,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
+app.use(studentRoutes)
 app.use(examcentereRoutes)
 app.use(dataInputRoutes)
-app.use(studentRoutes)
 app.use(adminFunctionRouter)
 app.use(examDashBoardRoutes);
 app.use(examDashboardDetailsRoutes);
