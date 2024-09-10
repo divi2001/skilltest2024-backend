@@ -4,6 +4,7 @@ const encryptionInterface = require('../../config/encrypt')
 
 exports.getExamCenterDetails = async (req, res) => {
     const center = req.session.centerId;
+    console.log(center);
     
     console.log("getting exam center details Center: "+center);
     const query = 'SELECT * FROM examcenterdb WHERE center = ?';

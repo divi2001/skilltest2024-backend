@@ -12,10 +12,23 @@ const examcentereRoutes = require('./routes/examcenter_routes')
 const dataInputRoutes = require('./routes/data_input_routes')
 const studentRoutes = require('./routes/student_exam_routes')
 
+const examDashBoardRoutes = require("./routes/examCenterAuth-dashboard")
+const examDashboardDetailsRoutes = require("./routes/examCenterDetails-dashboard");
+
 const app = express();
-const PORT = 3001;
+const PORT = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+// CORS configuration
+const corsOptions = {
+  origin: 'http://localhost:3001', // Your frontend URL
+  credentials: true, // This allows sending cookies from the client
+  optionsSuccessStatus: 200
+};
+
+// Use CORS with the above options
+app.use(cors(corsOptions));
+
 app.use(session({
   secret: 'divis@GeYT',
   resave: false,
@@ -36,6 +49,8 @@ app.use(examcentereRoutes)
 app.use(dataInputRoutes)
 app.use(studentRoutes)
 app.use(adminFunctionRouter)
+app.use(examDashBoardRoutes);
+app.use(examDashboardDetailsRoutes);
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
