@@ -289,6 +289,7 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
     
         try {
             const [students] = await connection.query(studentQuery, [studentId]);
+            // console.log(students);
     
             if (students.length === 0) {
                 return res.status(404).send('Student not found');
@@ -320,6 +321,10 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
             const encryptedResponseData = {};
             for (let key in responseData) {
                 if (responseData.hasOwnProperty(key)) {
+                    // if (key === 'photo'){
+                    //     encryptedResponseData[key] === null;
+                    //     console.log(encryptedResponseData[key])
+                    // }
                     if (responseData[key] === null) {
                         encryptedResponseData[key] = encrypt('null');
                     } else {

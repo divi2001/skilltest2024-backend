@@ -12,8 +12,6 @@ const schema = {
         batchdate: 'DATE',
         fullname: 'VARCHAR(100)',
         subjectsId: 'INT REFERENCES subjectsdb(subjectId)',
-        shorthandSubjectId: 'INT', //Need to add reference from separate shorthand subject table error...!
-        typewritingSubjectId: 'INT', //Need to add reference from separate typewriting subject tableerror...!
         courseId: 'INT',
         batch_year: 'VARCHAR(100)',
         loggedin: 'BOOLEAN',
@@ -117,7 +115,8 @@ const schema = {
         testaudio: 'VARCHAR(255)'
     },
     audiologs: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES studentlogs(student_id)',
+        id: 'BIGINT PRIMARY KEY',
+        student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         trial: 'INT',
         passageA: 'INT',
         passageB: 'INT'
