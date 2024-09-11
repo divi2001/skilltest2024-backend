@@ -4,7 +4,8 @@ const connection = require('../../config/db1');
 exports.loginCenterAdmin= async (req, res) => {
     console.log("Trying center admin login");
     const { centerId, password } = req.body;
-    console.log("center: "+centerId+ " password: "+password);
+    // console.log("center: "+centerId+ " password: "+password);
+    console.log(req.body);
     const centerdbQuery = 'SELECT center, centerpass FROM examcenterdb WHERE center = ?';
   
     try {

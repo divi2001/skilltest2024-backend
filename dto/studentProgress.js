@@ -1,6 +1,6 @@
 class StudentProgress {
     
-    constructor(student_id, center, fullname, batchNo, loginTime, login, done, reporting_time, start_time, end_time, trial, passageA, passageB, trial_time, audio1_time, passage1_time, audio2_time, passage2_time, feedback_time) {
+    constructor(student_id, center, fullname, batchNo, loginTime, login, done, reporting_time, start_time, end_time, trial, passageA, passageB, trial_time, audio1_time, passage1_time, audio2_time, passage2_time, feedback_time,subject_name,subject_name_short) {
         this.student_id = student_id;
         this.center = center;
         this.firstName = fullname;
@@ -20,6 +20,8 @@ class StudentProgress {
         this.audio2_time = audio2_time;
         this.passage2_time = passage2_time;
         this.feedback_time = feedback_time;
+        this.subject_name = subject_name;
+        this.subject_name_short = subject_name_short;
     }
 }
 
