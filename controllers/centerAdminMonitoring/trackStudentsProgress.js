@@ -3,16 +3,22 @@ const StudentTrackDTO = require('../../dto/studentProgress');
 const encryptionInterface = require('../../config/encrypt');
 
 exports.getStudentsTrack = async (req, res) => {
+    console.log('Starting getStudentsTrack function');
     const { batchNo } = req.params;
     const examCenterCode = req.session.centerId;
-    const {subject_name,loggedin} = req.query;
-    console.log("exam center code: " + examCenterCode);
-    console.log("batch no: " + batchNo);
-    console.log("subject: " +subject_name);
-    console.log("loggedin: "+ loggedin);
-    if(!examCenterCode) return res.status(404).json({"message":"Center admin is not logged in"});
+    const { subject_name, loginStatus } = req.query;
     
-    const queryParams = [];
+    console.log("Exam center code:", examCenterCode);
+    console.log("Batch no:", batchNo);
+    console.log("Subject:", subject_name);
+    console.log("Login status:", loginStatus);
+
+    if (!examCenterCode) {
+        console.log('Center admin is not logged in');
+        return res.status(404).json({"message":"Center admin is not logged in"});
+    }
+    
+    const queryParams = [examCenterCode];
     let query = `SELECT 
     s.student_id,
     s.center,
@@ -60,27 +66,42 @@ LEFT JOIN (
     GROUP BY 
         student_id
 ) sl ON s.student_id = sl.student_id
-WHERE 1=1`;
-    
-    if (examCenterCode && batchNo) {
-        query += ' AND s.center = ? AND s.batchNo = ?';
-        queryParams.push(examCenterCode, batchNo);
-    } else if (examCenterCode) {
-        query += ' AND s.center = ?';
-        queryParams.push(examCenterCode);
-    }else if(subject_name){
+WHERE s.center = ?`;
+
+    console.log('Base query created');
+
+    if (batchNo) {
+        query += ' AND s.batchNo = ?';
+        queryParams.push(batchNo);
+        console.log('Added batch condition to query');
+    } 
+
+    if (subject_name) {
         query += ' AND sub.subject_name = ?';
         queryParams.push(subject_name);
-    }else if(loggedin){
-         query+= 'AND  s.loggedin = ?';
-         queryParams.push(loggedin);
+        console.log('Added subject condition to query');
     }
 
+    if (loginStatus) {
+        if (loginStatus === 'loggedin') {
+            query += ' AND s.loggedin = 1';
+            console.log('Added condition for logged-in students');
+        } else if (loginStatus === 'loggedout') {
+            query += ' AND s.loggedin = 0';
+            console.log('Added condition for logged-out students');
+        }
+    }
+
+    // console.log('Final query:', query);
+    console.log('Query parameters:', queryParams);
+
     try {
+        console.log('Executing database query');
         const [results] = await connection.query(query, queryParams);
-        console.log(results);
+        console.log('Query results count:', results.length);
 
         if (results.length > 0) {
+            console.log('Processing results');
             const studentTrackDTOs = results.map(result => {
                 const studentTrack = new StudentTrackDTO(
                     result.student_id,
@@ -108,16 +129,20 @@ WHERE 1=1`;
                 
                 if (typeof studentTrack.fullname === 'string') {
                     studentTrack.fullname = encryptionInterface.decrypt(studentTrack.fullname);
+                    console.log('Decrypted fullname for student:', studentTrack.student_id);
                 }
                 return studentTrack;
             });
 
+            console.log('Sending response');
             res.status(200).json(studentTrackDTOs);
         } else {
+            console.log('No records found');
             res.status(404).send('No records found!');
         }
     } catch (err) {
         console.error("Database query error:", err);
         res.status(500).send(err.message);
     }
+    console.log('Ending getStudentsTrack function');
 }
