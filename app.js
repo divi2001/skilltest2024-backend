@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const path = require('path');
 const adminFunctionRouter = require('./routes/admin_functions_routes');
 const examcentereRoutes = require('./routes/examcenter_routes')
-
+const excelRouter = require('./routes/dataImportExport/excelImportRoutes')
 
 // routes 
 const dataInputRoutes = require('./routes/data_input_routes')
@@ -51,6 +51,7 @@ app.use(studentRoutes)
 app.use(adminFunctionRouter)
 app.use(examDashBoardRoutes);
 app.use(examDashboardDetailsRoutes);
+app.use(excelRouter)
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
