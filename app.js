@@ -2,18 +2,15 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const crypto = require('crypto');
-const path = require('path');
+
+// routes 
 const adminFunctionRouter = require('./routes/admin_functions_routes');
 const examcentereRoutes = require('./routes/examcenter_routes')
 const trackStudentRoutes = require('./routes/trackStudentRoute')
 const pdfRoutes = require('./routes/pdf_routes');
-
-
-// routes 
+const fetchRoutes = require('./routes/fetchDetails_routes');
 const dataInputRoutes = require('./routes/data_input_routes')
 const studentRoutes = require('./routes/student_exam_routes')
-
 const examDashBoardRoutes = require("./routes/examCenterAuth-dashboard")
 const examDashboardDetailsRoutes = require("./routes/examCenterDetails-dashboard");
 
@@ -55,7 +52,14 @@ app.use(examDashBoardRoutes);
 app.use(examDashboardDetailsRoutes);
 app.use(trackStudentRoutes);
 app.use(pdfRoutes);
+app.use(fetchRoutes);
 
+
+//Test Route
+app.get("/",(req,res)=>{
+
+  res.send("<h1>I am Inevitable!!</h1>");
+})
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });

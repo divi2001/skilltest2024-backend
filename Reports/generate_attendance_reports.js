@@ -1,5 +1,4 @@
 const connection =  require("../config/db1");
-const { students } = require("../schema/schema");
 function createAttendanceReport(doc , data) {
     function addHeader() {
         doc.image('Reports/logo.png', 50, 50, { width: 50, height: 50 })
@@ -258,62 +257,7 @@ const AttendanceReport = async(doc,center,batchNo) =>{
      createAttendanceReport(doc,data);
 
 }
-const reportData = {
-    centerCode: '1151',
-    batch: '101',
-    examDate: '2024-06-26',
-    examTime: '09:00 AM',
-    students: [
-        { seatNo: '1151500001', instCode: '11483', name: 'BAGWE ANKITA PRASAD POOJA', subject: 'ENG SH 60', photoPath: "./Reports/logo.png" },
-        { seatNo: '1151500002', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500003', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500004', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500005', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500006', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-        { seatNo: '1151500007', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500008', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500009', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500010', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500011', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-        { seatNo: '1151500012', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500013', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500014', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500015', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500016', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-        { seatNo: '1151500001', instCode: '11483', name: 'BAGWE ANKITA PRASAD POOJA', subject: 'ENG SH 60', photoPath: "./Reports/logo.png" },
-        { seatNo: '1151500002', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500003', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500004', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500005', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500006', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-        { seatNo: '1151500007', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500008', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500009', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500010', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500011', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-        { seatNo: '1151500012', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500013', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500014', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500015', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500016', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-        { seatNo: '1151500001', instCode: '11483', name: 'BAGWE ANKITA PRASAD POOJA', subject: 'ENG SH 60', photoPath: "./Reports/logo.png" },
-        { seatNo: '1151500002', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500003', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500004', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500005', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500006', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-        { seatNo: '1151500007', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500008', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500009', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500010', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500011', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-        { seatNo: '1151500012', instCode: '11619', name: 'BANDE VAIBHAVI BHARAT SHILA', subject: 'ENG SH 60' },
-        { seatNo: '1151500013', instCode: '11483', name: 'BHADARGE PRIYADARSHREE DAYANAND REKHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500014', instCode: '11619', name: 'BHOTE VAISHALI LALASAHEB JYOTI', subject: 'ENG SH 60' },
-        { seatNo: '1151500015', instCode: '11619', name: 'CHIKANE PRANITA TUSHAR SHOBHA', subject: 'ENG SH 60' },
-        { seatNo: '1151500016', instCode: '11376', name: 'DHURI AMEY SHASHIKANT NANDA', subject: 'ENG SH 60' },
-    ]
-};
+
 
 module.exports = {AttendanceReport};
 
