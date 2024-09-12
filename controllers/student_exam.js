@@ -11,175 +11,6 @@ const moment = require('moment-timezone');
 const { encrypt, decrypt } =require('../config/encrypt');
 const { request } = require('http');
 
-exports.loginStudent = async (req, res) => {
-    const { userId, password, ipAddress, diskIdentifier, macAddress } = req.body;
-    console.log(userId)
-
-    const defaultIpAddress = ipAddress || "default";
-    const defaultDiskIdentifier = diskIdentifier || "default";
-    const defaultMacAddress = macAddress || "default";
-
-    try {
-        // Ensure loginlogs table exists
-        const createLoginLogsTableQuery = `
-            CREATE TABLE IF NOT EXISTS loginlogs (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                student_id VARCHAR(255) NOT NULL,
-                login_time DATETIME NOT NULL,
-                ip_address VARCHAR(255) NOT NULL,
-                disk_id VARCHAR(255) NOT NULL,
-                mac_address VARCHAR(255) NOT NULL
-            )
-        `;
-        await connection.query(createLoginLogsTableQuery);
-
-        // Ensure studentlogs table exists
-        const createStudentLogsTableQuery = `
-            CREATE TABLE IF NOT EXISTS studentlogs (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                student_id VARCHAR(255) NOT NULL,
-                center VARCHAR(255) NOT NULL,
-                loginTime DATETIME NOT NULL,
-                login VARCHAR(255) NOT NULL,
-                trial_time VARCHAR(255),
-                audio1_time VARCHAR(255),
-                passage1_time VARCHAR(255),
-                audio2_time VARCHAR(255),
-                passage2_time VARCHAR(255),
-                feedback_time VARCHAR(255),
-                UNIQUE (student_id)
-            )
-        `;
-        await connection.query(createStudentLogsTableQuery);
-
-        // Create login_requests table
-        const createLoginRequestsTableQuery = `
-            CREATE TABLE IF NOT EXISTS login_requests (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                ip_address VARCHAR(255) NOT NULL,
-                request_time DATETIME NOT NULL,
-                INDEX (ip_address, request_time)
-            )
-        `;
-        await connection.query(createLoginRequestsTableQuery);
-
-        // Insert login request
-        const insertLoginRequestQuery = `
-            INSERT INTO login_requests (ip_address, request_time)
-            VALUES (?, NOW())
-        `;
-        await connection.query(insertLoginRequestQuery, [defaultIpAddress]);
-
-        // Check for excessive login attempts
-        const checkLoginAttemptsQuery = `
-            SELECT COUNT(*) as attempt_count
-            FROM login_requests
-            WHERE ip_address = ? AND request_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)
-        `;
-        const [loginAttempts] = await connection.query(checkLoginAttemptsQuery, [defaultIpAddress]);
-
-        if (loginAttempts[0].attempt_count > 15) {
-            console.log(`Error: Excessive login attempts from IP ${defaultIpAddress}`);
-            res.status(429).send('Too many login attempts. Please try again later.');
-            return;
-        }
-
-        const query1 = 'SELECT * FROM students WHERE student_id = ?';
-        const [results] = await connection.query(query1, [userId]);
-
-        if (results.length > 0) {
-            const student = results[0];
-
-            // Check if IsShorhthand is true (1)
-            // if (!student.IsShorthand) {
-            //     res.status(403).send('Access denied. Student is not eligible for shorthand exam.');
-            //     return;
-            // }
-
-            // Fetch the batch number from the student record
-            const batchNo = student.batchNo;
-
-            // Check the batch status in the batchdb table
-            const checkBatchStatusQuery = 'SELECT batchstatus FROM batchdb WHERE batchNo = ?';
-            const [batchResults] = await connection.query(checkBatchStatusQuery, [batchNo]);
-
-            if (batchResults.length === 0) {
-                // console.log(`Error: Batch not found for batchNo ${batchNo}`);
-                res.status(404).send('invalid credentials');
-                return;
-            }
-
-            const batchStatus = batchResults[0].batchstatus;
-
-            // if (batchStatus !== 'active') {
-            //     // console.log(`Error: Batch ${batchNo} is not active. Current status: ${batchStatus}`);
-            //     res.status(401).send('invalid credentials 1');
-            //     return;
-            // }
-
-            // Fetch the exam center code from the student record
-            const examCenterCode = student.center;
-
-            // Decrypt the stored password
-            let decryptedStoredPassword;
-            try {
-                decryptedStoredPassword = decrypt(student.password);
-            } catch (error) {
-                // console.error('Error decrypting stored password:', error);
-                res.status(500).send('invalid credentials');
-                return;
-            }
-            let decryptedStoredPassword1;
-            try {
-                decryptedStoredPassword1 = decrypt(password);
-            } catch (error) {
-                // console.error('Error decrypting provided password:', error);
-                res.status(500).send('invalid credentials');
-                return;
-            }
-
-            // Ensure both passwords are treated as strings
-            const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
-            const providedPasswordStr = String(decryptedStoredPassword1).trim();
-            console.log(decryptedStoredPasswordStr, providedPasswordStr);
-
-            if (decryptedStoredPasswordStr === providedPasswordStr) {
-                // Set student session
-                req.session.studentId = student.student_id;
-
-                // Get the current time in Kolkata, India
-                const loginTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-
-                // Insert login log
-                const insertLogQuery = `
-                    INSERT INTO loginlogs (student_id, login_time, mac_address, ip_address, disk_id)
-                    VALUES (?, ?, ?, ?, ?)
-                `;
-                await connection.query(insertLogQuery, [userId, loginTime, defaultMacAddress, defaultIpAddress, defaultDiskIdentifier]);
-
-                // Insert or update student login details
-                const insertStudentLogsQuery = `
-                    INSERT INTO studentlogs (student_id, center, loginTime, login)
-                    VALUES (?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE loginTime = ?, login = ?
-                `;
-                await connection.query(insertStudentLogsQuery, [userId, examCenterCode, loginTime, 1, loginTime, 1]);
-
-                res.send('Logged in successfully as a student!');
-            } else {
-                // console.log(`Error: Invalid credentials for student ${userId}`);
-                res.status(401).send('invalid credentials');
-            }
-        } else {
-            // console.log(`Error: Student not found with ID ${userId}`);
-            res.status(404).send('invalid credentials');
-        }
-    } catch (err) {
-        console.log('Database query error:', err);
-        res.status(500).send('Internal server error');
-    }
-};
-
 
 exports.updateAudioLogTime = async (req, res) => {
     const { audioType } = req.body;
@@ -288,6 +119,7 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
     
         const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
         const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
+        const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
     
         try {
             console.log('Querying student data');
@@ -316,10 +148,12 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
     
             console.log('Querying subject data');
             const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+            console.log(subjects)
     
             if (subjects.length === 0) {
                 console.log('Subject not found');
                 return res.status(404).send('Subject not found');
+                
             }
             const subject = subjects[0];
             console.log('Subject data retrieved');
@@ -370,27 +204,27 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
                 return res.status(404).send('Student not found');
             }
             const student = students[0];
-            for (const field in student) {
-                if (student.hasOwnProperty(field) && !columnsToKeep.includes(field)) {
-                    try {
-                        student[field] = decrypt(student[field]);
-                    } catch (err) {
-                        // console.error(`Failed to decrypt field ${field}:`, err);
-                        throw new Error(`Failed to decrypt field ${field}`);
-                    }
-                }
-            }
+            // for (const field in student) {
+            //     if (student.hasOwnProperty(field) && !columnsToKeep.includes(field)) {
+            //         try {
+            //             student[field] = decrypt(student[field]);
+            //         } catch (err) {
+            //             // console.error(`Failed to decrypt field ${field}:`, err);
+            //             throw new Error(`Failed to decrypt field ${field}`);
+            //         }
+            //     }
+            // }
         
 
 
 
             // Extract subjectsId and parse it to an array
-            const subjectsId = JSON.parse(student.subjectsId);
+            const subjectsId = student.subjectsId;
             const qset = student.qset
             console.log(qset)
 
             // Assuming you want the first subject from the array
-            const subjectId = subjectsId[0];
+            const subjectId = student.subjectsId;
             const [subjects] = await connection.query(subjectsQuery, [subjectId]);
             if (subjects.length === 0) {
                 return res.status(404).send('Subject not found');
@@ -410,15 +244,16 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
                 courseId: subject.courseId,
                 subject_name: subject.subject_name,
                 subject_name_short: subject.subject_name_short,
-                Daily_Timer: subject.Daily_Timer,
-                Passage_Timer: subject.Passage_Timer,
-                Demo_Timer: subject.Demo_Timer,
+                Daily_Timer: subject.daily_timer                ,
+                Passage_Timer: subject.passage_timer                ,
+                Demo_Timer: subject.demo_timer                ,
                 audio1: audio.audio1,
                 passage1: audio.passage1,
                 audio2: audio.audio2,
                 passage2: audio.passage2,
                 testaudio:audio.testaudio   
             };
+            console.log(responseData)
     
 
             const encryptedResponseData = {};

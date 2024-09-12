@@ -3,11 +3,12 @@ const router = express.Router();
 const isAuthenticated = require('../middleware/isAuthStudent');
 
 const studentController = require('../controllers/student_exam');
+const studentController1 = require('../controllers/students/studentController')
 
 
 
 
-router.post('/student_login', studentController.loginStudent);
+router.post('/student_login', studentController1.loginStudent);
 
 router.post('/audiologs',isAuthenticated, studentController.updateAudioLogs);
 router.post('/finalpassagelogs',isAuthenticated, studentController.updatePassageFinalLogs);

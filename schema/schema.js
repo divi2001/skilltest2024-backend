@@ -12,6 +12,8 @@ const schema = {
         batchdate: 'DATE',
         fullname: 'VARCHAR(100)',
         subjectsId: 'INT REFERENCES subjectsdb(subjectId)',
+        // shorthandSubjectId: 'INT', //Need to add reference from separate shorthand subject table error...!
+        // typewritingSubjectId: 'INT', //Need to add reference from separate typewriting subject tableerror...!
         courseId: 'INT',
         batch_year: 'VARCHAR(100)',
         loggedin: 'BOOLEAN',
@@ -27,7 +29,8 @@ const schema = {
         typewritingQset: 'INT',
         base64: 'LONGTEXT',
         IsShorthand: 'BOOLEAN',
-        IsTypewriting: 'BOOLEAN'
+        IsTypewriting: 'BOOLEAN',
+        departmentId: 'INT REFERENCES departmentdb(departmentId)',
     },
     subjectsdb: {
         subjectId: 'INT PRIMARY KEY',
@@ -37,6 +40,12 @@ const schema = {
         daily_timer: 'INT',
         passage_timer: 'INT',
         demo_timer: 'INT'
+    },
+    departmentdb: {
+        departmentId: 'INT PRIMARY KEY',
+        departmentName: 'VARCHAR(255)',
+        departmentPassword: 'LONGTEXT',
+        logo: 'LONGTEXT'
     },
     studentlogs: {
         id: 'BIGINT PRIMARY KEY',
@@ -105,14 +114,42 @@ const schema = {
         id: 'INT PRIMARY KEY',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
         qset: 'INT',
-        code_a: 'VARCHAR(10)',
-        code_b: 'VARCHAR(10)',
-        code_t: 'VARCHAR(10)',
-        audio1: 'VARCHAR(255)',
-        passage1: 'LONGTEXT',
-        audio2: 'VARCHAR(255)',
-        passage2: 'LONGTEXT',
-        testaudio: 'VARCHAR(255)'
+        trial_passage: 'LONGTEXT',
+        passage_name: 'VARCHAR(10)',
+     
+        passage_text: 'LONGTEXT'
+   
+    },
+
+    loginlogs: {
+        id: 'INT AUTO_INCREMENT PRIMARY KEY',
+        student_id: 'VARCHAR(255) NOT NULL',
+        login_time: 'DATETIME NOT NULL',
+        ip_address: 'VARCHAR(255) NOT NULL',
+        disk_id: 'VARCHAR(255) NOT NULL',
+        mac_address: 'VARCHAR(255) NOT NULL'
+    },
+    
+    studentlogs: {
+        id: 'INT AUTO_INCREMENT PRIMARY KEY',
+        student_id: 'VARCHAR(255) NOT NULL',
+        center: 'VARCHAR(255) NOT NULL',
+        loginTime: 'DATETIME NOT NULL',
+        login: 'VARCHAR(255) NOT NULL',
+        trial_time: 'VARCHAR(255)',
+        audio1_time: 'VARCHAR(255)',
+        passage1_time: 'VARCHAR(255)',
+        audio2_time: 'VARCHAR(255)',
+        passage2_time: 'VARCHAR(255)',
+        feedback_time: 'VARCHAR(255)',
+        UNIQUE: '(student_id)'
+    },
+    
+    login_requests: {
+        id: 'INT AUTO_INCREMENT PRIMARY KEY',
+        ip_address: 'VARCHAR(255) NOT NULL',
+        request_time: 'DATETIME NOT NULL',
+        INDEX: '(ip_address, request_time)'
     },
     audiologs: {
         id: 'BIGINT PRIMARY KEY',
@@ -130,7 +167,7 @@ const schema = {
         batchstatus: 'BOOLEAN'
     },
     feedbackdb: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES students(student_id), REFERENCES studentlogs(student_id)',
+        student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         question1: 'LONGTEXT',
         question2: 'LONGTEXT',
         question3: 'LONGTEXT',
@@ -152,7 +189,7 @@ const schema = {
         created_at: 'TIMESTAMP'
     },
     finalPassageSubmit: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES students(student_id), REFERENCES studentlogs(student_id)',
+        student_id: 'BIGINT REFERENCES students(student_id)',
         passageA: 'LONGTEXT',
         passageB: 'LONGTEXT',
     },
@@ -205,8 +242,8 @@ const schema = {
     },
     qsetdb: {
         id: 'INT PRIMARY KEY AUTO_INCREMENT',
-        subject_id: 'INT REFERENCES subjectdb(subjectId)',
-        Q1PA: 'TEXT*',
+        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        Q1PA: 'TEXT',
         Q1PB: 'TEXT',
         Q2PA: 'TEXT',
         Q2PB: 'TEXT',
