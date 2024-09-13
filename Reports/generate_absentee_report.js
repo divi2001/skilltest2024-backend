@@ -1,18 +1,39 @@
 const connection = require("../config/db1");
+const moment = require('moment'); // Make sure to install and import moment.js for easier date handling
+
+
 
 async function getData(center, batchNo) {
     try {
         console.log(center, batchNo);
         const query = 'SELECT student_id from students where batchNo = ? AND center = ?';
-        const response = await connection.query(query, [batchNo , center]);
+        const response = await connection.query(query, [batchNo, center]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
         console.log(response[0], batchData[0]);
-        return { response: response[0], batchData: batchData[0] };
+
+        // Check if download is allowed
+        const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
+        
+        if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
+        return { 
+            response: response[0], 
+            batchData: batchData[0], 
+            isDownloadAllowed 
+        };
     } catch (error) {
         console.error('Error in getData:', error);
         throw error;
     }
+}
+
+function checkDownloadAllowed(batchDate) {
+    const today = moment().startOf('day');
+    const batchMoment = moment(batchDate).startOf('day');
+    const differenceInDays = batchMoment.diff(today, 'days');
+    console.log(differenceInDays);
+    // Allow download if it's the day of the batch or one day before
+    return differenceInDays <= 1 && differenceInDays >= 0  ;
 }
 
 function addHeader(doc, data) {

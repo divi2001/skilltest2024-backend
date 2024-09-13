@@ -213,11 +213,27 @@ const getData = async(center , batchNo) => {
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
         console.log(response[0],batchData[0]);
-        return { response: response[0], batchData: batchData[0] };;
+        
+        const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
+        
+        if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
+        return { 
+            response: response[0], 
+            batchData: batchData[0], 
+            isDownloadAllowed 
+        };
     } catch (error) {
         console.error('Error in getData:', error);
         throw error;
     }
+}
+function checkDownloadAllowed(batchDate) {
+    const today = moment().startOf('day');
+    const batchMoment = moment(batchDate).startOf('day');
+    const differenceInDays = batchMoment.diff(today, 'days');
+    console.log(differenceInDays);
+    // Allow download if it's the day of the batch or one day before
+    return differenceInDays <= 1 && differenceInDays >= 0  ;
 }
 
 
