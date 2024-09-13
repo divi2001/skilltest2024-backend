@@ -30,6 +30,7 @@ async function getData(center, batchNo) {
 function checkDownloadAllowed(batchDate) {
     const today = moment().startOf('day');
     const batchMoment = moment(batchDate).startOf('day');
+    console.log(today,batchMoment);
     const differenceInDays = batchMoment.diff(today, 'days');
     console.log(differenceInDays);
     // Allow download if it's the day of the batch or one day before

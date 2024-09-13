@@ -13,6 +13,7 @@ const dataInputRoutes = require('./routes/data_input_routes')
 const studentRoutes = require('./routes/student_exam_routes')
 const examDashBoardRoutes = require("./routes/examCenterAuth-dashboard")
 const examDashboardDetailsRoutes = require("./routes/examCenterDetails-dashboard");
+const departmentRoutes = require("./routes/department_routes");
 
 const app = express();
 const PORT = 3000;
@@ -53,6 +54,7 @@ app.use(examDashboardDetailsRoutes);
 app.use(trackStudentRoutes);
 app.use(pdfRoutes);
 app.use(fetchRoutes);
+app.use(departmentRoutes);
 
 
 //Test Route

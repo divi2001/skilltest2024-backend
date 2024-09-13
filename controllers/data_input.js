@@ -147,6 +147,10 @@ async function insertChunk(tableName, columns, chunk) {
         return encrypt(value);
       }
 
+      if(column === 'departmentPassword' && tableName === 'departmentdb'){
+        return encrypt(value);
+      }
+
       if(column === 'password' && tableName === 'students'){
         return encrypt(value);
       }

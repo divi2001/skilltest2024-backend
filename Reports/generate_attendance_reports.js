@@ -1,4 +1,5 @@
 const connection =  require("../config/db1");
+const moment = require('moment');
 function createAttendanceReport(doc , data) {
     function addHeader() {
         doc.image('Reports/logo.png', 50, 50, { width: 50, height: 50 })
