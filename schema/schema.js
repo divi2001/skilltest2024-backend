@@ -256,7 +256,10 @@ const schema = {
     answersheet: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES students(student_id)',
-        base64: 'LONGTEXT',
+        image1: 'LONGTEXT',
+        image2: 'LONGTEXT',
+        image3: 'LONGTEXT',
+        image4: 'LONGTEXT',
         upload_date: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
     }
 };

@@ -22,10 +22,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:3001', // Your frontend URL
-  credentials: true, // This allows sending cookies from the client
+  origin: ['http://localhost:3001', 'http://192.168.1.102:3001/'],// Your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
   optionsSuccessStatus: 200
-};
+}
 
 // // Use CORS with the above options
 app.use(cors(corsOptions));

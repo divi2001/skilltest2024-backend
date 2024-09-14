@@ -7,7 +7,10 @@ async function createAnswerSheetTableIfNotExists() {
       CREATE TABLE IF NOT EXISTS answersheet (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         student_id BIGINT,
-        base64 LONGTEXT,
+        image1 LONGTEXT,
+        image2 LONGTEXT,
+        image3 LONGTEXT,
+        image4 LONGTEXT,
         upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (student_id) REFERENCES students(student_id)
       )
@@ -19,15 +22,53 @@ async function createAnswerSheetTableIfNotExists() {
   }
 }
 
-// Function to process a single file
-async function processFile(file, studentId, connection) {
-  const base64Data = file.buffer.toString('base64');
-  const base64String = `data:${file.mimetype};base64,${base64Data}`;
-  
-  await connection.query(
-    'INSERT INTO answersheet (student_id, base64) VALUES (?, ?)',
-    [studentId, base64String]
+// Function to process files and insert/update the database
+async function processFiles(files, studentId, connection) {
+  const [existingRecord] = await connection.query(
+    'SELECT * FROM answersheet WHERE student_id = ?',
+    [studentId]
   );
+
+  let query;
+  let params;
+
+  const imageData = files.map(file => {
+    const base64Data = file.buffer.toString('base64');
+    return `data:${file.mimetype};base64,${base64Data}`;
+  });
+
+  if (existingRecord.length === 0) {
+    // Insert new record
+    query = 'INSERT INTO answersheet (student_id, image1, image2, image3, image4) VALUES (?, ?, ?, ?, ?)';
+    params = [studentId, ...imageData, ...Array(4 - imageData.length).fill(null)];
+  } else {
+    // Update existing record, only filling empty slots
+    const existingImages = [
+      existingRecord[0].image1,
+      existingRecord[0].image2,
+      existingRecord[0].image3,
+      existingRecord[0].image4
+    ];
+    
+    let updatedImages = [...existingImages];
+    let newImageIndex = 0;
+
+    for (let i = 0; i < 4; i++) {
+      if (!existingImages[i] && newImageIndex < imageData.length) {
+        updatedImages[i] = imageData[newImageIndex];
+        newImageIndex++;
+      }
+    }
+
+    if (newImageIndex < imageData.length) {
+      throw new Error('No empty slots available for all uploaded images');
+    }
+    
+    query = 'UPDATE answersheet SET image1 = ?, image2 = ?, image3 = ?, image4 = ? WHERE student_id = ?';
+    params = [...updatedImages, studentId];
+  }
+
+  await connection.query(query, params);
 }
 
 exports.uploadAnswerSheets = async (req, res) => {
@@ -51,21 +92,28 @@ exports.uploadAnswerSheets = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Check how many images the student already has
+    // Check available slots
     const [existingImages] = await connection.query(
-      'SELECT COUNT(*) as count FROM answersheet WHERE student_id = ?',
+      'SELECT image1, image2, image3, image4 FROM answersheet WHERE student_id = ?',
       [studentId]
     );
 
-    const currentCount = existingImages[0].count;
-    const newImagesCount = req.files.length;
-
-    if (currentCount + newImagesCount > 5) {
-      return res.status(400).json({ message: 'Maximum 5 images allowed per student' });
+    let availableSlots = 4;
+    if (existingImages.length > 0) {
+      availableSlots = [
+        existingImages[0].image1,
+        existingImages[0].image2,
+        existingImages[0].image3,
+        existingImages[0].image4
+      ].filter(img => img === null).length;
     }
 
-    // Process all files concurrently
-    await Promise.all(req.files.map(file => processFile(file, studentId, connection)));
+    if (req.files.length > availableSlots) {
+      return res.status(400).json({ message: `Only ${availableSlots} empty slot(s) available for upload.` });
+    }
+
+    // Process files and update database
+    await processFiles(req.files, studentId, connection);
 
     res.status(200).json({ message: 'Answer sheets uploaded successfully' });
   } catch (error) {
