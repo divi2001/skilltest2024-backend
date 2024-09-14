@@ -139,3 +139,79 @@ exports.loginStudent = async (req, res) => {
         res.status(500).send('Internal server error');
     }
 };
+exports.getStudentDetails = async (req, res) => {
+    console.log('Starting getStudentDetails function');
+    const {studentId} = req.body;
+    // console.log(studentId);
+    console.log('Student ID from :', studentId);
+
+    const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
+    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
+
+    try {
+        console.log('Querying student data');
+        const [students] = await connection.query(studentQuery,[studentId]);
+
+        if (students.length === 0) {
+            console.log('Student not found');
+            return res.status(404).send('Student not found');
+        }
+        const student = students[0];
+        console.log('Student data retrieved');
+
+        let subjectsId;
+        try {
+            console.log('Parsing subjectsId');
+            subjectsId = JSON.parse(student.subjectsId);
+            console.log('Parsed subjectsId:', subjectsId);
+        } catch (err) {
+            console.error('Error parsing subjectsId:', err);
+            return res.status(500).send('Invalid subjectsId format');
+        }
+
+        const subjectId = subjectsId;
+        console.log('First subject ID:', subjectId);
+
+        console.log('Querying subject data');
+        const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+        console.log(subjects)
+
+        if (subjects.length === 0) {
+            console.log('Subject not found');
+            return res.status(404).send('Subject not found');
+            
+        }
+        const subject = subjects[0];
+        console.log('Subject data retrieved');
+
+        console.log('Preparing response data');
+        const responseData = {
+            ...student,
+            ...subject,
+            photo: student.base64
+        };
+        console.log('Response data prepared');
+
+        // console.log('Encrypting response data');
+        // const encryptedResponseData = {};
+        // for (let key in responseData) {
+        //     if (responseData.hasOwnProperty(key)) {
+        //         if (responseData[key] === null) {
+        //             encryptedResponseData[key] = encrypt('null');
+        //         } else {
+        //             encryptedResponseData[key] = encrypt(responseData[key].toString());
+        //         }
+        //     }
+        // }
+        // console.log('Response data encrypted');
+
+        // console.log('Sending encrypted response');
+        // res.send(encryptedResponseData);
+        res.status(201).json({responseData})
+    } catch (err) {
+        console.error('Error in getStudentDetails:', err);
+        res.status(500).send('Failed to fetch student details');
+    }
+    console.log('Ending getStudentDetails function');
+};
+

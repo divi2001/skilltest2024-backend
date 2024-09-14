@@ -1,6 +1,6 @@
 // schema.js
 const schema = {
-    admindb:{
+    admindb: {
         adminid: 'BIGINT PRIMARY KEY',
         password: 'LONGTEXT'
     },
@@ -116,9 +116,9 @@ const schema = {
         qset: 'INT',
         trial_passage: 'LONGTEXT',
         passage_name: 'VARCHAR(10)',
-     
+
         passage_text: 'LONGTEXT'
-   
+
     },
 
     loginlogs: {
@@ -129,7 +129,7 @@ const schema = {
         disk_id: 'VARCHAR(255) NOT NULL',
         mac_address: 'VARCHAR(255) NOT NULL'
     },
-    
+
     studentlogs: {
         id: 'INT AUTO_INCREMENT PRIMARY KEY',
         student_id: 'VARCHAR(255) NOT NULL',
@@ -144,7 +144,7 @@ const schema = {
         feedback_time: 'VARCHAR(255)',
         UNIQUE: '(student_id)'
     },
-    
+
     login_requests: {
         id: 'INT AUTO_INCREMENT PRIMARY KEY',
         ip_address: 'VARCHAR(255) NOT NULL',
@@ -250,6 +250,14 @@ const schema = {
         Q3PB: 'TEXT',
         Q4PA: 'TEXT',
         Q4PB: 'TEXT'
+    },
+
+    // Add this to your schema.js file
+    answersheet: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT REFERENCES students(student_id)',
+        base64: 'LONGTEXT',
+        upload_date: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
     }
 };
 

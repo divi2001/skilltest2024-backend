@@ -14,6 +14,7 @@ const studentRoutes = require('./routes/student_exam_routes')
 const examDashBoardRoutes = require("./routes/examCenterAuth-dashboard")
 const examDashboardDetailsRoutes = require("./routes/examCenterDetails-dashboard");
 const departmentRoutes = require("./routes/department_routes");
+const answerSheetRoutes = require("./routes/answerSheet_routes");
 
 const app = express();
 const PORT = 3000;
@@ -43,6 +44,7 @@ app.use(session({
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use('/uploads', express.static('uploads'));
 
 
 app.use(studentRoutes)
@@ -55,6 +57,7 @@ app.use(trackStudentRoutes);
 app.use(pdfRoutes);
 app.use(fetchRoutes);
 app.use(departmentRoutes);
+app.use(answerSheetRoutes);
 
 
 //Test Route

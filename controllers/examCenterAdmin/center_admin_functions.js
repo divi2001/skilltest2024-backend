@@ -1,5 +1,6 @@
 
 const connection = require('../../config/db1');
+const { decrypt,encrypt } = require('../../config/encrypt');
 
 exports.loginCenterAdmin= async (req, res) => {
     console.log("Trying center admin login");
@@ -12,15 +13,29 @@ exports.loginCenterAdmin= async (req, res) => {
         const [results] = await connection.query(centerdbQuery, [centerId]);
         if (results.length > 0) {
             const admin = results[0];
-            console.log("data: "+admin);
-            console.log(admin)
+            // console.log("data: "+admin);
+            console.log(admin.centerpass);
             let decryptedStoredPassword;
+            // try {
+            //     console.log("entered:");
+            //     decryptedStoredPassword = decrypt(admin.centerpass);
+            // } catch (error) {
+            //     // console.log(decryptedStoredPassword + password )
+            //     console.error('Error decrypting provided password:', error);
+            //     res.status(500).send('invalid credentials 4');
+            //     return;
+            // }
+
+            // // Ensure both passwords are treated as strings
+            // const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
+
             try {
                 console.log("admin pass: "+admin.centerpass + " provide pass: "+password);
                    
             } catch (error) {                
                 return;
             }
+            
             
             if (admin.centerpass === password) {
                 // Set institute session
