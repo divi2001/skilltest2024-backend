@@ -48,11 +48,12 @@ function formatDate(dateString) {
 exports.getStudentsTrackDepartmentwise = async (req,res) => {
     console.log('Starting getStudentsTrack function');
     const departmentId = 1;
-    let { subject_name, loginStatus, batchDate , batchNo } = req.query;
+    let { subject_name, loginStatus, batchDate , batchNo, center } = req.query;
     console.log("Exam center code:", departmentId);
     console.log("Batch no:", batchNo);
     console.log("Subject:", subject_name);
     console.log("Login status:", loginStatus);
+    console.log("Center no:", center);
     console.log("Original Batch date:", batchDate);
 
     if (batchDate) {
@@ -125,6 +126,11 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
     if (subject_name) {
         query += ' AND sub.subject_name = ?';
         queryParams.push(subject_name);
+    }
+
+    if(center){
+        query+= 'AND s.center = ?';
+        queryParams.push(center);
     }
 
     if (loginStatus) {
