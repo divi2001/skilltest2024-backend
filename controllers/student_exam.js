@@ -256,6 +256,7 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
                     encryptedResponseData[key] = encrypt(responseData[key].toString());
                 }
             }
+            console.log(encryptedResponseData)
 
             res.send(encryptedResponseData);
         } catch (err) {
@@ -643,11 +644,13 @@ exports.logTextInput = async (req, res) => {
       res.status(500).send(err.message);
     }
   };
+
+
   exports.getcontrollerpass = async (req, res) => {
     const studentId = req.session.studentId;
-    const studentQuery = 'SELECT center FROM students WHERE student_id = ?';
+    const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const centersQuery = 'SELECT * FROM examcenterdb WHERE center = ?';
-    const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ?';
+    const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ? AND batchNo = ?';
 
     try {
         const [students] = await connection.query(studentQuery, [studentId]);
@@ -657,6 +660,9 @@ exports.logTextInput = async (req, res) => {
         }
         const student = students[0];
         const centrcode = student.center;
+        const batchno = student.batchNo
+
+        console.log(batchno)
    
 
         console.log(`Student center: ${centrcode}`);
@@ -670,7 +676,7 @@ exports.logTextInput = async (req, res) => {
 
         console.log(`Exam center found: ${center1.center_name}`);
 
-        const [controllers] = await connection.query(controllersQuery, [centrcode]);
+        const [controllers] = await connection.query(controllersQuery, [centrcode,batchno]);
         if (controllers.length === 0) {
             console.log(`Error: Controller not found for center code ${centrcode}`);
             return res.status(404).send('Subject not found');
@@ -688,6 +694,7 @@ exports.logTextInput = async (req, res) => {
             controllerpass: decryptedStoredPasswordStr,
             center_name: center1.center_name
         };
+        console.log(responseData)
 
     
 
