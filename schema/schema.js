@@ -152,7 +152,7 @@ const schema = {
         question10: 'LONGTEXT'
     },
     textlogs: {
-        id: 'BIGINT PRIMARY KEY',
+        id: 'BIGINT AUTO_INCREMENT PRIMARY KEY',
         student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         mina: 'DECIMAL',
         texta: 'LONGTEXT',

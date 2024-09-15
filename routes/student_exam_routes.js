@@ -30,6 +30,7 @@ router.get('/controller_pass',isAuthenticated, studentController.getcontrollerpa
 router.get('/audioProgress', isAuthenticated,studentController.getAudioLogs); 
 router.post('/textlogs', isAuthenticated,studentController.logTextInput); 
 router.post('/passageprogress', isAuthenticated,studentController.getPassageProgress); 
+router.post('/passagetime', isAuthenticated,studentController.updatePassagewLogTime);
 router.post('/audiotime', isAuthenticated,studentController.updateAudioLogTime);
 
 
