@@ -88,34 +88,53 @@ async function createDatabaseAndTables() {
     }
   }
 }
-
 async function addForeignKeyConstraints(connection) {
-  try {
-    // Add foreign key for feedbackdb referencing students
-    await connection.query(`
-      ALTER TABLE feedbackdb 
-      ADD CONSTRAINT fk_feedbackdb_students 
-      FOREIGN KEY (student_id) REFERENCES students(student_id)
-    `);
-    console.log('Foreign key constraint added: feedbackdb -> students');
+  const constraints = [
+    {
+      table: 'feedbackdb',
+      constraint: 'fk_feedbackdb_students',
+      foreignKey: 'student_id',
+      referencedTable: 'students',
+      referencedColumn: 'student_id'
+    },
+    {
+      table: 'feedbackdb',
+      constraint: 'fk_feedbackdb_studentlogs',
+      foreignKey: 'student_id',
+      referencedTable: 'studentlogs',
+      referencedColumn: 'student_id'
+    },
+    // Add more constraints here if needed
+  ];
 
-    // Add foreign key for feedbackdb referencing studentlogs
-    await connection.query(`
-      ALTER TABLE feedbackdb 
-      ADD CONSTRAINT fk_feedbackdb_studentlogs 
-      FOREIGN KEY (student_id) REFERENCES studentlogs(student_id)
-    `);
-    console.log('Foreign key constraint added: feedbackdb -> studentlogs');
+  for (const constraint of constraints) {
+    try {
+      // Check if the constraint already exists
+      const [rows] = await connection.query(`
+        SELECT CONSTRAINT_NAME 
+        FROM information_schema.TABLE_CONSTRAINTS 
+        WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND CONSTRAINT_NAME = ?
+      `, [config.database, constraint.table, constraint.constraint]);
 
-    // Add more foreign key constraints here if needed
-
-  } catch (error) {
-    if (error.code === 'ER_CANT_CREATE_TABLE') {
-      console.log('Foreign key constraint already exists or referenced table is missing.');
-    } else {
-      throw error;
+      if (rows.length === 0) {
+        // Constraint doesn't exist, add it
+        await connection.query(`
+          ALTER TABLE ${constraint.table} 
+          ADD CONSTRAINT ${constraint.constraint} 
+          FOREIGN KEY (${constraint.foreignKey}) 
+          REFERENCES ${constraint.referencedTable}(${constraint.referencedColumn})
+        `);
+        console.log(`Foreign key constraint added: ${constraint.table} -> ${constraint.referencedTable}`);
+      } else {
+        console.log(`Foreign key constraint already exists: ${constraint.table} -> ${constraint.referencedTable}`);
+      }
+    } catch (error) {
+      if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+        console.log(`Cannot add foreign key constraint: ${constraint.table} -> ${constraint.referencedTable}. Referenced table might be empty or missing.`);
+      } else {
+        console.error(`Error adding foreign key constraint: ${constraint.table} -> ${constraint.referencedTable}`, error);
+      }
     }
   }
 }
-
 createDatabaseAndTables();

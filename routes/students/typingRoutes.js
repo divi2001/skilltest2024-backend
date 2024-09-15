@@ -8,6 +8,7 @@ const isAuthenticated = require('../../middleware/isAuthStudent');
 const typingController = require('../../controllers/students/typingController')
 
 router.get('/exam_passages', isAuthenticated,typingController.getpassages); 
+router.post('/update_passage',isAuthenticated,typingController.insertTypingPassageLog)
 
 
 module.exports = router;
