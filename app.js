@@ -15,6 +15,9 @@ const examDashBoardRoutes = require("./routes/examCenterAuth-dashboard")
 const examDashboardDetailsRoutes = require("./routes/examCenterDetails-dashboard");
 const departmentRoutes = require("./routes/department_routes");
 const answerSheetRoutes = require("./routes/answerSheet_routes");
+const typingRoutes = require('./routes/students/typingRoutes')
+const excelRouter = require('./routes/dataImportExport/excelImportRoutes')
+
 
 const app = express();
 const PORT = 3000;
@@ -60,6 +63,8 @@ app.use(pdfRoutes);
 app.use(fetchRoutes);
 app.use(departmentRoutes);
 app.use(answerSheetRoutes);
+app.use(typingRoutes)
+app.use(excelRouter)
 
 
 //Test Route
