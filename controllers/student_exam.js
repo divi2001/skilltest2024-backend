@@ -113,12 +113,11 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
 
 
     exports.getStudentDetails = async (req, res) => {
-        console.log('Starting getStudentDetails function');
+        // console.log('Starting getStudentDetails function');
         const studentId = req.session.studentId;
         console.log('Student ID from session:', studentId);
     
         const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
-        const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
         const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
     
         try {
@@ -146,9 +145,9 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
             const subjectId = subjectsId;
             console.log('First subject ID:', subjectId);
     
-            console.log('Querying subject data');
+            // console.log('Querying subject data');
             const [subjects] = await connection.query(subjectsQuery, [subjectId]);
-            console.log(subjects)
+            // console.log(subjects)
     
             if (subjects.length === 0) {
                 console.log('Subject not found');
@@ -193,6 +192,7 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
     };
 
     exports.getaudios = async (req, res) => {
+        console.log('audio function called');
         const studentId = req.session.studentId;
         const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
         const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
@@ -204,6 +204,8 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
                 return res.status(404).send('Student not found');
             }
             const student = students[0];
+
+            // console.log(student);
             // for (const field in student) {
             //     if (student.hasOwnProperty(field) && !columnsToKeep.includes(field)) {
             //         try {
@@ -215,28 +217,34 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
             //     }
             // }
         
-
-
-
             // Extract subjectsId and parse it to an array
-            const subjectsId = student.subjectsId;
+            // const subjectsId = student.subjectsId;
             const qset = student.qset
             console.log(qset)
 
             // Assuming you want the first subject from the array
-            const subjectId = student.subjectsId;
+            const subjectId = JSON.parse(student.subjectsId);
+
+            console.log("subjectId:", subjectId);
+
+            console.log("Type of subjectId:", typeof subjectId[0]);  // Should be 'number'
+            
             const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+            console.log(`Subjects fetched: ${subjects}`)
+
             if (subjects.length === 0) {
                 return res.status(404).send('Subject not found');
             }
             const subject = subjects[0];
-
+            console.log(`Accessing the first subject object: ${subject}`)
 
             const [auidos] = await connection.query(audioQuery, [subjectId, qset]);
+
             if (auidos.length === 0) {
                 return res.status(404).send('audio not found');
             }
             const audio = auidos[0];
+            console.log(audio);
         
 
             const responseData = {
@@ -254,21 +262,28 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
                 testaudio:audio.testaudio   
             };
             console.log(responseData)
-    
 
             const encryptedResponseData = {};
             for (let key in responseData) {
                 if (responseData.hasOwnProperty(key)) {
-                    encryptedResponseData[key] = encrypt(responseData[key].toString());
+                    if (responseData[key] === undefined) {
+                        console.error(`Field ${key} is undefined`);
+
+                        encryptedResponseData[key] = encrypt('');  // or some default value
+                    } else {
+                        encryptedResponseData[key] = encrypt(responseData[key].toString());
+                    }
                 }
             }
-
+            console.log(encryptedResponseData);
             res.send(encryptedResponseData);
+
         } catch (err) {
             // console.error('Failed to fetch student details:', err);
             res.status(500).send(err.message);
         }
     };
+
     exports.updateAudioLogs = async (req, res) => {
         const studentId = req.session.studentId;
         const { audio_type, percentage } = req.body;
@@ -354,14 +369,14 @@ exports.getAudioLogs = async (req, res) => {
             }
             
             // Check if any audio percentage is 100 and set it to 95
-            if (audioLogs.trial === '100') {
-                audioLogs.trial = 95;
+            if (audioLogs.trial === 100) {
+                audioLogs.trial = 99;
             }
-            if (audioLogs.passageA === '100') {
-                audioLogs.passageA = 95;
+            if (audioLogs.passageA === 100) {
+                audioLogs.passageA = 99;
             }
-            if (audioLogs.passageB === '100') {
-                audioLogs.passageB = 95;
+            if (audioLogs.passageB === 100) {
+                audioLogs.passageB = 99;
             }
             
             res.send(audioLogs);
@@ -570,9 +585,9 @@ exports.logTextInput = async (req, res) => {
       if (identifier === 'passageA') {
         insertQuery = 'INSERT INTO textlogs (student_id, mina, texta) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE mina = VALUES(mina), texta = VALUES(texta)';
         values = [studentId, time, text];
-      } else if (identifier === 'passageB') {
-        insertQuery = 'INSERT INTO textlogs (student_id, minb, textb) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE minb = VALUES(minb), textb = VALUES(textb)';
-        values = [studentId, time, text];
+    //   } else if (identifier === 'passageB') {
+    //     insertQuery = 'INSERT INTO textlogs (student_id, minb, textb) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE minb = VALUES(minb), textb = VALUES(textb)';
+    //     values = [studentId, time, text];
       } else {
         console.error('Invalid identifier:', identifier);
         return res.status(400).send('Invalid identifier');
@@ -649,6 +664,8 @@ exports.logTextInput = async (req, res) => {
       res.status(500).send(err.message);
     }
   };
+
+  
   exports.getcontrollerpass = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT center FROM students WHERE student_id = ?';
