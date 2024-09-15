@@ -139,7 +139,8 @@ const schema = {
         batchstatus: 'BOOLEAN'
     },
     feedbackdb: {
-        student_id: 'BIGINT REFERENCES studentlogs(student_id)',
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',  // Add this line
+        student_id: 'BIGINT',
         question1: 'LONGTEXT',
         question2: 'LONGTEXT',
         question3: 'LONGTEXT',
@@ -152,7 +153,7 @@ const schema = {
         question10: 'LONGTEXT'
     },
     textlogs: {
-        id: 'BIGINT AUTO_INCREMENT PRIMARY KEY',
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         mina: 'DECIMAL',
         texta: 'LONGTEXT',
@@ -186,6 +187,27 @@ const schema = {
         status: 'BOOLEAN',
         submitted: 'DATETIME'
     },
+    typingpassagelogs :{
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT REFERENCES students(student_id)',
+        trial_time:'INT',
+        trial_passage:'LONGTEXT',
+        passage_time:'INT',
+        passage:'LONGTEXT',
+         time: 'DATETIME'
+
+    },
+    typingpassage :{
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT REFERENCES students(student_id)',
+
+        trial_passage:'LONGTEXT',
+
+        passage:'LONGTEXT',
+         time: 'DATETIME'
+
+    },
+
     expertdb: {
         expertId: 'INT PRIMARY KEY',
         password: 'VARCHAR(255)',
