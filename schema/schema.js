@@ -12,8 +12,6 @@ const schema = {
         batchdate: 'DATE',
         fullname: 'VARCHAR(100)',
         subjectsId: 'INT REFERENCES subjectsdb(subjectId)',
-        // shorthandSubjectId: 'INT', //Need to add reference from separate shorthand subject table error...!
-        // typewritingSubjectId: 'INT', //Need to add reference from separate typewriting subject tableerror...!
         courseId: 'INT',
         batch_year: 'VARCHAR(100)',
         loggedin: 'BOOLEAN',
@@ -25,8 +23,6 @@ const schema = {
         end_time: 'TIME',
         day: 'INT',
         qset: 'INT',
-        shorthandQset: 'INT',
-        typewritingQset: 'INT',
         base64: 'LONGTEXT',
         IsShorthand: 'BOOLEAN',
         IsTypewriting: 'BOOLEAN',
@@ -48,7 +44,7 @@ const schema = {
         logo: 'LONGTEXT'
     },
     studentlogs: {
-        id: 'BIGINT PRIMARY KEY',
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES students(student_id)',
         center: 'INT REFERENCES examcenterdb(center)',
         loginTime: 'TIMESTAMP',
@@ -58,15 +54,16 @@ const schema = {
         passage1_time: 'TIMESTAMP',
         audio2_time: 'TIMESTAMP',
         passage2_time: 'TIMESTAMP',
-        feedback_time: 'TIMESTAMP'
+        feedback_time: 'TIMESTAMP',
+        UNIQUE: '(student_id)'
     },
     loginlogs: {
-        id: 'BIGINT PRIMARY KEY',
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         login_time: 'TIMESTAMP',
-        ip_address: 'LOGNTEXT REFERENCES pcregistration(ip_address)',
+        ip_address: 'LONGTEXT REFERENCES pcregistration(ip_address)',
         disk_id: 'LONGTEXT',
-        mac_address: 'LOGNTEXT'
+        mac_address: 'LONGTEXT'
     },
     examcenterdb: {
         center: 'INT PRIMARY KEY',
@@ -116,33 +113,8 @@ const schema = {
         qset: 'INT',
         trial_passage: 'LONGTEXT',
         passage_name: 'VARCHAR(10)',
-
         passage_text: 'LONGTEXT'
 
-    },
-
-    loginlogs: {
-        id: 'INT AUTO_INCREMENT PRIMARY KEY',
-        student_id: 'VARCHAR(255) NOT NULL',
-        login_time: 'DATETIME NOT NULL',
-        ip_address: 'VARCHAR(255) NOT NULL',
-        disk_id: 'VARCHAR(255) NOT NULL',
-        mac_address: 'VARCHAR(255) NOT NULL'
-    },
-
-    studentlogs: {
-        id: 'INT AUTO_INCREMENT PRIMARY KEY',
-        student_id: 'VARCHAR(255) NOT NULL',
-        center: 'VARCHAR(255) NOT NULL',
-        loginTime: 'DATETIME NOT NULL',
-        login: 'VARCHAR(255) NOT NULL',
-        trial_time: 'VARCHAR(255)',
-        audio1_time: 'VARCHAR(255)',
-        passage1_time: 'VARCHAR(255)',
-        audio2_time: 'VARCHAR(255)',
-        passage2_time: 'VARCHAR(255)',
-        feedback_time: 'VARCHAR(255)',
-        UNIQUE: '(student_id)'
     },
 
     login_requests: {
@@ -151,6 +123,7 @@ const schema = {
         request_time: 'DATETIME NOT NULL',
         INDEX: '(ip_address, request_time)'
     },
+
     audiologs: {
         student_id: 'BIGINT PRIMARY KEY REFERENCES studentlogs(student_id)',
         trial: 'INT',
