@@ -175,3 +175,90 @@ exports.insertTypingPassageLog = async (req, res) => {
         res.status(500).send(`Database error: ${err.message}`);
     }
 };
+
+
+exports.updateTypingPassageText = async (req, res) => {
+    const studentId = req.session.studentId;
+    const { trial_passage, passage } = req.body;
+
+    // Validate that we have at least some data to update
+    if (!trial_passage && !passage) {
+        return res.status(400).send('Invalid data: Provide at least one text field to update');
+    }
+
+    try {
+        // First, check if a record exists for this student
+        const [existingRows] = await connection.query(
+            'SELECT * FROM typingpassage WHERE student_id = ? ORDER BY time DESC LIMIT 1',
+            [studentId]
+        );
+
+        const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
+        // Validate the currentTime format
+        if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
+            return res.status(400).send('Invalid time format');
+        }
+
+        let query, params;
+
+        if (existingRows.length > 0) {
+            // Update existing record
+            const existingRecord = existingRows[0];
+            const updateFields = [];
+            params = [];
+
+            if (trial_passage !== undefined) {
+                updateFields.push('trial_passage = ?');
+                params.push(trial_passage);
+            }
+            if (passage !== undefined) {
+                updateFields.push('passage = ?');
+                params.push(passage);
+            }
+
+            // If no fields to update, return early
+            if (updateFields.length === 0) {
+                return res.status(400).send('No valid fields to update');
+            }
+
+            updateFields.push('time = ?');
+            params.push(currentTime);
+
+            query = `UPDATE typingpassage SET ${updateFields.join(', ')} WHERE id = ?`;
+            params.push(existingRecord.id);
+        } else {
+            // Insert new record
+            const fields = ['student_id'];
+            const placeholders = ['?'];
+            params = [studentId];
+
+            if (trial_passage !== undefined) {
+                fields.push('trial_passage');
+                placeholders.push('?');
+                params.push(trial_passage);
+            }
+            if (passage !== undefined) {
+                fields.push('passage');
+                placeholders.push('?');
+                params.push(passage);
+            }
+
+            fields.push('time');
+            placeholders.push('?');
+            params.push(currentTime);
+
+            query = `INSERT INTO typingpassage (${fields.join(', ')}) VALUES (${placeholders.join(', ')})`;
+        }
+
+        const [result] = await connection.query(query, params);
+        
+        res.status(200).json({
+            message: existingRows.length > 0 ? 'Typing passage text updated successfully' : 'New typing passage record inserted successfully',
+            affectedRows: result.affectedRows
+        });
+    } catch (err) {
+        console.error('Failed to update/insert typing passage text:', err);
+        res.status(500).send(`Database error: ${err.message}`);
+    }
+};

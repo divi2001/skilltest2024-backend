@@ -9,6 +9,7 @@ const typingController = require('../../controllers/students/typingController')
 
 router.get('/exam_passages', isAuthenticated,typingController.getpassages); 
 router.post('/update_passage',isAuthenticated,typingController.insertTypingPassageLog)
+router.post('/update_passage_final',isAuthenticated,typingController.updateTypingPassageText)
 
 
 module.exports = router;
