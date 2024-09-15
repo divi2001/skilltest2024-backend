@@ -90,7 +90,7 @@ exports.loginStudent = async (req, res) => {
             }
             let decryptedStoredPassword1;
             try {
-                decryptedStoredPassword1 = (password);
+                decryptedStoredPassword1 = decrypt(password);
             } catch (error) {
                 console.log(decryptedStoredPassword + password )
                 // console.error('Error decrypting provided password:', error);
