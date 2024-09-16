@@ -54,6 +54,8 @@ const schema = {
         passage1_time: 'TIMESTAMP',
         audio2_time: 'TIMESTAMP',
         passage2_time: 'TIMESTAMP',
+        trial_passage_time: 'TIMESTAMP',
+        typing_passage_time: 'TIMESTAMP',
         feedback_time: 'TIMESTAMP',
         UNIQUE: '(student_id)'
     },
@@ -187,25 +189,21 @@ const schema = {
         status: 'BOOLEAN',
         submitted: 'DATETIME'
     },
-    typingpassagelogs :{
+    typingpassagelogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES students(student_id)',
-        trial_time:'INT',
-        trial_passage:'LONGTEXT',
-        passage_time:'INT',
-        passage:'LONGTEXT',
-         time: 'DATETIME'
-
+        trial_time: 'INT',
+        trial_passage: 'LONGTEXT',
+        passage_time: 'INT',
+        passage: 'LONGTEXT',
+        time: 'DATETIME'
     },
-    typingpassage :{
+    typingpassage: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES students(student_id)',
-
-        trial_passage:'LONGTEXT',
-
-        passage:'LONGTEXT',
-         time: 'DATETIME'
-
+        trial_passage: 'LONGTEXT',
+        passage: 'LONGTEXT',
+        time: 'DATETIME'
     },
 
     expertdb: {
@@ -247,7 +245,6 @@ const schema = {
         Q4PB: 'TEXT'
     },
 
-    // Add this to your schema.js file
     answersheet: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES students(student_id)',

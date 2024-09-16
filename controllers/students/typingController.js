@@ -1,15 +1,5 @@
 const connection = require('../../config/db1');
-const fs = require('fs').promises; 
-const xl = require('excel4node');
-
-const path = require('path');
-const fs1 = require('fs');
-const Buffer = require('buffer').Buffer;
-const archiver = require('archiver');
 const moment = require('moment-timezone');
-
-const { encrypt, decrypt } =require('../../config/encrypt');
-const { request } = require('http');
 
 
 exports.getpassages = async (req, res) => {
@@ -98,80 +88,139 @@ exports.insertTypingPassageLog = async (req, res) => {
     }
 
     try {
-        // First, check if a record exists for this student
+        // Begin transaction
+        await connection.beginTransaction();
+
+        // Check if a record exists for this student in typingpassagelogs
         const [existingRows] = await connection.query(
             'SELECT * FROM typingpassagelogs WHERE student_id = ? ORDER BY time DESC LIMIT 1',
             [studentId]
         );
 
-        let query, params;
+        // Check if a record exists for this student in studentlogs
+        const [studentLogs] = await connection.query(
+            'SELECT * FROM studentlogs WHERE student_id = ? ORDER BY time DESC LIMIT 1',
+            [studentId]
+        );
 
+        let typingPassageQuery, typingPassageParams;
+        let studentLogsQuery, studentLogsParams;
+
+        // Handle typingpassagelogs
         if (existingRows.length > 0) {
-            // Update existing record
+            // Update existing record in typingpassagelogs
             const existingRecord = existingRows[0];
             const updateFields = [];
-            params = [];
+            typingPassageParams = [];
 
             if (trial_time !== undefined) {
                 updateFields.push('trial_time = ?');
-                params.push(trial_time);
+                typingPassageParams.push(trial_time);
             }
             if (trial_passage !== undefined) {
                 updateFields.push('trial_passage = ?');
-                params.push(trial_passage);
+                typingPassageParams.push(trial_passage);
             }
             if (passage_time !== undefined) {
                 updateFields.push('passage_time = ?');
-                params.push(passage_time);
+                typingPassageParams.push(passage_time);
             }
             if (passage !== undefined) {
                 updateFields.push('passage = ?');
-                params.push(passage);
+                typingPassageParams.push(passage);
             }
 
             updateFields.push('time = ?');
-            params.push(currentTime);
+            typingPassageParams.push(currentTime);
 
-            query = `UPDATE typingpassagelogs SET ${updateFields.join(', ')} WHERE id = ?`;
-            params.push(existingRecord.id);
+            typingPassageQuery = `UPDATE typingpassagelogs SET ${updateFields.join(', ')} WHERE id = ?`;
+            typingPassageParams.push(existingRecord.id);
         } else {
-            // Insert new record
+            // Insert new record into typingpassagelogs
             const fields = ['student_id', 'time'];
             const placeholders = ['?', '?'];
-            params = [studentId, currentTime];
+            typingPassageParams = [studentId, currentTime];
 
             if (trial_time !== undefined) {
                 fields.push('trial_time');
                 placeholders.push('?');
-                params.push(trial_time);
+                typingPassageParams.push(trial_time);
             }
             if (trial_passage !== undefined) {
                 fields.push('trial_passage');
                 placeholders.push('?');
-                params.push(trial_passage);
+                typingPassageParams.push(trial_passage);
             }
             if (passage_time !== undefined) {
                 fields.push('passage_time');
                 placeholders.push('?');
-                params.push(passage_time);
+                typingPassageParams.push(passage_time);
             }
             if (passage !== undefined) {
                 fields.push('passage');
                 placeholders.push('?');
-                params.push(passage);
+                typingPassageParams.push(passage);
             }
 
-            query = `INSERT INTO typingpassagelogs (${fields.join(', ')}) VALUES (${placeholders.join(', ')})`;
+            typingPassageQuery = `INSERT INTO typingpassagelogs (${fields.join(', ')}) VALUES (${placeholders.join(', ')})`;
         }
 
-        const [result] = await connection.query(query, params);
-        
+        // Handle studentlogs
+        if (studentLogs.length > 0) {
+            // Update existing record in studentlogs
+            const updateFields = [];
+            studentLogsParams = [];
+
+            if (trial_time !== undefined) {
+                updateFields.push('trial_passage_time = ?');
+                studentLogsParams.push(trial_time);
+            }
+            if (passage_time !== undefined) {
+                updateFields.push('typing_passage_time = ?');
+                studentLogsParams.push(passage_time);
+            }
+
+            updateFields.push('time = ?');
+            studentLogsParams.push(currentTime);
+
+            studentLogsQuery = `UPDATE studentlogs SET ${updateFields.join(', ')} WHERE student_id = ?`;
+            studentLogsParams.push(studentId);
+        } else {
+            // Insert new record into studentlogs
+            const fields = ['student_id', 'time'];
+            const placeholders = ['?', '?'];
+            studentLogsParams = [studentId, currentTime];
+
+            if (trial_time !== undefined) {
+                fields.push('trial_passage_time');
+                placeholders.push('?');
+                studentLogsParams.push(trial_time);
+            }
+            if (passage_time !== undefined) {
+                fields.push('typing_passage_time');
+                placeholders.push('?');
+                studentLogsParams.push(passage_time);
+            }
+
+            studentLogsQuery = `INSERT INTO studentlogs (${fields.join(', ')}) VALUES (${placeholders.join(', ')})`;
+        }
+
+        // Execute queries
+        const [typingPassageResult] = await connection.query(typingPassageQuery, typingPassageParams);
+        const [studentLogsResult] = await connection.query(studentLogsQuery, studentLogsParams);
+
+        // Commit transaction
+        await connection.commit();
+
         res.status(200).json({
-            message: existingRows.length > 0 ? 'Typing passage log updated successfully' : 'Typing passage log inserted successfully',
-            affectedRows: result.affectedRows
+            message: 'Typing passage log and student log updated successfully',
+            typingPassageAffectedRows: typingPassageResult.affectedRows,
+            studentLogsAffectedRows: studentLogsResult.affectedRows
         });
     } catch (err) {
-        console.error('Failed to upsert typing passage log:', err);
+        // Rollback transaction in case of error
+        await connection.rollback();
+        console.error('Failed to upsert typing passage log and student log:', err);
         res.status(500).send(`Database error: ${err.message}`);
     }
 };
