@@ -24,7 +24,7 @@ exports.loginadmin= async (req, res) => {
             console.log(admin);
             let decryptedStoredPassword;
             try {
-                decryptedStoredPassword = decrypt(admin.password);
+                decryptedStoredPassword = (admin.password);
                 console.log(`Decrypted stored password: '${decryptedStoredPassword}'`);   
             } catch (error) {
                 console.error('Error decrypting stored password:', error);
@@ -51,6 +51,47 @@ exports.loginadmin= async (req, res) => {
     }
   };
 
+  exports.fetchTableData = async (req, res) => {
+    console.log("Fetching table data for admin");
+    const { tableName } = req.body;
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const query = `SELECT * FROM ${tableName}`;
+
+    try {
+        const [results] = await connection.query(query);
+        res.json(results);
+    } catch (err) {
+        console.error('Error fetching table data:', err);
+        if (err.code === 'ER_NO_SUCH_TABLE') {
+            res.status(404).send('Table not found');
+        } else {
+            res.status(500).send('Error fetching table data');
+        }
+    }
+};exports.fetchTableNames = async (req, res) => {
+    console.log("Fetching all table names for admin");
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const query = `SHOW TABLES`;
+
+    try {
+        const [results] = await connection.query(query);
+        const tableNames = results.map(row => Object.values(row)[0]);
+        res.json(tableNames);
+    } catch (err) {
+        console.error('Error fetching table names:', err);
+        res.status(500).send('Error fetching table names');
+    }
+};
   exports.deleteTable = async (req, res) => {
     const tableName = req.params.tableName;
 
