@@ -73,6 +73,7 @@ exports.loginadmin= async (req, res) => {
             res.status(500).send('Error fetching table data');
         }
     }
+
 };exports.fetchTableNames = async (req, res) => {
     console.log("Fetching all table names for admin");
     const adminId = req.session.adminid;
@@ -92,6 +93,52 @@ exports.loginadmin= async (req, res) => {
         res.status(500).send('Error fetching table names');
     }
 };
+
+
+exports.updateTableData = async (req, res) => {
+    console.log("Updating table data for admin");
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const { tableName, updatedRows } = req.body;
+
+    if (!tableName || !updatedRows || !Array.isArray(updatedRows)) {
+        return res.status(400).send('Invalid request: tableName and updatedRows array are required');
+    }
+
+    try {
+        // Start a transaction
+        await connection.query('START TRANSACTION');
+
+        for (const row of updatedRows) {
+            const columns = Object.keys(row).filter(key => key !== 'key');
+            const values = columns.map(col => row[col]);
+            const placeholders = columns.map(() => '?').join(', ');
+
+            const updateQuery = `
+                UPDATE ${tableName}
+                SET ${columns.map(col => `${col} = ?`).join(', ')}
+                WHERE id = ?
+            `;
+
+            await connection.query(updateQuery, [...values, row.id]);
+        }
+
+        // Commit the transaction
+        await connection.query('COMMIT');
+
+        res.json({ success: true, message: 'Table data updated successfully' });
+    } catch (err) {
+        // If there's an error, rollback the transaction
+        await connection.query('ROLLBACK');
+        console.error('Error updating table data:', err);
+        res.status(500).json({ success: false, message: 'Error updating table data' });
+    }
+};
+
   exports.deleteTable = async (req, res) => {
     const tableName = req.params.tableName;
 

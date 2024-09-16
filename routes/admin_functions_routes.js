@@ -14,6 +14,7 @@ router.get('/resetaudiologs',isAuthenticatedAdmin,adminFunctionController.resetA
 
 router.post('/fetch-table-data',isAuthenticatedAdmin, adminFunctionController.fetchTableData);
 router.get('/fetch-table-names',adminFunctionController.fetchTableNames);
+router.post('/update-table-data',adminFunctionController.updateTableData);
 
 
 
