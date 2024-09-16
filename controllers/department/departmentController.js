@@ -48,11 +48,12 @@ function formatDate(dateString) {
 exports.getStudentsTrackDepartmentwise = async (req,res) => {
     console.log('Starting getStudentsTrack function');
     const departmentId = 1;
-    let { subject_name, loginStatus, batchDate , batchNo, center } = req.query;
+    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type } = req.query;
     console.log("Exam center code:", departmentId);
     console.log("Batch no:", batchNo);
     console.log("Subject:", subject_name);
     console.log("Login status:", loginStatus);
+    console.log("exam type:" , exam_type);
     console.log("Center no:", center);
     console.log("Original Batch date:", batchDate);
 
@@ -83,6 +84,8 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
         s.start_time,
         s.end_time,
         s.batchdate,
+        s.IsShorthand,
+        s.IsTypewriting,
         a.trial,
         a.passageA,
         a.passageB,
@@ -138,6 +141,18 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
             query += ' AND s.loggedin = 1';
         } else if (loginStatus === 'loggedout') {
             query += ' AND s.loggedin = 0';
+        }
+    }
+
+    if(exam_type){
+        if(exam_type ==='shorthand'){
+            query+= ' AND s.IsShorthand = 1'
+        }
+        else if (exam_type === 'typewriting'){
+            query+=' And s.IsTypewriting = 1'
+        }
+        else if(exam_type === 'both'){
+            query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
         }
     }
 
