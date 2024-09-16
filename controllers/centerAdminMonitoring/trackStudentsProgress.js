@@ -12,12 +12,13 @@ exports.getStudentsTrack = async (req, res) => {
     console.log('Starting getStudentsTrack function');
     const { batchNo } = req.params;
     const examCenterCode = req.session.centerId;
-    let { subject_name, loginStatus, batchDate } = req.query;
+    let { subject_name, loginStatus, batchDate ,exam_type } = req.query;
 
     console.log("Exam center code:", examCenterCode);
     console.log("Batch no:", batchNo);
     console.log("Subject:", subject_name);
     console.log("Login status:", loginStatus);
+    console.log("exam type:" . exam_type);
     console.log("Original Batch date:", batchDate);
 
     if (batchDate) {
@@ -97,6 +98,18 @@ exports.getStudentsTrack = async (req, res) => {
             query += ' AND s.loggedin = 1';
         } else if (loginStatus === 'loggedout') {
             query += ' AND s.loggedin = 0';
+        }
+    }
+
+    if(exam_type){
+        if(exam_type ==='shorthand'){
+            query+= ' AND s.IsShorthand = 1'
+        }
+        else if (exam_type === 'typewriting'){
+            query+=' And s.IsTypewriting = 1'
+        }
+        else if(exam_type === 'both'){
+            query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
         }
     }
 
