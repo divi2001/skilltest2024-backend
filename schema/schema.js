@@ -200,12 +200,9 @@ const schema = {
     typingpassage :{
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES students(student_id)',
-
         trial_passage:'LONGTEXT',
-
         passage:'LONGTEXT',
-         time: 'DATETIME'
-
+        time: 'DATETIME'
     },
 
     expertdb: {
