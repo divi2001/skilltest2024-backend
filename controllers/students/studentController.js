@@ -69,15 +69,13 @@ exports.loginStudent = async (req, res) => {
         // }
 
         const examCenterCode = student.center;
-        const query4 = 'SELECT * FROM pcregistration WHERE center = ?';
-        const [registrations] = await connection.query(query4, [examCenterCode]);
+        const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
+        const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
         console.log(registrations)
-        const registration= registrations[0]
 
-        const mac = registration['mac_address'];
-        console.log(macAddress,mac)
+     
 
-        if (macAddress !== mac) {
+        if (registrations.length===0) {
             return res.status(401).send('pc not registered');
         }
 
