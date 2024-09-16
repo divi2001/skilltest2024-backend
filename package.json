@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon your-script.js",
+    "generate": "nodemon ./Reports/generate_blank_answer_sheet.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
