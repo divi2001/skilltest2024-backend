@@ -128,8 +128,8 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
         queryParams.push(subject_name);
     }
 
-    if(center){
-        query+= 'AND s.center = ?';
+    if (center) {
+        query += ' AND s.center = ?';
         queryParams.push(center);
     }
 
