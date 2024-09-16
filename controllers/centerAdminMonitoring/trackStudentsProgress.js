@@ -58,8 +58,6 @@ exports.getStudentsTrack = async (req, res) => {
         sl.passage1_time,
         sl.audio2_time,
         sl.passage2_time,
-        sl.trial_passage_time,
-        sl.typing_passage_time,
         sl.feedback_time
     FROM
         students s

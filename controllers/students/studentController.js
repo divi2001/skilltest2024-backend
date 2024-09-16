@@ -215,3 +215,4 @@ exports.getStudentDetails = async (req, res) => {
     console.log('Ending getStudentDetails function');
 };
 
+
