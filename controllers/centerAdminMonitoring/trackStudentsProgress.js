@@ -33,55 +33,60 @@ exports.getStudentsTrack = async (req, res) => {
 
     const queryParams = [examCenterCode];
     let query = `SELECT 
-        s.student_id,
-        s.center,
-        s.fullname, 
-        s.subjectsId,
-        sub.subject_name,
-        sub.subject_name_short,
-        s.courseId,
-        s.loggedin,
-        s.batchNo,
-        s.batchdate,
-        s.done,
-        s.Reporting_Time,
-        s.start_time,
-        s.end_time,
-        s.batchdate,
-        a.trial,
-        a.passageA,
-        a.passageB,
-        sl.loginTime,
-        sl.login,
-        sl.trial_time,
-        sl.audio1_time,
-        sl.passage1_time,
-        sl.audio2_time,
-        sl.passage2_time,
-        sl.feedback_time
+    s.student_id,
+    s.center,
+    s.fullname, 
+    s.subjectsId,
+    sub.subject_name,
+    sub.subject_name_short,
+    s.courseId,
+    s.loggedin,
+    s.batchNo,
+    s.batchdate,
+    s.done,
+    s.Reporting_Time,
+    s.start_time,
+    s.end_time,
+    s.batchdate,
+    a.trial,
+    a.passageA,
+    a.passageB,
+    sl.loginTime,
+    sl.login,
+    sl.trial_time,
+    sl.audio1_time,
+    sl.passage1_time,
+    sl.audio2_time,
+    sl.passage2_time,
+    sl.trial_passage_time,
+    sl.typing_passage_time,
+    sl.feedback_time
+FROM
+    students s
+LEFT JOIN
+    subjectsdb sub ON s.subjectsId = sub.subjectId
+LEFT JOIN
+    audiologs a ON s.student_id = a.student_id
+LEFT JOIN (
+    SELECT
+        student_id,
+        MAX(loginTime) as loginTime,
+        MAX(login) as login,
+        MAX(trial_time) as trial_time,
+        MAX(audio1_time) as audio1_time,
+        MAX(passage1_time) as passage1_time,
+        MAX(audio2_time) as audio2_time,
+        MAX(passage2_time) as passage2_time,
+        MAX(trial_passage_time) as trial_passage_time,
+        MAX(typing_passage_time) as typing_passage_time,
+        MAX(feedback_time) as feedback_time
     FROM
-        students s
-    LEFT JOIN
-        subjectsdb sub ON s.subjectsId = sub.subjectId
-    LEFT JOIN
-        audiologs a ON s.student_id = a.student_id
-    LEFT JOIN (
-        SELECT
-            student_id,
-            MAX(loginTime) as loginTime,
-            MAX(login) as login,
-            MAX(trial_time) as trial_time,
-            MAX(audio1_time) as audio1_time,
-            MAX(passage1_time) as passage1_time,
-            MAX(audio2_time) as audio2_time,
-            MAX(passage2_time) as passage2_time,
-            MAX(feedback_time) as feedback_time
-        FROM
-            studentlogs
-        GROUP BY
-            student_id
-    ) sl ON s.student_id = sl.student_id
-    WHERE s.center = ?`;
+        studentlogs
+    GROUP BY
+        student_id
+) sl ON s.student_id = sl.student_id
+WHERE s.center = ?`;
+
 
     if (batchNo) {
         query += ' AND s.batchNo = ?';
@@ -132,6 +137,8 @@ exports.getStudentsTrack = async (req, res) => {
                     result.center,
                     result.fullname,
                     result.batchNo,
+                    result.trial_passage_time,
+                    result.typing_passage_time,
                     result.loginTime,
                     result.login,
                     result.done,
