@@ -113,18 +113,24 @@ exports.updateTableData = async (req, res) => {
         // Start a transaction
         await connection.query('START TRANSACTION');
 
-        for (const row of updatedRows) {
-            const columns = Object.keys(row).filter(key => key !== 'key');
-            const values = columns.map(col => row[col]);
-            const placeholders = columns.map(() => '?').join(', ');
+        // First, fetch the primary key column name for the table
+        const [tableInfo] = await connection.query(`SHOW KEYS FROM ${tableName} WHERE Key_name = 'PRIMARY'`);
+        if (tableInfo.length === 0) {
+            throw new Error(`No primary key found for table ${tableName}`);
+        }
+        const primaryKeyColumn = tableInfo[0].Column_name;
 
+        for (const row of updatedRows) {
+            const columns = Object.keys(row).filter(key => key !== 'key' && key !== primaryKeyColumn);
+            const values = columns.map(col => row[col]);
+            
             const updateQuery = `
                 UPDATE ${tableName}
                 SET ${columns.map(col => `${col} = ?`).join(', ')}
-                WHERE id = ?
+                WHERE ${primaryKeyColumn} = ?
             `;
 
-            await connection.query(updateQuery, [...values, row.id]);
+            await connection.query(updateQuery, [...values, row[primaryKeyColumn]]);
         }
 
         // Commit the transaction
@@ -135,10 +141,9 @@ exports.updateTableData = async (req, res) => {
         // If there's an error, rollback the transaction
         await connection.query('ROLLBACK');
         console.error('Error updating table data:', err);
-        res.status(500).json({ success: false, message: 'Error updating table data' });
+        res.status(500).json({ success: false, message: 'Error updating table data', error: err.message });
     }
 };
-
   exports.deleteTable = async (req, res) => {
     const tableName = req.params.tableName;
 
