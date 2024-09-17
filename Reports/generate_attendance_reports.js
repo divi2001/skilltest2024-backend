@@ -240,13 +240,12 @@ const getData = async(center , batchNo) => {
         const batchData = await connection.query(batchquery, [batchNo]);
         console.log(response[0],batchData[0]);
         
-        const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
         
-        if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
+
         return { 
             response: response[0], 
             batchData: batchData[0], 
-            isDownloadAllowed 
+            //  
         };
     } catch (error) {
         console.error('Error in getData:', error);

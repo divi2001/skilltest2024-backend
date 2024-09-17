@@ -71,6 +71,7 @@ exports.generateAttendanceReport = async (req, res) => {
     // const center = req.session.centerId;
     const {batchNo} = req.body;
     const center = req.session.centerId;
+    console.log(batchNo,center);
 
     // Use a Promise to handle the PDF generation
     const pdfPromise = new Promise((resolve, reject) => {

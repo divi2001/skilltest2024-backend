@@ -13,13 +13,13 @@ async function getData(center, batchNo) {
         console.log(response[0], batchData[0]);
 
         // Check if download is allowed
-        const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
+        // const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
         
-        if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
+        // if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
         return { 
             response: response[0], 
             batchData: batchData[0], 
-            isDownloadAllowed 
+            // isDownloadAllowed 
         };
     } catch (error) {
         console.error('Error in getData:', error);
