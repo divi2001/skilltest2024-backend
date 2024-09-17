@@ -692,7 +692,7 @@ exports.getPassageProgress = async (req, res) => {
     }
   
     try {
-      const query = 'SELECT passageA FROM finalpassagesubmit WHERE student_id = ?';
+      const query = 'SELECT passageA FROM finalPassageSubmit WHERE student_id = ?';
       const [rows] = await connection.query(query, [studentId]);
   
       if (rows.length === 0) {
