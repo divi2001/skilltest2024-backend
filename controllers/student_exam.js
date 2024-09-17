@@ -5,7 +5,24 @@ const archiver = require('archiver');
 const moment = require('moment-timezone');
 const { encrypt, decrypt } = require('../config/encrypt');
 
+exports.updateStudentBatchDates = async (req, res) => {
+    try {
+        // SQL query to update students table
+        const updateQuery = `
+            UPDATE students s
+            INNER JOIN batchdb b ON s.batchNo = b.batchNo
+            SET s.batchdate = b.batchdate
+        `;
 
+        // Execute the query
+        await connection.query(updateQuery);
+
+        res.send('Successfully updated batch dates for all students');
+    } catch (err) {
+        console.error('Failed to update student batch dates:', err);
+        res.status(500).send('Internal server error');
+    }
+};
 
 exports.updateAudioLogTime = async (req, res) => {
     const { audioType } = req.body;
@@ -114,7 +131,7 @@ exports.getStudentDetails = async (req, res) => {
 
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
-    const batchQuery = 'SELECT * FROM batchdb WHERE batchNo = ?'
+
 
     try {
         // console.log('Querying student data');
@@ -125,11 +142,11 @@ exports.getStudentDetails = async (req, res) => {
             return res.status(404).send('Student not found');
         }
         const student = students[0];
-        const batch = student.batchNo
+        
         // console.log('Student data retrieved');
-        const [batchs] = await connection.query(batchQuery,[batch]);
-        const batch1 = batchs[0]
-        const batchDate1 = batch1.batchdate
+
+        const batchDate1 = student.batchdate
+        console.log(batchDate1)
         const padZero = (num) => num.toString().padStart(2, '0');
 
         // Convert to dd:mm:yyyy format

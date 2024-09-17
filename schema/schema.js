@@ -9,7 +9,7 @@ const schema = {
         password: 'LONGTEXT',
         instituteId: 'BIGINT',
         batchNo: 'INT REFERENCES batchdb(batchNo)',
-
+        batchdate: 'DATE',
         fullname: 'VARCHAR(100)',
         subjectsId: 'INT REFERENCES subjectsdb(subjectId)',
         courseId: 'INT',
