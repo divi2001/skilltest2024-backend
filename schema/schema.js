@@ -24,6 +24,7 @@ const schema = {
         day: 'INT',
         qset: 'INT',
         base64: 'LONGTEXT',
+        sign_base64:'LONGTEXT',
         IsShorthand: 'BOOLEAN',
         IsTypewriting: 'BOOLEAN',
         departmentId: 'INT REFERENCES departmentdb(departmentId)',
@@ -117,7 +118,6 @@ const schema = {
         trial_passage: 'LONGTEXT',
         passage_name: 'VARCHAR(10)',
         passage_text: 'LONGTEXT'
-
     },
 
     login_requests: {
@@ -134,6 +134,7 @@ const schema = {
         passageA: 'INT',
         passageB: 'INT'
     },
+
     batchdb: {
         batchNo: 'INT PRIMARY KEY',
         batchdate: 'DATE',
