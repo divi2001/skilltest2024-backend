@@ -779,6 +779,7 @@ exports.logTextInput = async (req, res) => {
         console.log('Encrypted response data keys:', Object.keys(encryptedResponseData));
 
         res.send(encryptedResponseData);
+        // console.log(`Encrypted data while controller login: ${encryptedResponseData}`)
 
     } catch (err) {
         console.error('Failed to fetch student details:', err);
