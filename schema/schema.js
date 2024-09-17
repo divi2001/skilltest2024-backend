@@ -9,7 +9,7 @@ const schema = {
         password: 'LONGTEXT',
         instituteId: 'BIGINT',
         batchNo: 'INT REFERENCES batchdb(batchNo)',
-        batchdate: 'DATE',
+
         fullname: 'VARCHAR(100)',
         subjectsId: 'INT REFERENCES subjectsdb(subjectId)',
         courseId: 'INT',
@@ -27,6 +27,7 @@ const schema = {
         IsShorthand: 'BOOLEAN',
         IsTypewriting: 'BOOLEAN',
         departmentId: 'INT REFERENCES departmentdb(departmentId)',
+        disability: 'BOOLEAN'
     },
     subjectsdb: {
         subjectId: 'INT PRIMARY KEY',
@@ -127,7 +128,8 @@ const schema = {
     },
 
     audiologs: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES studentlogs(student_id)',
+        id: 'INT AUTO_INCREMENT PRIMARY KEY',
+        student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         trial: 'INT',
         passageA: 'INT',
         passageB: 'INT'
