@@ -118,7 +118,6 @@ const schema = {
         trial_passage: 'LONGTEXT',
         passage_name: 'VARCHAR(10)',
         passage_text: 'LONGTEXT'
-
     },
 
     login_requests: {
@@ -135,6 +134,7 @@ const schema = {
         passageA: 'INT',
         passageB: 'INT'
     },
+
     batchdb: {
         batchNo: 'INT PRIMARY KEY',
         batchdate: 'DATE',

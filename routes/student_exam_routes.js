@@ -28,8 +28,12 @@ router.get('/student_details',isAuthenticated, studentController.getStudentDetai
 router.get('/audios', isAuthenticated,studentController.getaudios);
 router.get('/controller_pass',isAuthenticated, studentController.getcontrollerpass);
 router.get('/audioProgress', isAuthenticated,studentController.getAudioLogs); 
+router.get('/typedtexta', isAuthenticated, studentController.getTypedTextA);
+router.get('/passage', isAuthenticated, studentController.getPassage);
+
 router.post('/textlogs', isAuthenticated,studentController.logTextInput); 
 router.post('/passageprogress', isAuthenticated,studentController.getPassageProgress); 
+router.post('/passagetime', isAuthenticated,studentController.updatePassagewLogTime);
 router.post('/audiotime', isAuthenticated,studentController.updateAudioLogTime);
 router.post('/batchdate',studentController.updateStudentBatchDates)
 

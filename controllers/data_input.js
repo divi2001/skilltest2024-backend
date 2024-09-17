@@ -155,6 +155,10 @@ async function insertChunk(tableName, columns, chunk) {
         return encrypt(value);
       }
 
+      if(column === 'password' && tableName === 'admindb'){
+        return encrypt(value);
+      }
+
       // Process time columns
       if (fieldType === 'TIME') {
         if (value) {

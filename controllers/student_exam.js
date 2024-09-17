@@ -263,30 +263,37 @@ exports.getaudios = async (req, res) => {
         const audio = auidos[0];
 
 
-        const responseData = {
-            subjectId: subject.subjectId,
-            courseId: subject.courseId,
-            subject_name: subject.subject_name,
-            subject_name_short: subject.subject_name_short,
-            Daily_Timer: subject.daily_timer,
-            Passage_Timer: subject.passage_timer,
-            Demo_Timer: subject.demo_timer,
-            audio1: audio.audio1,
-            passage1: audio.passage1,
-            audio2: audio.audio2,
-            passage2: audio.passage2,
-            testaudio: audio.testaudio
-        };
-        console.log(responseData)
-
-
-        const encryptedResponseData = {};
-        for (let key in responseData) {
-            if (responseData.hasOwnProperty(key)) {
-                encryptedResponseData[key] = encrypt(responseData[key].toString());
+            const responseData = {
+                subjectId: subject.subjectId,
+                courseId: subject.courseId,
+                subject_name: subject.subject_name,
+                subject_name_short: subject.subject_name_short,
+                Daily_Timer: subject.daily_timer,
+                Passage_Timer: subject.passage_timer,
+                Demo_Timer: subject.demo_timer,
+                audio1: audio.audio1,
+                passage1: audio.passage1,
+                audio2: audio.audio2,
+                passage2: audio.passage2,
+                testaudio: audio.testaudio   
+            };
+            // console.log("Original responseData:", responseData);
+            
+            const encryptedResponseData = {};
+            const nullFields = [];
+            
+            for (let key in responseData) {
+                if (responseData.hasOwnProperty(key)) {
+                    if (responseData[key] === null) {
+                        nullFields.push(key);
+                        encryptedResponseData[key] = null;
+                    } else {
+                        encryptedResponseData[key] = encrypt(responseData[key].toString());
+                    }
+                }
             }
-        }
-        console.log(encryptedResponseData)
+            
+            console.log("Null fields:", nullFields);
 
         res.send(encryptedResponseData);
     } catch (err) {
@@ -674,10 +681,73 @@ exports.getPassageProgress = async (req, res) => {
         console.error('Failed to fetch passage progress:', err);
         res.status(500).send(err.message);
     }
-};
+  };
 
+  exports.getTypedTextA = async (req, res) => {
+    const studentId = req.session.studentId;
+  
+    if (!studentId) {
+      console.error('Student ID is required');
+      return res.status(400).send('Student ID is required');
+    }
+  
+    try {
+      const query = 'SELECT passageA FROM finalpassagesubmit WHERE student_id = ?';
+      const [rows] = await connection.query(query, [studentId]);
+  
+      if (rows.length === 0) {
+        console.log('No data found for the student');
+        return res.status(404).send('No data found for the student');
+      }
+  
+      const { passageA } = rows[0];
+  
+      if (passageA === null || passageA === '') {
+        console.log('No typed text found for passageA');
+        return res.status(404).send('No typed text found for passageA');
+      }
+  
+      console.log('Sending typed text for passageA');
+      res.json({ typedText: passageA });
+    } catch (err) {
+      console.error('Failed to fetch typed text for passageA:', err);
+      res.status(500).send(err.message);
+    }
+  };
 
-exports.getcontrollerpass = async (req, res) => {
+  exports.getPassage = async (req, res) => {
+    const studentId = req.session.studentId;
+  
+    if (!studentId) {
+      console.error('Student ID is required');
+      return res.status(400).send('Student ID is required');
+    }
+  
+    try {
+      const query = 'SELECT passage FROM typingpassage WHERE student_id = ? ORDER BY time DESC LIMIT 1';
+      const [rows] = await connection.query(query, [studentId]);
+  
+      if (rows.length === 0) {
+        console.log('No passage found for the student');
+        return res.status(404).send('No passage found for the student');
+      }
+  
+      const { passage } = rows[0];
+  
+      if (passage === null || passage === '') {
+        console.log('No passage text found');
+        return res.status(404).send('No passage text found');
+      }
+  
+      console.log('Sending passage text');
+      res.json({ passageText: passage });
+    } catch (err) {
+      console.error('Failed to fetch passage:', err);
+      res.status(500).send(err.message);
+    }
+  };
+
+  exports.getcontrollerpass = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const centersQuery = 'SELECT * FROM examcenterdb WHERE center = ?';
@@ -744,6 +814,7 @@ exports.getcontrollerpass = async (req, res) => {
         console.log('Encrypted response data keys:', Object.keys(encryptedResponseData));
 
         res.send(encryptedResponseData);
+        // console.log(`Encrypted data while controller login: ${encryptedResponseData}`)
 
     } catch (err) {
         console.error('Failed to fetch student details:', err);
