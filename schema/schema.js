@@ -24,6 +24,7 @@ const schema = {
         day: 'INT',
         qset: 'INT',
         base64: 'LONGTEXT',
+        sign_base64:'LONGTEXT',
         IsShorthand: 'BOOLEAN',
         IsTypewriting: 'BOOLEAN',
         departmentId: 'INT REFERENCES departmentdb(departmentId)',
