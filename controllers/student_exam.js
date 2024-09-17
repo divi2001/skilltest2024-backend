@@ -238,24 +238,32 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
                 courseId: subject.courseId,
                 subject_name: subject.subject_name,
                 subject_name_short: subject.subject_name_short,
-                Daily_Timer: subject.daily_timer                ,
-                Passage_Timer: subject.passage_timer                ,
-                Demo_Timer: subject.demo_timer                ,
+                Daily_Timer: subject.daily_timer,
+                Passage_Timer: subject.passage_timer,
+                Demo_Timer: subject.demo_timer,
                 audio1: audio.audio1,
                 passage1: audio.passage1,
                 audio2: audio.audio2,
                 passage2: audio.passage2,
-                testaudio:audio.testaudio   
+                testaudio: audio.testaudio   
             };
-            console.log(responseData)
-    
-
+            // console.log("Original responseData:", responseData);
+            
             const encryptedResponseData = {};
+            const nullFields = [];
+            
             for (let key in responseData) {
                 if (responseData.hasOwnProperty(key)) {
-                    encryptedResponseData[key] = encrypt(responseData[key].toString());
+                    if (responseData[key] === null) {
+                        nullFields.push(key);
+                        encryptedResponseData[key] = null;
+                    } else {
+                        encryptedResponseData[key] = encrypt(responseData[key].toString());
+                    }
                 }
             }
+            
+            console.log("Null fields:", nullFields);
 
             res.send(encryptedResponseData);
         } catch (err) {
