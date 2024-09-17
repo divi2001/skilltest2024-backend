@@ -5,7 +5,24 @@ const archiver = require('archiver');
 const moment = require('moment-timezone');
 const { encrypt, decrypt } = require('../config/encrypt');
 
+exports.updateStudentBatchDates = async (req, res) => {
+    try {
+        // SQL query to update students table
+        const updateQuery = `
+            UPDATE students s
+            INNER JOIN batchdb b ON s.batchNo = b.batchNo
+            SET s.batchdate = b.batchdate
+        `;
 
+        // Execute the query
+        await connection.query(updateQuery);
+
+        res.send('Successfully updated batch dates for all students');
+    } catch (err) {
+        console.error('Failed to update student batch dates:', err);
+        res.status(500).send('Internal server error');
+    }
+};
 
 exports.updateAudioLogTime = async (req, res) => {
     const { audioType } = req.body;
@@ -108,15 +125,16 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
 
 
 exports.getStudentDetails = async (req, res) => {
-    console.log('Starting getStudentDetails function');
+    // console.log('Starting getStudentDetails function');
     const studentId = req.session.studentId;
     console.log('Student ID from session:', studentId);
 
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
 
+
     try {
-        console.log('Querying student data');
+        // console.log('Querying student data');
         const [students] = await connection.query(studentQuery, [studentId]);
 
         if (students.length === 0) {
@@ -124,7 +142,17 @@ exports.getStudentDetails = async (req, res) => {
             return res.status(404).send('Student not found');
         }
         const student = students[0];
-        console.log('Student data retrieved');
+        
+        // console.log('Student data retrieved');
+
+        const batchDate1 = student.batchdate
+        console.log(batchDate1)
+        const padZero = (num) => num.toString().padStart(2, '0');
+
+        // Convert to dd:mm:yyyy format
+        const formattedDate = `${padZero(batchDate1.getDate())}/${padZero(batchDate1.getMonth() + 1)}/${batchDate1.getFullYear()}`;
+        console.log('Parsed batchdate:',batchDate1);
+
 
         let subjectsId;
         try {
@@ -155,8 +183,13 @@ exports.getStudentDetails = async (req, res) => {
         const responseData = {
             ...student,
             ...subject,
-            photo: student.base64
+            photo: student.base64,
+            batchdate :formattedDate
         };
+
+
+
+
         console.log('Response data prepared');
 
         console.log('Encrypting response data');
@@ -180,6 +213,8 @@ exports.getStudentDetails = async (req, res) => {
     }
     console.log('Ending getStudentDetails function');
 };
+
+
 
 exports.getaudios = async (req, res) => {
     const studentId = req.session.studentId;

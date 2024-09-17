@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const path = require('path');
 const cors = require('cors');
 
 // routes 
@@ -33,8 +34,21 @@ const corsOptions = {
   optionsSuccessStatus: 200
 }
 
+
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://shorthandonlineexam.in;"
+  );
+  next();
+});
 // // Use CORS with the above options
 app.use(cors(corsOptions));
+
+app.use(cors({
+  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','https://shorthandonlineexam.in'],
+  credentials: true
+}));
 
 app.use(session({
   secret: 'divis@GeYT',
@@ -69,11 +83,11 @@ app.use(excelRouter)
 app.use(superAdminTrackDashboardRoute);
 
 
-//Test Route
-app.get("/",(req,res)=>{
+app.use(express.static(path.join(__dirname, 'build')));
 
-  res.send("<h1>I am Inevitable!!</h1>");
-})
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });

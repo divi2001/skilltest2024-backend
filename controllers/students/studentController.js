@@ -126,16 +126,17 @@ exports.loginStudent = async (req, res) => {
 
 
 exports.getStudentDetails = async (req, res) => {
-    console.log('Starting getStudentDetails function');
+    // console.log('Starting getStudentDetails function');
     const {studentId} = req.body;
     // console.log(studentId);
-    console.log('Student ID from :', studentId);
+    // console.log('Student ID from :', studentId);
 
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
+    const batchQuery = 'SELECT * FROM batchdb WHERE batchNo = ?'
 
     try {
-        console.log('Querying student data');
+        // console.log('Querying student data');
         const [students] = await connection.query(studentQuery,[studentId]);
 
         if (students.length === 0) {
@@ -143,24 +144,30 @@ exports.getStudentDetails = async (req, res) => {
             return res.status(404).send('Student not found');
         }
         const student = students[0];
-        console.log('Student data retrieved');
+        // console.log('Student data retrieved');
+        const batch = student.batchNo
+
+        const [batchs] = await connection.query(batchQuery,[batch]);
+
+        const batch1 = batchs[0]
+        const batchDate1 = batch1.batchdate
 
         let subjectsId;
         try {
-            console.log('Parsing subjectsId');
+            // console.log('Parsing subjectsId');
             subjectsId = JSON.parse(student.subjectsId);
-            console.log('Parsed subjectsId:', subjectsId);
+            // console.log('Parsed subjectsId:', subjectsId);
         } catch (err) {
             console.error('Error parsing subjectsId:', err);
             return res.status(500).send('Invalid subjectsId format');
         }
 
         const subjectId = subjectsId;
-        console.log('First subject ID:', subjectId);
+        console.log('Parsed batchdate:',batchDate1);
 
-        console.log('Querying subject data');
+        // console.log('Querying subject data');
         const [subjects] = await connection.query(subjectsQuery, [subjectId]);
-        console.log(subjects)
+        // console.log(subjects)
 
         if (subjects.length === 0) {
             console.log('Subject not found');
@@ -168,15 +175,14 @@ exports.getStudentDetails = async (req, res) => {
             
         }
         const subject = subjects[0];
-        console.log('Subject data retrieved');
 
-        console.log('Preparing response data');
         const responseData = {
             ...student,
             ...subject,
-            photo: student.base64
+            photo: student.base64,
+            batchdate :batchDate1
         };
-        console.log('Response data prepared');
+
 
         // console.log('Encrypting response data');
         // const encryptedResponseData = {};
