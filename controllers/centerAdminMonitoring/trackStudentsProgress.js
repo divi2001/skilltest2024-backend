@@ -58,8 +58,6 @@ exports.getStudentsTrack = async (req, res) => {
     sl.passage1_time,
     sl.audio2_time,
     sl.passage2_time,
-    sl.trial_passage_time,
-    sl.typing_passage_time,
     sl.feedback_time
 FROM
     students s
@@ -77,8 +75,6 @@ LEFT JOIN (
         MAX(passage1_time) as passage1_time,
         MAX(audio2_time) as audio2_time,
         MAX(passage2_time) as passage2_time,
-        MAX(trial_passage_time) as trial_passage_time,
-        MAX(typing_passage_time) as typing_passage_time,
         MAX(feedback_time) as feedback_time
     FROM
         studentlogs
@@ -87,7 +83,8 @@ LEFT JOIN (
 ) sl ON s.student_id = sl.student_id
 WHERE s.center = ?`;
 
-
+// MAX(trial_passage_time) as trial_passage_time,
+// MAX(typing_passage_time) as typing_passage_time,
     if (batchNo) {
         query += ' AND s.batchNo = ?';
         queryParams.push(batchNo);
@@ -122,7 +119,8 @@ WHERE s.center = ?`;
         query += ' AND DATE(s.batchdate) = ?';
         queryParams.push(batchDate);
     }
-
+    // sl.trial_passage_time,
+    // sl.typing_passage_time,
     // console.log('Final query:', query);
     console.log('Query parameters:', queryParams);
 

@@ -1,54 +1,12 @@
 const connection = require('../../config/db1');
 const StudentTrackDTO = require("../../dto/studentProgress"); 
-const {decrypt} = require("../../config/encrypt");
-exports.departementLogin = async (req,res) => {
 
-    console.log("Trying center admin login");
-    const { departmentId, password } = req.body;
-    // console.log("center: "+centerId+ " password: "+password);
-    console.log(req.body);
-    const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
-  
-    try {
-        const [results] = await connection.query(departmentdbQuery, [departmentId]);
-        if (results.length > 0) {
-            const admin = results[0];
-            // console.log("data: "+admin);
-            console.log(admin)
-            let decryptedStoredPassword = await decrypt(admin.departmentPassword);
-            console.log(decryptedStoredPassword);
-            try {
-
-                console.log("admin pass: "+admin.departmentPassword + " provide pass: "+password);
-                   
-            } catch (error) {                
-                console.log(error);
-            }
-
-            
-            if (decryptedStoredPassword === password) {
-                // Set institute session
-                req.session.departmentId = admin.departmentId;
-                res.status(200).send('Logged in successfully as an department admin!');
-                
-            } else {
-                res.status(401).send('Invalid credentials for center admin');
-            }
-        } else {
-            res.status(404).send('department not found');
-        }
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
-}
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
-}
-exports.getStudentsTrackDepartmentwise = async (req,res) => {
+exports.getAllStudentsTrack = async (req,res) => {
     console.log('Starting getStudentsTrack function');
-    const departmentId =  req.session.departmentId;
-    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type } = req.query;
+    const adminId = req.params.adminid;
+    // console.log(adminId);
+    // if(!adminId) return res.status(404).json({"message":"Admin is not logged in!!"});
+    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type , departmentId } = req.query;
     console.log("Exam center code:", departmentId);
     console.log("Batch no:", batchNo);
     console.log("Subject:", subject_name);
@@ -56,70 +14,72 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
     console.log("exam type:" , exam_type);
     console.log("Center no:", center);
     console.log("Original Batch date:", batchDate);
+    console.log("Department Id:", departmentId);
 
     if (batchDate) {
         batchDate = formatDate(batchDate);
         console.log("Formatted Batch date:", batchDate);
     }
 
-    if (!departmentId) {
-        console.log('department admin is not logged in');
-        return res.status(404).json({"message":"Center admin is not logged in"});
-    }
+    // if (!departmentId) {
+    //     console.log('department admin is not logged in');
+    //     return res.status(404).json({"message":"Center admin is not logged in"});
+    // }
 
-    const queryParams = [departmentId];
+    const queryParams = [];
     let query = `SELECT 
-        s.student_id,
-        s.center,
-        s.fullname, 
-        s.subjectsId,
-        sub.subject_name,
-        sub.subject_name_short,
-        s.courseId,
-        s.loggedin,
-        s.batchNo,
-        s.batchdate,
-        s.done,
-        s.Reporting_Time,
-        s.start_time,
-        s.end_time,
-        s.batchdate,
-        s.IsShorthand,
-        s.IsTypewriting,
-        a.trial,
-        a.passageA,
-        a.passageB,
-        sl.loginTime,
-        sl.login,
-        sl.trial_time,
-        sl.audio1_time,
-        sl.passage1_time,
-        sl.audio2_time,
-        sl.passage2_time,
-        sl.feedback_time
+    s.student_id,
+    s.center,
+    s.fullname, 
+    s.subjectsId,
+    sub.subject_name,
+    sub.subject_name_short,
+    s.courseId,
+    s.loggedin,
+    s.batchNo,
+    s.batchdate,
+    s.done,
+    s.Reporting_Time,
+    s.start_time,
+    s.end_time,
+    s.batchdate,
+    s.IsShorthand,
+    s.IsTypewriting,
+    s.departmentId,
+    a.trial,
+    a.passageA,
+    a.passageB,
+    sl.loginTime,
+    sl.login,
+    sl.trial_time,
+    sl.audio1_time,
+    sl.passage1_time,
+    sl.audio2_time,
+    sl.passage2_time,
+    sl.feedback_time
+FROM
+    students s
+LEFT JOIN
+    subjectsdb sub ON s.subjectsId = sub.subjectId
+LEFT JOIN
+    audiologs a ON s.student_id = a.student_id
+LEFT JOIN (
+    SELECT
+        student_id,
+        MAX(loginTime) as loginTime,
+        MAX(login) as login,
+        MAX(trial_time) as trial_time,
+        MAX(audio1_time) as audio1_time,
+        MAX(passage1_time) as passage1_time,
+        MAX(audio2_time) as audio2_time,
+        MAX(passage2_time) as passage2_time,
+        MAX(feedback_time) as feedback_time
     FROM
-        students s
-    LEFT JOIN
-        subjectsdb sub ON s.subjectsId = sub.subjectId
-    LEFT JOIN
-        audiologs a ON s.student_id = a.student_id
-    LEFT JOIN (
-        SELECT
-            student_id,
-            MAX(loginTime) as loginTime,
-            MAX(login) as login,
-            MAX(trial_time) as trial_time,
-            MAX(audio1_time) as audio1_time,
-            MAX(passage1_time) as passage1_time,
-            MAX(audio2_time) as audio2_time,
-            MAX(passage2_time) as passage2_time,
-            MAX(feedback_time) as feedback_time
-        FROM
-            studentlogs
-        GROUP BY
-            student_id
-    ) sl ON s.student_id = sl.student_id
-    WHERE s.departmentId = ?`;
+        studentlogs
+    GROUP BY
+        student_id
+) sl ON s.student_id = sl.student_id
+WHERE 1=1`;
 
     if (batchNo) {
         query += ' AND s.batchNo = ?';
@@ -142,6 +102,11 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
         } else if (loginStatus === 'loggedout') {
             query += ' AND s.loggedin = 0';
         }
+    }
+
+    if(departmentId){
+        query += ' AND s.departmentId = ?';
+        queryParams.push(departmentId);
     }
 
     if(exam_type){

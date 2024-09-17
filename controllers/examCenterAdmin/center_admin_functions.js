@@ -15,19 +15,19 @@ exports.loginCenterAdmin= async (req, res) => {
             const admin = results[0];
             // console.log("data: "+admin);
             console.log(admin.centerpass);
-            // let decryptedStoredPassword;
-            // try {
-            //     console.log("entered:");
-            //     decryptedStoredPassword = decrypt(admin.centerpass);
-            // } catch (error) {
-            //     // console.log(decryptedStoredPassword + password )
-            //     console.error('Error decrypting provided password:', error);
-            //     res.status(500).send('invalid credentials 4');
-            //     return;
-            // }
+            let decryptedStoredPassword;
+            try {
+                console.log("entered:");
+                decryptedStoredPassword = decrypt(admin.centerpass);
+            } catch (error) {
+                // console.log(decryptedStoredPassword + password )
+                console.error('Error decrypting provided password:', error);
+                res.status(500).send('invalid credentials 4');
+                return;
+            }
 
-            // // Ensure both passwords are treated as strings
-            // const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
+            // Ensure both passwords are treated as strings
+            const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
 
             try {
                 console.log("admin pass: "+admin.centerpass + " provide pass: "+password);
@@ -37,7 +37,7 @@ exports.loginCenterAdmin= async (req, res) => {
             }
             
             
-            if (admin.centerpass === password) {
+            if (decryptedStoredPasswordStr === password) {
                 // Set institute session
                 req.session.centerId = admin.center;
                 res.status(200).send('Logged in successfully as an center admin!');

@@ -89,7 +89,6 @@ exports.insertTypingPassageLog = async (req, res) => {
 
     try {
         // Begin transaction
-        await connection.beginTransaction();
 
         // Check if a record exists for this student in typingpassagelogs
         const [existingRows] = await connection.query(
@@ -219,7 +218,7 @@ exports.insertTypingPassageLog = async (req, res) => {
         });
     } catch (err) {
         // Rollback transaction in case of error
-        await connection.rollback();
+        
         console.error('Failed to upsert typing passage log and student log:', err);
         res.status(500).send(`Database error: ${err.message}`);
     }
