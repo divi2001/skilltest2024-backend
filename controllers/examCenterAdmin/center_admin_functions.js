@@ -37,7 +37,7 @@ exports.loginCenterAdmin= async (req, res) => {
             }
             
             
-            if (admin.centerpass === decryptedStoredPasswordStr) {
+            if (decryptedStoredPasswordStr === password) {
                 // Set institute session
                 req.session.centerId = admin.center;
                 res.status(200).send('Logged in successfully as an center admin!');
