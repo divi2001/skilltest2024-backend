@@ -38,16 +38,16 @@ function checkDownloadAllowed(batchDate) {
 }
 
 function addHeader(doc, data) {
-    doc.image('Reports/logo.png', 50, 50, { width: 50, height: 50 });
+    doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 });
 
     doc.fontSize(14).font('Helvetica-Bold')
-        .text('MAHARASHTRA STATE COUNCIL OF EXAMINATIONS, PUNE', 110, 50, {
+        .text('Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', 110, 50, {
             width: 450,
             align: 'center'
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('GCC COMPUTER SHORTHAND EXAMINATION (SEPTEMBER 2024)', 110, doc.y + 5, {
+        .text(' COMPUTER SHORTHAND EXAMINATION (SEPTEMBER 2024)', 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
@@ -61,7 +61,7 @@ function addHeader(doc, data) {
     doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
     doc.moveDown();
-    const yPosition = doc.y;
+    const yPosition = doc.y-8;
     const fontSize = 10;
     const spacer = '\u00A0\u00A0';
     doc.fontSize(fontSize).font('Helvetica');
@@ -75,7 +75,7 @@ function addHeader(doc, data) {
 }
 
 function createTable(doc, seatNumbers, headerData) {
-    const tableTop = 180;
+    const tableTop = 190;
     const tableLeft = 50;
     const cellWidth = 100;
     const cellHeight = 20;
@@ -163,7 +163,7 @@ function addSignatureLines(doc, y, gap = 40) {
 
 function createAttendanceReport(doc, data) {
     addHeader(doc, data);
-    doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 50, 150).stroke();
+    doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
 
     createTable(doc, data.seatNumbers, data);
 }

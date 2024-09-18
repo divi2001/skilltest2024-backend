@@ -6,7 +6,7 @@ function createAttendanceReport(doc , data) {
         doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 })
 
         doc.fontSize(14).font('Helvetica-Bold')
-            .text('MAHARASHTRA STATE COUNCIL OF EXAMINATIONS, PUNE', 110, 50, {
+            .text('Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', 110, 50, {
                 width: 450,
                 align: 'center'
             });
@@ -26,7 +26,7 @@ function createAttendanceReport(doc , data) {
         doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
         doc.moveDown();
-        const yPosition = doc.y;
+        const yPosition = doc.y-8;
         const fontSize = 10;
         const spacer = '\u00A0\u00A0';
         doc.fontSize(fontSize).font('Helvetica');
@@ -128,9 +128,9 @@ function createAttendanceReport(doc , data) {
 
             // PHOTO
             doc.rect(xPosition, yPosition, columnWidths[4], rowHeight).stroke();
-            if (student.photoPath) {
+            if (student.photoBase64) {
                 try {
-                    doc.image(student.photoPath, xPosition + 2, yPosition + 2, {
+                    doc.image(Buffer.from(student.photoBase64, 'base64'), xPosition + 2, yPosition + 2, {
                         fit: [columnWidths[4] - 4, rowHeight - 4],
                         align: 'center',
                         valign: 'center'
@@ -152,9 +152,9 @@ function createAttendanceReport(doc , data) {
 
             // SIGN(uploaded)
             doc.rect(xPosition, yPosition, columnWidths[5], rowHeight).stroke();
-            if (student.photoPath) {
+            if (student.signBase64) {
                 try {
-                    doc.image(student.photoPath, xPosition + 2, yPosition + 2, {
+                    doc.image(Buffer.from(student.signBase64, 'base64'), xPosition + 2, yPosition + 2, {
                         fit: [columnWidths[5] - 4, rowHeight - 4],
                         align: 'center',
                         valign: 'center'
@@ -234,14 +234,12 @@ function createAttendanceReport(doc , data) {
 const getData = async(center , batchNo) => {
     try {
         console.log(center,batchNo)
-        const query = 'SELECT s.fullname, s.student_id, sub.subject_name_short FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
+        const query = 'SELECT s.fullname, s.student_id, s.base64 ,s.sign_base64, sub.subject_name_short FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
         const response = await connection.query(query,[center,batchNo]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
         console.log(response[0],batchData[0]);
         
-        
-
         return { 
             response: response[0], 
             batchData: batchData[0], 
@@ -253,14 +251,6 @@ const getData = async(center , batchNo) => {
     }
 }
 
-function checkDownloadAllowed(batchDate) {
-    const today = moment().startOf('day');
-    const batchMoment = moment(batchDate).startOf('day');
-    const differenceInDays = batchMoment.diff(today, 'days');
-    console.log(differenceInDays);
-    // Allow download if it's the day of the batch or one day before
-    return differenceInDays <= 1 && differenceInDays >= 0;
-}
 
 const AttendanceReport = async(doc,center,batchNo) => {
     const Data = await getData(center, batchNo);
@@ -288,7 +278,8 @@ const AttendanceReport = async(doc,center,batchNo) => {
                 seatNo: student.student_id.toString(),
                 name: student.fullname,
                 subject: student.subject_name_short,
-                photoPath: "./Reports/logo.png"  // Using the same path for both photo and sign
+                photoBase64: student.base64,
+                signBase64:student.sign_base64,  // Using the same path for both photo and sign
             }
         })
     }

@@ -1,9 +1,11 @@
 
 // Create a document
+// c
+// This will print the Marathi text correctly in a UTF-8 capable console
 async function createBlankAnswerSheet(doc)  {
       
       // Constants for layout
-      const headerHeight = 60;
+      const headerHeight = 85;
       const lineGap = 30;
       
       // Function to create header
@@ -48,7 +50,7 @@ async function createBlankAnswerSheet(doc)  {
       
       // Function to create a page
       function createPage(doc, isFirstPage) {
-        createHeader(doc, 'MAHARASHTRA STATE COUNCIL OF EXAMINATION, PUNE', ' COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
+        createHeader(doc, 'Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', ' COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
         
         let startY = headerHeight;
       
