@@ -70,7 +70,68 @@ exports.getpassages = async (req, res) => {
         res.status(500).send(err.message);
     }
 };
+exports.updateStudentLog = async (req, res) => {
+    const studentId = req.session.studentId;
+    const { passage_type } = req.body;
 
+    // Validate input
+    if (!passage_type || (passage_type !== 'trial' && passage_type !== 'passage')) {
+        return res.status(400).send('Invalid data: Provide passage_type (trial or passage)');
+    }
+
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
+    // Validate the currentTime format
+    if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
+        return res.status(400).send('Invalid time format');
+    }
+
+    try {
+        // Check if a record exists for this student
+        const [existingRows] = await connection.query(
+            'SELECT * FROM studentlogs WHERE student_id = ? ORDER BY id DESC LIMIT 1',
+            [studentId]
+        );
+
+        let query, params;
+
+        if (existingRows.length > 0) {
+            // Update existing record
+            const existingRecord = existingRows[0];
+            const updateField = passage_type === 'trial' ? 'trial_passage_time' : 'typing_passage_time';
+
+            query = `UPDATE studentlogs SET ${updateField} = ? WHERE id = ?`;
+            params = [currentTime, existingRecord.id];
+        } else {
+            // Insert new record
+            const fields = ['student_id'];
+            const placeholders = ['?'];
+            params = [studentId];
+
+            if (passage_type === 'trial') {
+                fields.push('last_trial_attempt');
+                placeholders.push('?');
+                params.push(currentTime);
+            } else {
+                fields.push('last_passage_attempt');
+                placeholders.push('?');
+                params.push(currentTime);
+            }
+
+            query = `INSERT INTO studentlogs (${fields.join(', ')}) VALUES (${placeholders.join(', ')})`;
+        }
+
+        const [result] = await connection.query(query, params);
+        
+        res.status(200).json({
+            message: existingRows.length > 0 ? 'Student log updated successfully' : 'Student log inserted successfully',
+            affectedRows: result.affectedRows
+        });
+    } catch (err) {
+        console.error('Failed to upsert student log:', err);
+        res.status(500).send(`Database error: ${err.message}`);
+    }
+};
 exports.insertTypingPassageLog = async (req, res) => {
     const studentId = req.session.studentId;
     const { trial_time, trial_passage, passage_time, passage } = req.body;
