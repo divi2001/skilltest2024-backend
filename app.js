@@ -37,7 +37,7 @@ const corsOptions = {
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://shorthandonlineexam.in;"
+    "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
   );
   next();
 });
