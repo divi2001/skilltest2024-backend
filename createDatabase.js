@@ -20,6 +20,7 @@ console.log('Database configuration:', {
 
 async function createDatabaseAndTables() {
   let connection;
+  const updatedTables = [];
   try {
     // First, connect without specifying a database
     connection = await mysql.createConnection({
@@ -29,36 +30,53 @@ async function createDatabaseAndTables() {
       password: config.password
     });
 
-    // Create the database if it doesn't exist
-    await connection.query(`CREATE DATABASE IF NOT EXISTS ${config.database}`);
+    // Create the database if it doesn't exist with UTF-8 support
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${config.database} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
 
     // Use the database
     await connection.query(`USE ${config.database}`);
 
     // Create or alter tables
     for (const [tableName, tableSchema] of Object.entries(schema)) {
-      const columns = Object.entries(tableSchema).map(([columnName, columnType]) => {
-        if (columnName === 'UNIQUE') {
-          return `UNIQUE KEY ${columnType}`;
-        } else if (columnName === 'INDEX') {
-          return `INDEX ${columnType}`;
-        } else {
-          return `${columnName} ${columnType}`;
-        }
-      }).join(', ');
+      const columns = Object.entries(tableSchema)
+        .filter(([columnName]) => columnName !== 'options')
+        .map(([columnName, columnType]) => {
+          if (columnName === 'UNIQUE') {
+            return `UNIQUE KEY ${columnType}`;
+          } else if (columnName === 'INDEX') {
+            return `INDEX ${columnType}`;
+          } else {
+            return `${columnName} ${columnType}`;
+          }
+        }).join(', ');
+
+      const options = "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
       // Check if table exists
       const [rows] = await connection.query(`SHOW TABLES LIKE '${tableName}'`);
       
       if (rows.length === 0) {
         // Table doesn't exist, create it
-        const createTableQuery = `CREATE TABLE ${tableName} (${columns})`;
+        const createTableQuery = `CREATE TABLE ${tableName} (${columns}) ${options}`;
         await connection.query(createTableQuery);
-        console.log(`Table ${tableName} created.`);
+        console.log(`Table ${tableName} created with UTF-8 support.`);
+        updatedTables.push(tableName);
       } else {
-        // Table exists, alter it
+        // Table exists, check its current charset
+        const [tableInfo] = await connection.query(`SHOW TABLE STATUS LIKE '${tableName}'`);
+        const currentCharset = tableInfo[0].Collation.split('_')[0];
+        
+        if (currentCharset !== 'utf8mb4') {
+          // Update table options to ensure UTF-8 support
+          const alterTableOptionsQuery = `ALTER TABLE ${tableName} ${options}`;
+          await connection.query(alterTableOptionsQuery);
+          console.log(`Table ${tableName} updated with UTF-8 support.`);
+          updatedTables.push(tableName);
+        }
+
+        // Alter table to add new columns
         for (const [columnName, columnType] of Object.entries(tableSchema)) {
-          if (columnName !== 'UNIQUE' && columnName !== 'INDEX') {
+          if (columnName !== 'UNIQUE' && columnName !== 'INDEX' && columnName !== 'options') {
             try {
               const alterTableQuery = `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`;
               await connection.query(alterTableQuery);
@@ -72,14 +90,14 @@ async function createDatabaseAndTables() {
             }
           }
         }
-        console.log(`Table ${tableName} updated.`);
       }
     }
 
     // Add foreign key constraints
     await addForeignKeyConstraints(connection);
 
-    console.log('All tables have been created or updated successfully.');
+    console.log('All tables have been processed.');
+    console.log('Tables updated with UTF-8 support:', updatedTables);
   } catch (error) {
     console.error('Error creating or updating database or tables:', error);
   } finally {
@@ -88,6 +106,7 @@ async function createDatabaseAndTables() {
     }
   }
 }
+
 async function addForeignKeyConstraints(connection) {
   const constraints = [
     {
@@ -137,4 +156,5 @@ async function addForeignKeyConstraints(connection) {
     }
   }
 }
+
 createDatabaseAndTables();

@@ -24,10 +24,11 @@ const schema = {
         day: 'INT',
         qset: 'INT',
         base64: 'LONGTEXT',
+        sign_base64:'LONGTEXT',
         IsShorthand: 'BOOLEAN',
         IsTypewriting: 'BOOLEAN',
         departmentId: 'INT REFERENCES departmentdb(departmentId)',
-        disablity: 'BOOLEAN'
+        disability: 'BOOLEAN'
     },
     subjectsdb: {
         subjectId: 'INT PRIMARY KEY',
@@ -36,7 +37,10 @@ const schema = {
         subject_name_short: 'VARCHAR(50)',
         daily_timer: 'INT',
         passage_timer: 'INT',
-        demo_timer: 'INT'
+        demo_timer: 'INT',
+        disability_passage_timer:'INT',
+        typing_timer:"INT",
+        disability_typing_timer: 'INT'
     },
     departmentdb: {
         departmentId: 'INT PRIMARY KEY',
@@ -46,16 +50,18 @@ const schema = {
     },
     studentlogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        student_id: 'BIGINT',
         center: 'INT REFERENCES examcenterdb(center)',
-        loginTime: 'TIMESTAMP',
+        loginTime: 'TIMESTAMP NULL',
         login: 'BOOLEAN',
-        trial_time: 'TIMESTAMP',
-        audio1_time: 'TIMESTAMP',
-        passage1_time: 'TIMESTAMP',
-        audio2_time: 'TIMESTAMP',
-        passage2_time: 'TIMESTAMP',
-        feedback_time: 'TIMESTAMP',
+        trial_time: 'TIMESTAMP NULL',
+        audio1_time: 'TIMESTAMP NULL',
+        passage1_time: 'TIMESTAMP NULL',
+        audio2_time: 'TIMESTAMP NULL',
+        passage2_time: 'TIMESTAMP NULL',
+        trial_passage_time: 'TIMESTAMP NULL',
+        typing_passage_time: 'TIMESTAMP NULL',
+        feedback_time: 'TIMESTAMP NULL',
         UNIQUE: '(student_id)'
     },
     loginlogs: {
@@ -125,7 +131,8 @@ const schema = {
     },
 
     audiologs: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES studentlogs(student_id)',
+        id: 'INT AUTO_INCREMENT PRIMARY KEY',
+        student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         trial: 'INT',
         passageA: 'INT',
         passageB: 'INT'
@@ -163,7 +170,7 @@ const schema = {
         created_at: 'TIMESTAMP'
     },
     finalPassageSubmit: {
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        student_id: 'BIGINT',
         passageA: 'LONGTEXT',
         passageB: 'LONGTEXT',
     },
@@ -188,21 +195,20 @@ const schema = {
         status: 'BOOLEAN',
         submitted: 'DATETIME'
     },
-    typingpassagelogs :{
+    typingpassagelogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        student_id: 'BIGINT REFERENCES students(student_id)',
-        trial_time:'INT',
-        trial_passage:'LONGTEXT',
-        passage_time:'INT',
-        passage:'LONGTEXT',
-         time: 'DATETIME'
-
+        student_id: 'BIGINT',
+        trial_time: 'INT',
+        trial_passage: 'LONGTEXT',
+        passage_time: 'INT',
+        passage: 'LONGTEXT',
+        time: 'DATETIME'
     },
-    typingpassage :{
+    typingpassage: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        student_id: 'BIGINT REFERENCES students(student_id)',
-        trial_passage:'LONGTEXT',
-        passage:'LONGTEXT',
+        student_id: 'BIGINT',
+        trial_passage: 'LONGTEXT',
+        passage: 'LONGTEXT',
         time: 'DATETIME'
     },
 
@@ -245,10 +251,9 @@ const schema = {
         Q4PB: 'TEXT'
     },
 
-    // Add this to your schema.js file
     answersheet: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        student_id: 'BIGINT',
         image1: 'LONGTEXT',
         image2: 'LONGTEXT',
         image3: 'LONGTEXT',

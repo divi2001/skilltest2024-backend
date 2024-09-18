@@ -15,18 +15,18 @@ exports.departementLogin = async (req,res) => {
             const admin = results[0];
             // console.log("data: "+admin);
             console.log(admin)
-            // let decryptedStoredPassword = await decrypt(admin.departmentPassword);
-            // console.log(decryptedStoredPassword);
-            // try {
+            let decryptedStoredPassword = await decrypt(admin.departmentPassword);
+            console.log(decryptedStoredPassword);
+            try {
 
-            //     console.log("admin pass: "+admin.departmentPassword + " provide pass: "+password);
+                console.log("admin pass: "+admin.departmentPassword + " provide pass: "+password);
                    
-            // } catch (error) {                
-            //     console.log(error);
-            // }
+            } catch (error) {                
+                console.log(error);
+            }
 
             
-            if (admin.departmentPassword === password) {
+            if (decryptedStoredPassword === password) {
                 // Set institute session
                 req.session.departmentId = admin.departmentId;
                 res.status(200).send('Logged in successfully as an department admin!');
@@ -47,12 +47,13 @@ function formatDate(dateString) {
 }
 exports.getStudentsTrackDepartmentwise = async (req,res) => {
     console.log('Starting getStudentsTrack function');
-    const departmentId = 1;
-    let { subject_name, loginStatus, batchDate , batchNo, center } = req.query;
+    const departmentId =  req.session.departmentId;
+    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type } = req.query;
     console.log("Exam center code:", departmentId);
     console.log("Batch no:", batchNo);
     console.log("Subject:", subject_name);
     console.log("Login status:", loginStatus);
+    console.log("exam type:" , exam_type);
     console.log("Center no:", center);
     console.log("Original Batch date:", batchDate);
 
@@ -83,6 +84,8 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
         s.start_time,
         s.end_time,
         s.batchdate,
+        s.IsShorthand,
+        s.IsTypewriting,
         a.trial,
         a.passageA,
         a.passageB,
@@ -128,8 +131,8 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
         queryParams.push(subject_name);
     }
 
-    if(center){
-        query+= 'AND s.center = ?';
+    if (center) {
+        query += ' AND s.center = ?';
         queryParams.push(center);
     }
 
@@ -138,6 +141,18 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
             query += ' AND s.loggedin = 1';
         } else if (loginStatus === 'loggedout') {
             query += ' AND s.loggedin = 0';
+        }
+    }
+
+    if(exam_type){
+        if(exam_type ==='shorthand'){
+            query+= ' AND s.IsShorthand = 1'
+        }
+        else if (exam_type === 'typewriting'){
+            query+=' And s.IsTypewriting = 1'
+        }
+        else if(exam_type === 'both'){
+            query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
         }
     }
 

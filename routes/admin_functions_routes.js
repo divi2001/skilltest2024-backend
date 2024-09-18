@@ -12,6 +12,10 @@ router.delete('/deletetable/:tableName',  adminFunctionController.deleteTable);
 
 router.get('/resetaudiologs',isAuthenticatedAdmin,adminFunctionController.resetAllAudioLogs)
 
+router.post('/fetch-table-data',isAuthenticatedAdmin, adminFunctionController.fetchTableData);
+router.get('/fetch-table-names',adminFunctionController.fetchTableNames);
+router.post('/update-table-data',adminFunctionController.updateTableData);
+
 
 
 

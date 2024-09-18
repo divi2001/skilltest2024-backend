@@ -34,3 +34,34 @@ exports.getPcRegistrations = async (req, res) => {
         res.status(500).send(err.message);
     }
 }
+
+exports.removePcRegistration = async (req, res) => {
+    const centerCode = req.session.centerId;
+    const { ip_address, disk_id, mac_address } = req.body;
+
+    console.log("center:", centerCode);
+    console.log("ip_address:", ip_address);
+    console.log("disk_id:", disk_id);
+    console.log("mac_address:", mac_address);
+
+    const query = 'DELETE FROM pcregistration WHERE center = ? AND ip_address = ? AND mac_address = ? AND disk_id = ?';
+
+    try {
+        const [results] = await connection.query(query, [centerCode, ip_address, mac_address, disk_id]);
+        console.log(results);
+        
+        if (results.affectedRows > 0) {
+            res.status(200).json({ 
+                "message": "PC registration removed successfully",
+                "deletedRows": results.affectedRows
+            });
+        } else {
+            res.status(404).json({ 
+                "message": "No matching PC registration found"
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({"message": "Internal Server Error"});
+    }
+}

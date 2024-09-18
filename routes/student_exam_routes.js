@@ -36,6 +36,7 @@ router.post('/finalpassagelogs',isAuthenticated, studentController.updatePassage
 router.post('/passageprogress', isAuthenticated,studentController.getPassageProgress); 
 router.post('/passagetime', isAuthenticated,studentController.updatePassagewLogTime);
 router.post('/audiotime', isAuthenticated,studentController.updateAudioLogTime);
+router.post('/batchdate',studentController.updateStudentBatchDates)
 
 
 

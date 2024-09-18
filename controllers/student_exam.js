@@ -1,16 +1,28 @@
 const connection = require('../config/db1');
-const fs = require('fs').promises; 
-const xl = require('excel4node');
-
 const path = require('path');
 const fs1 = require('fs');
-const Buffer = require('buffer').Buffer;
 const archiver = require('archiver');
 const moment = require('moment-timezone');
+const { encrypt, decrypt } = require('../config/encrypt');
 
-const { encrypt, decrypt } =require('../config/encrypt');
-const { request } = require('http');
+exports.updateStudentBatchDates = async (req, res) => {
+    try {
+        // SQL query to update students table
+        const updateQuery = `
+            UPDATE students s
+            INNER JOIN batchdb b ON s.batchNo = b.batchNo
+            SET s.batchdate = b.batchdate
+        `;
 
+        // Execute the query
+        await connection.query(updateQuery);
+
+        res.send('Successfully updated batch dates for all students');
+    } catch (err) {
+        console.error('Failed to update student batch dates:', err);
+        res.status(500).send('Internal server error');
+    }
+};
 
 exports.updateAudioLogTime = async (req, res) => {
     const { audioType } = req.body;
@@ -62,7 +74,7 @@ exports.updateAudioLogTime = async (req, res) => {
 exports.updatePassagewLogTime = async (req, res) => {
     const { audioType } = req.body;
     const studentId = req.session.studentId;
-    console.log(studentId,audioType)
+    console.log(studentId, audioType)
 
     if (!studentId) {
         return res.status(400).send('Student ID is required');
@@ -74,7 +86,7 @@ exports.updatePassagewLogTime = async (req, res) => {
 
     // Map audioType to database column names
     const audioTypeMap = {
-   
+
         passageA: 'passage1_time',
         passageB: 'passage2_time'
     };
@@ -109,129 +121,147 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
     'PHOTO', 'center', 'reporting_Time', 'start_time', 'end_time', 'DAY',
     'qset', 'base64']
 
-    
 
 
-    exports.getStudentDetails = async (req, res) => {
-        console.log('Starting getStudentDetails function');
-        const studentId = req.session.studentId;
-        console.log('Student ID from session:', studentId);
-    
-        const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
-        const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
-    
+
+exports.getStudentDetails = async (req, res) => {
+    // console.log('Starting getStudentDetails function');
+    const studentId = req.session.studentId;
+    console.log('Student ID from session:', studentId);
+
+    const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
+    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
+
+
+    try {
+        // console.log('Querying student data');
+        const [students] = await connection.query(studentQuery, [studentId]);
+
+        if (students.length === 0) {
+            console.log('Student not found');
+            return res.status(404).send('Student not found');
+        }
+        const student = students[0];
+        
+        // console.log('Student data retrieved');
+
+        const batchDate1 = student.batchdate
+        console.log(batchDate1)
+        const padZero = (num) => num.toString().padStart(2, '0');
+
+        // Convert to dd:mm:yyyy format
+        const formattedDate = `${padZero(batchDate1.getDate())}/${padZero(batchDate1.getMonth() + 1)}/${batchDate1.getFullYear()}`;
+        console.log('Parsed batchdate:',batchDate1);
+
+
+        let subjectsId;
         try {
-            console.log('Querying student data');
-            const [students] = await connection.query(studentQuery, [studentId]);
-    
-            if (students.length === 0) {
-                console.log('Student not found');
-                return res.status(404).send('Student not found');
-            }
-            const student = students[0];
-            console.log('Student data retrieved');
-    
-            let subjectsId;
-            try {
-                console.log('Parsing subjectsId');
-                subjectsId = JSON.parse(student.subjectsId);
-                console.log('Parsed subjectsId:', subjectsId);
-            } catch (err) {
-                console.error('Error parsing subjectsId:', err);
-                return res.status(500).send('Invalid subjectsId format');
-            }
-    
-            const subjectId = subjectsId;
-            console.log('First subject ID:', subjectId);
-    
-            console.log('Querying subject data');
-            const [subjects] = await connection.query(subjectsQuery, [subjectId]);
-            console.log(subjects)
-    
-            if (subjects.length === 0) {
-                console.log('Subject not found');
-                return res.status(404).send('Subject not found');
-                
-            }
-            const subject = subjects[0];
-            console.log('Subject data retrieved');
-    
-            console.log('Preparing response data');
-            const responseData = {
-                ...student,
-                ...subject,
-                photo: student.base64
-            };
-            console.log('Response data prepared');
-    
-            console.log('Encrypting response data');
-            const encryptedResponseData = {};
-            for (let key in responseData) {
-                if (responseData.hasOwnProperty(key)) {
-                    if (responseData[key] === null) {
-                        encryptedResponseData[key] = encrypt('null');
-                    } else {
-                        encryptedResponseData[key] = encrypt(responseData[key].toString());
-                    }
+            console.log('Parsing subjectsId');
+            subjectsId = JSON.parse(student.subjectsId);
+            console.log('Parsed subjectsId:', subjectsId);
+        } catch (err) {
+            console.error('Error parsing subjectsId:', err);
+            return res.status(500).send('Invalid subjectsId format');
+        }
+
+        const subjectId = subjectsId;
+        console.log('First subject ID:', subjectId);
+
+        console.log('Querying subject data');
+        const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+        console.log(subjects)
+
+        if (subjects.length === 0) {
+            console.log('Subject not found');
+            return res.status(404).send('Subject not found');
+
+        }
+        const subject = subjects[0];
+        console.log('Subject data retrieved');
+
+        console.log('Preparing response data');
+        const responseData = {
+            ...student,
+            ...subject,
+            photo: student.base64,
+            batchdate :formattedDate
+        };
+
+
+
+
+        console.log('Response data prepared');
+
+        console.log('Encrypting response data');
+        const encryptedResponseData = {};
+        for (let key in responseData) {
+            if (responseData.hasOwnProperty(key)) {
+                if (responseData[key] === null) {
+                    encryptedResponseData[key] = encrypt('null');
+                } else {
+                    encryptedResponseData[key] = encrypt(responseData[key].toString());
                 }
             }
-            console.log('Response data encrypted');
-    
-            console.log('Sending encrypted response');
-            res.send(encryptedResponseData);
-        } catch (err) {
-            console.error('Error in getStudentDetails:', err);
-            res.status(500).send('Failed to fetch student details');
         }
-        console.log('Ending getStudentDetails function');
-    };
+        console.log('Response data encrypted');
 
-    exports.getaudios = async (req, res) => {
-        const studentId = req.session.studentId;
-        const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
-        const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
-        const audioQuery = "SELECT * FROM audiodb WHERE subjectId = ? AND qset = ?";
-
-        try {
-            const [students] = await connection.query(studentQuery, [studentId]);
-            if (students.length === 0) {
-                return res.status(404).send('Student not found');
-            }
-            const student = students[0];
-            // for (const field in student) {
-            //     if (student.hasOwnProperty(field) && !columnsToKeep.includes(field)) {
-            //         try {
-            //             student[field] = decrypt(student[field]);
-            //         } catch (err) {
-            //             // console.error(`Failed to decrypt field ${field}:`, err);
-            //             throw new Error(`Failed to decrypt field ${field}`);
-            //         }
-            //     }
-            // }
-        
+        console.log('Sending encrypted response');
+        res.send(encryptedResponseData);
+    } catch (err) {
+        console.error('Error in getStudentDetails:', err);
+        res.status(500).send('Failed to fetch student details');
+    }
+    console.log('Ending getStudentDetails function');
+};
 
 
 
-            // Extract subjectsId and parse it to an array
-            const subjectsId = student.subjectsId;
-            const qset = student.qset
-            console.log(qset)
+exports.getaudios = async (req, res) => {
+    const studentId = req.session.studentId;
+    const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
+    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
+    const audioQuery = "SELECT * FROM audiodb WHERE subjectId = ? AND qset = ?";
 
-            // Assuming you want the first subject from the array
-            const subjectId = student.subjectsId;
-            const [subjects] = await connection.query(subjectsQuery, [subjectId]);
-            if (subjects.length === 0) {
-                return res.status(404).send('Subject not found');
-            }
-            const subject = subjects[0];
+    try {
+        const [students] = await connection.query(studentQuery, [studentId]);
+        if (students.length === 0) {
+            return res.status(404).send('Student not found');
+        }
+        const student = students[0];
+        // for (const field in student) {
+        //     if (student.hasOwnProperty(field) && !columnsToKeep.includes(field)) {
+        //         try {
+        //             student[field] = decrypt(student[field]);
+        //         } catch (err) {
+        //             // console.error(`Failed to decrypt field ${field}:`, err);
+        //             throw new Error(`Failed to decrypt field ${field}`);
+        //         }
+        //     }
+        // }
 
 
-            const [auidos] = await connection.query(audioQuery, [subjectId, qset]);
-            if (auidos.length === 0) {
-                return res.status(404).send('audio not found');
-            }
-            const audio = auidos[0];
-        
+
+
+        // Extract subjectsId and parse it to an array
+        const subjectsId = student.subjectsId;
+        const qset = student.qset
+        console.log(qset)
+
+        // Assuming you want the first subject from the array
+        const subjectId = student.subjectsId;
+        const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+        if (subjects.length === 0) {
+            return res.status(404).send('Subject not found');
+        }
+        const subject = subjects[0];
+
+
+        const [auidos] = await connection.query(audioQuery, [subjectId, qset]);
+        if (auidos.length === 0) {
+            return res.status(404).send('audio not found');
+        }
+        const audio = auidos[0];
+
 
             const responseData = {
                 subjectId: subject.subjectId,
@@ -265,69 +295,71 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
             
             console.log("Null fields:", nullFields);
 
-            res.send(encryptedResponseData);
-        } catch (err) {
-            // console.error('Failed to fetch student details:', err);
-            res.status(500).send(err.message);
-        }
-    };
-    exports.updateAudioLogs = async (req, res) => {
-        const studentId = req.session.studentId;
-        const { audio_type, percentage } = req.body;
+        res.send(encryptedResponseData);
+    } catch (err) {
+        // console.error('Failed to fetch student details:', err);
+        res.status(500).send(err.message);
+    }
+};
+exports.updateAudioLogs = async (req, res) => {
+    const studentId = req.session.studentId;
+    const { audio_type, percentage } = req.body;
 
 
-        if (!studentId) {
-            return res.status(400).send('Student ID is required');
-        }
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
 
-        if (!audio_type || !['trial', 'passageA', 'passageB'].includes(audio_type)) {
-            return res.status(400).send('Valid audio type is required');
-        }
+    if (!audio_type || !['trial', 'passageA', 'passageB'].includes(audio_type)) {
+        return res.status(400).send('Valid audio type is required');
+    }
 
-        const findAudioLogQuery = `SELECT * FROM audiologs WHERE student_id = ?`;
-        const updateAudioLogQuery = `UPDATE audiologs SET ${audio_type} = ? WHERE student_id = ?`;
-        
-        let insertAudioLogQuery;
-        if (audio_type === 'trial') {
-            insertAudioLogQuery = `INSERT INTO audiologs (student_id, trial, passageA, passageB) VALUES (?, ?, 0, 0)`;
-        } else if (audio_type === 'passageA') {
-            insertAudioLogQuery = `INSERT INTO audiologs (student_id, trial, passageA, passageB) VALUES (?, 0, ?, 0)`;
-        } else if (audio_type === 'passageB') {
-            insertAudioLogQuery = `INSERT INTO audiologs (student_id, trial, passageA, passageB) VALUES (?, 0, 0, ?)`;
-        }
+    const findAudioLogQuery = `SELECT * FROM audiologs WHERE student_id = ?`;
+    const updateAudioLogQuery = `UPDATE audiologs SET ${audio_type} = ? WHERE student_id = ?`;
 
-        try {
-            const [rows] = await connection.query(findAudioLogQuery, [studentId]);
+    let insertAudioLogQuery;
+    if (audio_type === 'trial') {
+        insertAudioLogQuery = `INSERT INTO audiologs (student_id, trial, passageA, passageB) VALUES (?, ?, 0, 0)`;
+    } else if (audio_type === 'passageA') {
+        insertAudioLogQuery = `INSERT INTO audiologs (student_id, trial, passageA, passageB) VALUES (?, 0, ?, 0)`;
+    } else if (audio_type === 'passageB') {
+        insertAudioLogQuery = `INSERT INTO audiologs (student_id, trial, passageA, passageB) VALUES (?, 0, 0, ?)`;
+    }
 
-            if (rows.length > 0) {
-                const existingLog = rows[0];
+    try {
+        const [rows] = await connection.query(findAudioLogQuery, [studentId]);
 
-                if (percentage === 0 && existingLog[audio_type] !== 0) {
-                    return res.status(400).send(`Cannot update ${audio_type} to 0 as existing log is non-zero.`);
-                }
+        if (rows.length > 0) {
+            const existingLog = rows[0];
 
-                await connection.query(updateAudioLogQuery, [percentage, studentId]);
-            } else {
-                await connection.query(insertAudioLogQuery, [studentId, percentage]);
+            if (percentage === 0 && existingLog[audio_type] !== 0) {
+                return res.status(400).send(`Cannot update ${audio_type} to 0 as existing log is non-zero.`);
             }
 
-            const responseData = {
-                student_id: studentId,
-                audio_type: audio_type,
-                percentage: percentage // Stored as a number
-            };
-
-            res.send(responseData);
-        } catch (err) {
-            // console.error('Failed to update audio logs:', err);
-            res.status(500).send(err.message);
+            await connection.query(updateAudioLogQuery, [percentage, studentId]);
+        } else {
+            await connection.query(insertAudioLogQuery, [studentId, percentage]);
         }
-    };
+
+        const responseData = {
+            student_id: studentId,
+            audio_type: audio_type,
+            percentage: percentage // Stored as a number
+        };
+
+        res.send(responseData);
+    } catch (err) {
+        // console.error('Failed to update audio logs:', err);
+        res.status(500).send(err.message);
+    }
+};
+
 
 
 exports.getAudioLogs = async (req, res) => {
     const studentId = req.session.studentId;
-    
+
+
     if (!studentId) {
         return res.status(400).send('Student ID is required');
     }
@@ -338,14 +370,14 @@ exports.getAudioLogs = async (req, res) => {
         const [rows] = await connection.query(findAudioLogQuery, [studentId]);
 
         if (rows.length > 0) {
-            
+
             const audioLogs = rows[0];
-            
+
             // Convert null values to 0
             audioLogs.trial = audioLogs.trial || 0;
             audioLogs.passageA = audioLogs.passageA || 0;
             audioLogs.passageB = audioLogs.passageB || 0;
-            
+
             // Check if passageA or passageB is null and set them to 0
             if (audioLogs.passageA === null) {
                 audioLogs.passageA = 0;
@@ -353,18 +385,18 @@ exports.getAudioLogs = async (req, res) => {
             if (audioLogs.passageB === null) {
                 audioLogs.passageB = 0;
             }
-            
+
             // Check if any audio percentage is 100 and set it to 95
-            if (audioLogs.trial === 100) {
-                audioLogs.trial >= 95;
+            if (audioLogs.trial >= 98) {
+                audioLogs.trial = 95;
             }
-            if (audioLogs.passageA === 100) {
-                audioLogs.passageA >= 95;
+            if (audioLogs.passageA >=98) {
+                audioLogs.passageA = 95;
             }
-            if (audioLogs.passageB === 100) {
-                audioLogs.passageB >= 95;
+            if (audioLogs.passageB >=98) {
+                audioLogs.passageB = 95;
             }
-            
+
             res.send(audioLogs);
 
         } else {
@@ -444,7 +476,7 @@ exports.updatePassageFinalLogs = async (req, res) => {
             zlib: { level: 9 }
         });
 
-        output.on('close', function() {
+        output.on('close', function () {
             // Clean up the text file after zipping
             try {
                 fs1.unlinkSync(txtFilePath);
@@ -461,12 +493,12 @@ exports.updatePassageFinalLogs = async (req, res) => {
             res.send(responseData);
         });
 
-        archive.on('error', function(err) {
+        archive.on('error', function (err) {
             console.error('Archiver error:', err);
             // Don't throw the error, just log it
         });
 
-        archive.on('warning', function(err) {
+        archive.on('warning', function (err) {
             if (err.code === 'ENOENT') {
                 console.warn('Archiver warning:', err);
             } else {
@@ -555,99 +587,99 @@ exports.logTextInput = async (req, res) => {
         UNIQUE KEY (student_id)
       )
     `;
-  
-    if (!studentId) {
-      console.error('Student ID is required');
-      return res.status(400).send('Student ID is required');
-    }
-  
-    try {
-      // Create the textlogs table if it doesn't exist
-      await connection.query(createTableQuery);
-  
-      let insertQuery;
-      let values;
-  
-      if (identifier === 'passageA') {
-        insertQuery = 'INSERT INTO textlogs (student_id, mina, texta) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE mina = VALUES(mina), texta = VALUES(texta)';
-        values = [studentId, time, text];
-      } else if (identifier === 'passageB') {
-        insertQuery = 'INSERT INTO textlogs (student_id, minb, textb) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE minb = VALUES(minb), textb = VALUES(textb)';
-        values = [studentId, time, text];
-      } else {
-        console.error('Invalid identifier:', identifier);
-        return res.status(400).send('Invalid identifier');
-      }
-  
-      // Check if the text is empty, null, or an empty string
-      if (text && text.trim() !== '') {
-        await connection.query(insertQuery, values);
-        console.log('Response done');
-      } else {
-        console.log('Text is empty, skipping database insertion');
-      }
-  
-      res.sendStatus(200);
-    } catch (err) {
-      console.error('Failed to log text input:', err);
-      res.status(500).send(err.message);
-    }
-  };
 
-  exports.getPassageProgress = async (req, res) => {
+    if (!studentId) {
+        console.error('Student ID is required');
+        return res.status(400).send('Student ID is required');
+    }
+
+    try {
+        // Create the textlogs table if it doesn't exist
+        await connection.query(createTableQuery);
+
+        let insertQuery;
+        let values;
+
+        if (identifier === 'passageA') {
+            insertQuery = 'INSERT INTO textlogs (student_id, mina, texta) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE mina = VALUES(mina), texta = VALUES(texta)';
+            values = [studentId, time, text];
+        } else if (identifier === 'passageB') {
+            insertQuery = 'INSERT INTO textlogs (student_id, minb, textb) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE minb = VALUES(minb), textb = VALUES(textb)';
+            values = [studentId, time, text];
+        } else {
+            console.error('Invalid identifier:', identifier);
+            return res.status(400).send('Invalid identifier');
+        }
+
+        // Check if the text is empty, null, or an empty string
+        if (text && text.trim() !== '') {
+            await connection.query(insertQuery, values);
+            console.log('Response done');
+        } else {
+            console.log('Text is empty, skipping database insertion');
+        }
+
+        res.sendStatus(200);
+    } catch (err) {
+        console.error('Failed to log text input:', err);
+        res.status(500).send(err.message);
+    }
+};
+
+exports.getPassageProgress = async (req, res) => {
     const studentId = req.session.studentId;
     const { identifier } = req.body;
-  
+
     if (!studentId) {
-      console.error('Student ID is required');
-      return res.status(400).send('Student ID is required');
+        console.error('Student ID is required');
+        return res.status(400).send('Student ID is required');
     }
-  
+
     if (!identifier) {
-      console.error('Passage identifier is required');
-      return res.status(400).send('Passage identifier is required');
+        console.error('Passage identifier is required');
+        return res.status(400).send('Passage identifier is required');
     }
-  
+
     try {
-      const query =
-        'SELECT mina, texta, minb, textb FROM textlogs WHERE student_id = ? ORDER BY created_at DESC LIMIT 1';
-      const [rows] = await connection.query(query, [studentId]);
-  
-      if (rows.length === 0) {
-        console.log('No data found for the student');
-        return res.status(404).send('No data found for the student');
-      }
-  
-      const { mina, texta, minb, textb } = rows[0];
-  
-      const responseData = {};
-  
-      if (identifier === 'passageA') {
-        if (mina === null || texta === null || texta === '') {
-          console.log('No data found for passageA');
-          return res.status(404).send('No data found for passageA');
+        const query =
+            'SELECT mina, texta, minb, textb FROM textlogs WHERE student_id = ? ORDER BY created_at DESC LIMIT 1';
+        const [rows] = await connection.query(query, [studentId]);
+
+        if (rows.length === 0) {
+            console.log('No data found for the student');
+            return res.status(404).send('No data found for the student');
         }
-        console.log('Sending data for passageA');
-        responseData.timeLeft = mina;
-        responseData.typedText = texta;
-      } else if (identifier === 'passageB') {
-        if (minb === null || textb === null || textb === '') {
-          console.log('No data found for passageB');
-          return res.status(404).send('No data found for passageB');
+
+        const { mina, texta, minb, textb } = rows[0];
+
+        const responseData = {};
+
+        if (identifier === 'passageA') {
+            if (mina === null || texta === null || texta === '') {
+                console.log('No data found for passageA');
+                return res.status(404).send('No data found for passageA');
+            }
+            console.log('Sending data for passageA');
+            responseData.timeLeft = mina;
+            responseData.typedText = texta;
+        } else if (identifier === 'passageB') {
+            if (minb === null || textb === null || textb === '') {
+                console.log('No data found for passageB');
+                return res.status(404).send('No data found for passageB');
+            }
+            console.log('Sending data for passageB');
+            responseData.timeLeft = minb;
+            responseData.typedText = textb;
+        } else {
+            console.error('Invalid passage identifier:', identifier);
+            return res.status(400).send('Invalid passage identifier');
         }
-        console.log('Sending data for passageB');
-        responseData.timeLeft = minb;
-        responseData.typedText = textb;
-      } else {
-        console.error('Invalid passage identifier:', identifier);
-        return res.status(400).send('Invalid passage identifier');
-      }
-  
-      console.log('Response data:', responseData);
-      res.json(responseData);
+
+        console.log('Response data:', responseData);
+        res.json(responseData);
     } catch (err) {
-      console.error('Failed to fetch passage progress:', err);
-      res.status(500).send(err.message);
+        console.error('Failed to fetch passage progress:', err);
+        res.status(500).send(err.message);
     }
   };
 
@@ -660,7 +692,7 @@ exports.logTextInput = async (req, res) => {
     }
   
     try {
-      const query = 'SELECT passageA FROM finalpassagesubmit WHERE student_id = ?';
+      const query = 'SELECT passageA FROM finalPassageSubmit WHERE student_id = ?';
       const [rows] = await connection.query(query, [studentId]);
   
       if (rows.length === 0) {
@@ -717,9 +749,9 @@ exports.logTextInput = async (req, res) => {
 
   exports.getcontrollerpass = async (req, res) => {
     const studentId = req.session.studentId;
-    const studentQuery = 'SELECT center FROM students WHERE student_id = ?';
+    const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const centersQuery = 'SELECT * FROM examcenterdb WHERE center = ?';
-    const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ?';
+    const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ? AND batchNo = ?';
 
     try {
         const [students] = await connection.query(studentQuery, [studentId]);
@@ -729,7 +761,10 @@ exports.logTextInput = async (req, res) => {
         }
         const student = students[0];
         const centrcode = student.center;
-   
+        const batchno = student.batchNo
+
+        console.log(batchno)
+
 
         console.log(`Student center: ${centrcode}`);
 
@@ -742,7 +777,7 @@ exports.logTextInput = async (req, res) => {
 
         console.log(`Exam center found: ${center1.center_name}`);
 
-        const [controllers] = await connection.query(controllersQuery, [centrcode]);
+        const [controllers] = await connection.query(controllersQuery, [centrcode, batchno]);
         if (controllers.length === 0) {
             console.log(`Error: Controller not found for center code ${centrcode}`);
             return res.status(404).send('Subject not found');
@@ -752,16 +787,17 @@ exports.logTextInput = async (req, res) => {
 
         // Ensure both passwords are treated as strings
         const decryptedStoredPasswordStr = String(controllers1.controller_pass).trim();
-        
-        
+
+
 
         const responseData = {
             center: center1.center,
             controllerpass: decryptedStoredPasswordStr,
             center_name: center1.center_name
         };
+        console.log(responseData)
 
-    
+
 
         const encryptedResponseData = {};
         for (let key in responseData) {
