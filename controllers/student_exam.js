@@ -387,13 +387,13 @@ exports.getAudioLogs = async (req, res) => {
             }
 
             // Check if any audio percentage is 100 and set it to 95
-            if (audioLogs.trial === '100') {
+            if (audioLogs.trial >= 100) {
                 audioLogs.trial = 95;
             }
-            if (audioLogs.passageA === '100') {
+            if (audioLogs.passageA >=99) {
                 audioLogs.passageA = 95;
             }
-            if (audioLogs.passageB === '100') {
+            if (audioLogs.passageB >=98) {
                 audioLogs.passageB = 95;
             }
 
