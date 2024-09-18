@@ -48,7 +48,7 @@ async function createBlankAnswerSheet(doc)  {
       
       // Function to create a page
       function createPage(doc, isFirstPage) {
-        createHeader(doc, 'MAHARASHTRA STATE COUNCIL OF EXAMINATION, PUNE', 'GCC COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
+        createHeader(doc, 'MAHARASHTRA STATE COUNCIL OF EXAMINATION, PUNE', ' COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
         
         let startY = headerHeight;
       

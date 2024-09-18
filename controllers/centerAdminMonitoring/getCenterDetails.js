@@ -8,6 +8,10 @@ exports.getExamCenterDetails = async (req, res) => {
     
     console.log("getting exam center details Center: "+center);
     const query = 'SELECT * FROM examcenterdb WHERE center = ?';
+    const countQuery = 'SELECT COUNT(*) AS pcCount FROM pcregistration WHERE center = ?';
+    console.log("Checking the number of registered PCs for the center");
+    const [countResults] = await connection.query(countQuery, [center]);
+    const pcCount = countResults[0].pcCount;
 
     try{
         const [results] = await connection.query(query, [center]);
@@ -19,7 +23,7 @@ exports.getExamCenterDetails = async (req, res) => {
                     result.center_name,
                     result.center_address,
                     result.pc_count,
-                    result.max_pc
+                    result.max_pc,
                 );
                 // if (typeof examCenter.center_address === 'string') {
                 //     console.log("examCenter.center_address is a string: "+ examCenter.center_address);
@@ -28,7 +32,7 @@ exports.getExamCenterDetails = async (req, res) => {
                 console.log("examCenter.center_address: "+ examCenter.center_address);
                 return examCenter;
             });
-            res.status(200).json(examCenterDTO);
+            res.status(200).json({examCenterDTO,pcCount});
         } else {
             res.status(404).send('No records found!');
         }

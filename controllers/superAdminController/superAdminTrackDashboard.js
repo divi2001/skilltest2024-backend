@@ -1,37 +1,32 @@
 const connection = require('../../config/db1');
-const StudentTrackDTO = require('../../dto/studentProgress');
-const encryptionInterface = require('../../config/encrypt');
+const StudentTrackDTO = require("../../dto/studentProgress"); 
 
-// Helper function to format date to YYYY-MM-DD
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
-}
-
-exports.getStudentsTrack = async (req, res) => {
+exports.getAllStudentsTrack = async (req,res) => {
     console.log('Starting getStudentsTrack function');
-    const { batchNo } = req.params;
-    const examCenterCode = req.session.centerId;
-    let { subject_name, loginStatus, batchDate ,exam_type } = req.query;
-
-    console.log("Exam center code:", examCenterCode);
+    const adminId = req.params.adminid;
+    // console.log(adminId);
+    // if(!adminId) return res.status(404).json({"message":"Admin is not logged in!!"});
+    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type , departmentId } = req.query;
+    console.log("Exam center code:", departmentId);
     console.log("Batch no:", batchNo);
     console.log("Subject:", subject_name);
     console.log("Login status:", loginStatus);
-    console.log("exam type:" . exam_type);
+    console.log("exam type:" , exam_type);
+    console.log("Center no:", center);
     console.log("Original Batch date:", batchDate);
+    console.log("Department Id:", departmentId);
 
     if (batchDate) {
         batchDate = formatDate(batchDate);
         console.log("Formatted Batch date:", batchDate);
     }
 
-    if (!examCenterCode) {
-        console.log('Center admin is not logged in');
-        return res.status(404).json({"message":"Center admin is not logged in"});
-    }
+    // if (!departmentId) {
+    //     console.log('department admin is not logged in');
+    //     return res.status(404).json({"message":"Center admin is not logged in"});
+    // }
 
-    const queryParams = [examCenterCode];
+    const queryParams = [];
     let query = `SELECT 
     s.student_id,
     s.center,
@@ -48,6 +43,9 @@ exports.getStudentsTrack = async (req, res) => {
     s.start_time,
     s.end_time,
     s.batchdate,
+    s.IsShorthand,
+    s.IsTypewriting,
+    s.departmentId,
     a.trial,
     a.passageA,
     a.passageB,
@@ -58,8 +56,6 @@ exports.getStudentsTrack = async (req, res) => {
     sl.passage1_time,
     sl.audio2_time,
     sl.passage2_time,
-    sl.trial_passage_time,
-    sl.typing_passage_time,
     sl.feedback_time
 FROM
     students s
@@ -77,16 +73,13 @@ LEFT JOIN (
         MAX(passage1_time) as passage1_time,
         MAX(audio2_time) as audio2_time,
         MAX(passage2_time) as passage2_time,
-        MAX(trial_passage_time) as trial_passage_time,
-        MAX(typing_passage_time) as typing_passage_time,
         MAX(feedback_time) as feedback_time
     FROM
         studentlogs
     GROUP BY
         student_id
 ) sl ON s.student_id = sl.student_id
-WHERE s.center = ?`;
-
+WHERE 1=1`;
 
     if (batchNo) {
         query += ' AND s.batchNo = ?';
@@ -98,12 +91,22 @@ WHERE s.center = ?`;
         queryParams.push(subject_name);
     }
 
+    if (center) {
+        query += ' AND s.center = ?';
+        queryParams.push(center);
+    }
+
     if (loginStatus) {
         if (loginStatus === 'loggedin') {
             query += ' AND s.loggedin = 1';
         } else if (loginStatus === 'loggedout') {
             query += ' AND s.loggedin = 0';
         }
+    }
+
+    if(departmentId){
+        query += ' AND s.departmentId = ?';
+        queryParams.push(departmentId);
     }
 
     if(exam_type){
@@ -154,7 +157,8 @@ WHERE s.center = ?`;
                     result.feedback_time,
                     result.subject_name,
                     result.subject_name_short,
-                    result.batchdate
+                    result.batchdate,
+                    result.departmentId
                 );
                 
                 if (typeof studentTrack.fullname === 'string') {
@@ -171,5 +175,4 @@ WHERE s.center = ?`;
         console.error("Database query error:", err);
         res.status(500).json({message: err.message});
     }
-};
-
+}

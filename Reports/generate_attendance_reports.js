@@ -1,8 +1,9 @@
 const connection =  require("../config/db1");
 const moment = require('moment');
+
 function createAttendanceReport(doc , data) {
     function addHeader() {
-        doc.image('Reports/logo.png', 50, 50, { width: 50, height: 50 })
+        doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 })
 
         doc.fontSize(14).font('Helvetica-Bold')
             .text('MAHARASHTRA STATE COUNCIL OF EXAMINATIONS, PUNE', 110, 50, {
@@ -11,7 +12,7 @@ function createAttendanceReport(doc , data) {
             });
 
         doc.fontSize(12).font('Helvetica')
-            .text('GCC COMPUTER SHORTHAND EXAMINATION (SEPTEMBER 2024)', 110, doc.y + 5, {
+            .text('COMPUTER SHORTHAND EXAMINATION (SEPTEMBER 2024)', 110, doc.y + 5, {
                 width: 450,
                 align: 'center'
             });
@@ -64,8 +65,8 @@ function createAttendanceReport(doc , data) {
     const headerRowHeight = 30;
     const pageBreakThreshold = 700;
 
-    const headers = ['Sr. No.', 'SEAT NO', 'INST CODE', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO', 'SIGNATURE'];
-    const columnWidths = [40, 60, 60, 150, 60, 60, 70];
+    const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE'];
+    const columnWidths = [40, 60, 170, 60, 60, 60, 70];
 
     function drawTableHeaders(yPosition) {
         let xPosition = tableLeft;
@@ -101,30 +102,55 @@ function createAttendanceReport(doc , data) {
 
             let xPosition = tableLeft;
 
+            // Sr. No.
             doc.rect(xPosition, yPosition, columnWidths[0], rowHeight).stroke();
             doc.text(index + 1, xPosition + 2, yPosition + rowHeight / 2 - 5, { width: columnWidths[0], align: 'center' });
             xPosition += columnWidths[0];
 
+            // SEAT NO
             doc.rect(xPosition, yPosition, columnWidths[1], rowHeight).stroke();
             doc.text(student.seatNo, xPosition + 2, yPosition + rowHeight / 2 - 5, { width: columnWidths[1], align: 'center' });
             xPosition += columnWidths[1];
 
+            // NAME OF STUDENT
             doc.rect(xPosition, yPosition, columnWidths[2], rowHeight).stroke();
-            doc.text(student.instCode, xPosition + 2, yPosition + rowHeight / 2 - 5, { width: columnWidths[2], align: 'center' });
-            xPosition += columnWidths[2];
-
-            doc.rect(xPosition, yPosition, columnWidths[3], rowHeight).stroke();
             doc.fontSize(8).text(student.name, xPosition, yPosition + rowHeight / 2 - 5, {
-                width: columnWidths[3],
+                width: columnWidths[2],
                 align: 'center',
                 valign: 'center'
             });
+            xPosition += columnWidths[2];
+
+            // SUBJECT
+            doc.rect(xPosition, yPosition, columnWidths[3], rowHeight).stroke();
+            doc.text(student.subject, xPosition + 2, yPosition + rowHeight / 2 - 5, { width: columnWidths[3], align: 'center' });
             xPosition += columnWidths[3];
 
+            // PHOTO
             doc.rect(xPosition, yPosition, columnWidths[4], rowHeight).stroke();
-            doc.text(student.subject, xPosition + 2, yPosition + rowHeight / 2 - 5, { width: columnWidths[4], align: 'center' });
+            if (student.photoPath) {
+                try {
+                    doc.image(student.photoPath, xPosition + 2, yPosition + 2, {
+                        fit: [columnWidths[4] - 4, rowHeight - 4],
+                        align: 'center',
+                        valign: 'center'
+                    });
+                } catch (error) {
+                    console.error(`Error loading image for student ${student.seatNo}:`, error);
+                    doc.text('No Photo', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                        width: columnWidths[4],
+                        align: 'center'
+                    });
+                }
+            } else {
+                doc.text('No Photo', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                    width: columnWidths[4],
+                    align: 'center'
+                });
+            }
             xPosition += columnWidths[4];
 
+            // SIGN(uploaded)
             doc.rect(xPosition, yPosition, columnWidths[5], rowHeight).stroke();
             if (student.photoPath) {
                 try {
@@ -134,20 +160,21 @@ function createAttendanceReport(doc , data) {
                         valign: 'center'
                     });
                 } catch (error) {
-                    console.error(`Error loading image for student ${student.seatNo}:`, error);
-                    doc.text('No Photo', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                    console.error(`Error loading sign image for student ${student.seatNo}:`, error);
+                    doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
                         width: columnWidths[5],
                         align: 'center'
                     });
                 }
             } else {
-                doc.text('No Photo', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
                     width: columnWidths[5],
                     align: 'center'
                 });
             }
             xPosition += columnWidths[5];
 
+            // SIGNATURE
             doc.rect(xPosition, yPosition, columnWidths[6], rowHeight).stroke();
 
             yPosition += rowHeight;
@@ -202,79 +229,70 @@ function createAttendanceReport(doc , data) {
     const initialY = addHeader();
     const finalYPosition = createTable(data.students);
     const afterSummaryY = addCenteredSummaryTable(finalYPosition, data.students.length);
-
-    
 }
 
 const getData = async(center , batchNo) => {
     try {
         console.log(center,batchNo)
-        const query = 'SELECT s.fullname, s.student_id, s.instituteId, sub.subject_name_short FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
+        const query = 'SELECT s.fullname, s.student_id, sub.subject_name_short FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
         const response = await connection.query(query,[center,batchNo]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
         console.log(response[0],batchData[0]);
         
-        const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
         
-        if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
+
         return { 
             response: response[0], 
             batchData: batchData[0], 
-            isDownloadAllowed 
+            //  
         };
     } catch (error) {
         console.error('Error in getData:', error);
         throw error;
     }
 }
+
 function checkDownloadAllowed(batchDate) {
     const today = moment().startOf('day');
     const batchMoment = moment(batchDate).startOf('day');
     const differenceInDays = batchMoment.diff(today, 'days');
     console.log(differenceInDays);
     // Allow download if it's the day of the batch or one day before
-    return differenceInDays <= 1 && differenceInDays >= 0  ;
+    return differenceInDays <= 1 && differenceInDays >= 0;
 }
 
-
-const AttendanceReport = async(doc,center,batchNo) =>{
-     
+const AttendanceReport = async(doc,center,batchNo) => {
     const Data = await getData(center, batchNo);
-        console.log(Data);
+    console.log(Data);
 
-        const response = Data.response;
-        if (!Array.isArray(response) || response.length === 0) {
-            throw new Error('No data returned from getData');
-        }
+    const response = Data.response;
+    if (!Array.isArray(response) || response.length === 0) {
+        throw new Error('No data returned from getData');
+    }
 
-        if (!Array.isArray(Data.batchData) || Data.batchData.length === 0) {
-            throw new Error('No batch data available');
-        }
+    if (!Array.isArray(Data.batchData) || Data.batchData.length === 0) {
+        throw new Error('No batch data available');
+    }
 
-        const batchInfo = Data.batchData[0];
-        const examDate = new Date(batchInfo.batchdate).toISOString().split('T')[0];
+    const batchInfo = Data.batchData[0];
+    const examDate = new Date(batchInfo.batchdate).toISOString().split('T')[0];
 
-        const data = {
-            centerCode:center,
-            batch:batchNo,
-            examDate:examDate,
-            examTime:batchInfo.start_time,
-            students: response.map(student => {
-                return {
-                    seatNo:student.student_id.toString(),
-                    instCode:student.instituteId.toString(),
-                    name:student.fullname,
-                    subject:student.subject_name_short,
-                    photoPath:"./Reports/logo.png"
-                }
-            })
-
-        }
-     createAttendanceReport(doc,data);
-
+    const data = {
+        centerCode: center,
+        batch: batchNo,
+        examDate: examDate,
+        examTime: batchInfo.start_time,
+        students: response.map(student => {
+            return {
+                seatNo: student.student_id.toString(),
+                name: student.fullname,
+                subject: student.subject_name_short,
+                photoPath: "./Reports/logo.png"  // Using the same path for both photo and sign
+            }
+        })
+    }
+    createAttendanceReport(doc,data);
 }
-
 
 module.exports = {AttendanceReport};
-

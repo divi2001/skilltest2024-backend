@@ -18,6 +18,7 @@ const departmentRoutes = require("./routes/department_routes");
 const answerSheetRoutes = require("./routes/answerSheet_routes");
 const typingRoutes = require('./routes/students/typingRoutes')
 const excelRouter = require('./routes/dataImportExport/excelImportRoutes')
+const superAdminTrackDashboardRoute = require('./routes/superAdmin_updateDb')
 
 
 const app = express();
@@ -79,6 +80,7 @@ app.use(departmentRoutes);
 app.use(answerSheetRoutes);
 app.use(typingRoutes)
 app.use(excelRouter)
+app.use(superAdminTrackDashboardRoute);
 
 
 app.use(express.static(path.join(__dirname, 'build')));
