@@ -328,7 +328,6 @@ const columnsToKeep = ['student_id', 'instituteId', 'batchNo', 'batchdate',
 exports.getAudioLogs = async (req, res) => {
     const studentId = req.session.studentId;
     
-
     if (!studentId) {
         return res.status(400).send('Student ID is required');
     }
@@ -356,14 +355,14 @@ exports.getAudioLogs = async (req, res) => {
             }
             
             // Check if any audio percentage is 100 and set it to 95
-            if (audioLogs.trial === '100') {
-                audioLogs.trial = 95;
+            if (audioLogs.trial === 100) {
+                audioLogs.trial >= 95;
             }
-            if (audioLogs.passageA === '100') {
-                audioLogs.passageA = 95;
+            if (audioLogs.passageA === 100) {
+                audioLogs.passageA >= 95;
             }
-            if (audioLogs.passageB === '100') {
-                audioLogs.passageB = 95;
+            if (audioLogs.passageB === 100) {
+                audioLogs.passageB >= 95;
             }
             
             res.send(audioLogs);
