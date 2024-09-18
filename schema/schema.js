@@ -37,7 +37,10 @@ const schema = {
         subject_name_short: 'VARCHAR(50)',
         daily_timer: 'INT',
         passage_timer: 'INT',
-        demo_timer: 'INT'
+        demo_timer: 'INT',
+        disability_passage_timer:'INT',
+        typing_timer:"INT",
+        disability_typing_timer: 'INT'
     },
     departmentdb: {
         departmentId: 'INT PRIMARY KEY',
@@ -47,7 +50,7 @@ const schema = {
     },
     studentlogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        student_id: 'BIGINT',
         center: 'INT REFERENCES examcenterdb(center)',
         loginTime: 'TIMESTAMP NULL',
         login: 'BOOLEAN',
@@ -167,7 +170,7 @@ const schema = {
         created_at: 'TIMESTAMP'
     },
     finalPassageSubmit: {
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        student_id: 'BIGINT',
         passageA: 'LONGTEXT',
         passageB: 'LONGTEXT',
     },
@@ -194,7 +197,7 @@ const schema = {
     },
     typingpassagelogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        student_id: 'BIGINT',
         trial_time: 'INT',
         trial_passage: 'LONGTEXT',
         passage_time: 'INT',
@@ -203,7 +206,7 @@ const schema = {
     },
     typingpassage: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        student_id: 'BIGINT',
         trial_passage: 'LONGTEXT',
         passage: 'LONGTEXT',
         time: 'DATETIME'
@@ -250,7 +253,7 @@ const schema = {
 
     answersheet: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        student_id: 'BIGINT',
         image1: 'LONGTEXT',
         image2: 'LONGTEXT',
         image3: 'LONGTEXT',
