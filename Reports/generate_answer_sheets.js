@@ -79,9 +79,9 @@ async function createAnswerSheet(doc, data) {
     }
     
     async function createPage(doc, student, isFirstPage, qrCodeUrl) {
-        createHeader(doc, 'MAHARASHTRA STATE COUNCIL OF EXAMINATION, PUNE', 'COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
+        createHeader(doc, 'Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', 'COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
         
-        let startY = headerHeight;
+        let startY = headerHeight+15;
       
         if (isFirstPage) {
             const rightPhotoX = doc.page.width - margin - rightPhotoWidth;
@@ -93,7 +93,7 @@ async function createAnswerSheet(doc, data) {
                .stroke();
       
             await addPhoto(leftPhotoX, photoY, leftPhotoWidth, photoHeight, null, true, qrCodeUrl);
-            await addPhoto(rightPhotoX, photoY, rightPhotoWidth, photoHeight, student.photoPath);
+            await addPhoto(rightPhotoX, photoY, rightPhotoWidth, photoHeight, Buffer.from(student.photoBase64, 'base64'));
       
             const fieldStartX = margin + leftPhotoWidth + 10;
             const fieldWidth = (availableWidth - 10) / 2;
@@ -131,10 +131,10 @@ const getData = async(center, batchNo,student_id) => {
         console.log(center, batchNo,student_id);
         let query , response , queryParams = [center,batchNo];
         if(student_id){
-           query = "SELECT s.fullname, s.student_id, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ?;";
+           query = "SELECT s.fullname, s.student_id,s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ?;";
            queryParams.push(student_id);
         }else{
-         query = 'SELECT s.fullname, s.student_id, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
+         query = 'SELECT s.fullname, s.student_id,s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
         }
         response = await connection.query(query, queryParams);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
@@ -188,7 +188,7 @@ const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
             seatNo: student.student_id.toString(),
             name: student.fullname,
             subject: student.subject_name,
-            photoPath: "./Reports/logo.png"
+            photoBase64: student.base64
         }))
     };
 

@@ -157,7 +157,7 @@ exports.generateAnswerSheet = async (req, res) => {
             right: 40
         }
     });
-    const {batchNo} = req.body;
+    const {batchNo,student_id} = req.body;
     const center = req.session.centerId;
     // Use a Promise to handle the PDF generation
     const pdfPromise = new Promise((resolve, reject) => {
@@ -167,7 +167,7 @@ exports.generateAnswerSheet = async (req, res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        generateAnswerSheets(doc,center,batchNo).then(() => {
+        generateAnswerSheets(doc,center,batchNo,student_id).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating blank answer sheet:", error);
