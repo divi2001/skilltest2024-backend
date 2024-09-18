@@ -1,5 +1,5 @@
 const connection = require("../config/db1");
-const moment = require('moment'); // Make sure to install and import moment.js for easier date handling
+const moment = require('moment-timezone'); // Make sure to install and import moment.js for easier date handling
 
 
 
@@ -188,7 +188,8 @@ async function generateReport(doc, center, batchNo) {
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = new Date(batchInfo.batchdate).toISOString().split('T')[0];
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+        
 
         const data = {
             centerCode: center,

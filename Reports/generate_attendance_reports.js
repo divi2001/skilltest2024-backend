@@ -1,5 +1,5 @@
 const connection =  require("../config/db1");
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 function createAttendanceReport(doc , data) {
     function addHeader() {
@@ -266,7 +266,7 @@ const AttendanceReport = async(doc,center,batchNo) => {
     }
 
     const batchInfo = Data.batchData[0];
-    const examDate = new Date(batchInfo.batchdate).toISOString().split('T')[0];
+    const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
 
     const data = {
         centerCode: center,

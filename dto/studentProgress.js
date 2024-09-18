@@ -24,8 +24,8 @@ class StudentProgress {
         this.subject_name_short = subject_name_short;
         this.batchdate = batchdate;
         this.departmentId =  departmentId;
-        this.typing_passage_time=typing_passage_time;
-        this.trial_passage_time=trial_passage_time
+        this.typing_passage_time = typing_passage_time;
+        this.trial_passage_time = trial_passage_time
     }
 }
 

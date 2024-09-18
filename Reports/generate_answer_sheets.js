@@ -107,6 +107,8 @@ async function createAnswerSheet(doc, data) {
             addField('Name', student.name, fieldStartX + fieldWidth + 10, startY + 5, fieldWidth, fieldHeight);
             addField('Subject', student.subject, fieldStartX, startY + fieldHeight + 10, fieldWidth, fieldHeight);
             addField('Batch', data.batch, fieldStartX + fieldWidth + 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
+            addField('Date', data.batch, fieldStartX + fieldWidth + 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
+            addField('Time', data.batch, fieldStartX + fieldWidth + 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
       
             startY += 2 * fieldHeight + 20;
         } else {

@@ -1,6 +1,10 @@
 const connection = require('../../config/db1');
 const StudentTrackDTO = require("../../dto/studentProgress"); 
+const moment = require('moment-timezone');
 
+function formatDate(dateString) {
+    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
+}
 exports.getAllStudentsTrack = async (req,res) => {
     console.log('Starting getStudentsTrack function');
     const adminId = req.params.adminid;
@@ -56,6 +60,8 @@ exports.getAllStudentsTrack = async (req,res) => {
     sl.passage1_time,
     sl.audio2_time,
     sl.passage2_time,
+    sl.trial_passage_time,
+    sl.typing_passage_time,
     sl.feedback_time
 FROM
     students s
@@ -73,6 +79,8 @@ LEFT JOIN (
         MAX(passage1_time) as passage1_time,
         MAX(audio2_time) as audio2_time,
         MAX(passage2_time) as passage2_time,
+        MAX(trial_passage_time) as trial_passage_time,
+        MAX(typing_passage_time) as typing_passage_time,
         MAX(feedback_time) as feedback_time
     FROM
         studentlogs
@@ -157,8 +165,10 @@ WHERE 1=1`;
                     result.feedback_time,
                     result.subject_name,
                     result.subject_name_short,
-                    result.batchdate,
-                    result.departmentId
+                    formatDate(result.batchdate),
+                    result.departmentId,
+                    result.trial_passage_time,
+                    result.typing_passage_time
                 );
                 
                 if (typeof studentTrack.fullname === 'string') {

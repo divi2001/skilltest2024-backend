@@ -1,14 +1,15 @@
 const connection = require('../../config/db1');
-const StudentTrackDTO = require("../../dto/studentProgress"); 
-const {decrypt} = require("../../config/encrypt");
-exports.departementLogin = async (req,res) => {
+const StudentTrackDTO = require("../../dto/studentProgress");
+const { decrypt } = require("../../config/encrypt");
+const moment = require('moment-timezone');
+exports.departementLogin = async (req, res) => {
 
     console.log("Trying center admin login");
     const { departmentId, password } = req.body;
     // console.log("center: "+centerId+ " password: "+password);
     console.log(req.body);
     const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
-  
+
     try {
         const [results] = await connection.query(departmentdbQuery, [departmentId]);
         if (results.length > 0) {
@@ -19,18 +20,18 @@ exports.departementLogin = async (req,res) => {
             console.log(decryptedStoredPassword);
             try {
 
-                console.log("admin pass: "+admin.departmentPassword + " provide pass: "+password);
-                   
-            } catch (error) {                
+                console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
+
+            } catch (error) {
                 console.log(error);
             }
 
-            
+
             if (decryptedStoredPassword === password) {
                 // Set institute session
                 req.session.departmentId = admin.departmentId;
                 res.status(200).send('Logged in successfully as an department admin!');
-                
+
             } else {
                 res.status(401).send('Invalid credentials for center admin');
             }
@@ -42,18 +43,17 @@ exports.departementLogin = async (req,res) => {
     }
 }
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
+    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }
-exports.getStudentsTrackDepartmentwise = async (req,res) => {
+exports.getStudentsTrackDepartmentwise = async (req, res) => {
     console.log('Starting getStudentsTrack function');
-    const departmentId =  req.session.departmentId;
-    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type } = req.query;
+    const departmentId = req.session.departmentId;
+    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.query;
     console.log("Exam center code:", departmentId);
     console.log("Batch no:", batchNo);
     console.log("Subject:", subject_name);
     console.log("Login status:", loginStatus);
-    console.log("exam type:" , exam_type);
+    console.log("exam type:", exam_type);
     console.log("Center no:", center);
     console.log("Original Batch date:", batchDate);
 
@@ -64,7 +64,7 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
 
     if (!departmentId) {
         console.log('department admin is not logged in');
-        return res.status(404).json({"message":"Center admin is not logged in"});
+        return res.status(404).json({ "message": "Center admin is not logged in" });
     }
 
     const queryParams = [departmentId];
@@ -86,6 +86,7 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
         s.batchdate,
         s.IsShorthand,
         s.IsTypewriting,
+        s.departmentId,
         a.trial,
         a.passageA,
         a.passageB,
@@ -96,6 +97,8 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
         sl.passage1_time,
         sl.audio2_time,
         sl.passage2_time,
+        sl.trial_passage_time,
+        sl.typing_passage_time,
         sl.feedback_time
     FROM
         students s
@@ -113,6 +116,8 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
             MAX(passage1_time) as passage1_time,
             MAX(audio2_time) as audio2_time,
             MAX(passage2_time) as passage2_time,
+            MAX(trial_passage_time) as trial_passage_time,
+            MAX(typing_passage_time) as typing_passage_time,
             MAX(feedback_time) as feedback_time
         FROM
             studentlogs
@@ -124,7 +129,7 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
     if (batchNo) {
         query += ' AND s.batchNo = ?';
         queryParams.push(batchNo);
-    } 
+    }
 
     if (subject_name) {
         query += ' AND sub.subject_name = ?';
@@ -144,15 +149,15 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
         }
     }
 
-    if(exam_type){
-        if(exam_type ==='shorthand'){
-            query+= ' AND s.IsShorthand = 1'
+    if (exam_type) {
+        if (exam_type === 'shorthand') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting =0'
         }
-        else if (exam_type === 'typewriting'){
-            query+=' And s.IsTypewriting = 1'
+        else if (exam_type === 'typewriting') {
+            query += ' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
         }
-        else if(exam_type === 'both'){
-            query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
+        else if (exam_type === 'both') {
+            query += ' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
         }
     }
 
@@ -192,10 +197,12 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
                     result.feedback_time,
                     result.subject_name,
                     result.subject_name_short,
-                    result.batchdate,
-                    result.departmentId
+                    formatDate(result.batchdate),
+                    result.departmentId,
+                    result.trial_passage_time,
+                    result.typing_passage_time
                 );
-                
+
                 if (typeof studentTrack.fullname === 'string') {
                     studentTrack.fullname = encryptionInterface.decrypt(studentTrack.fullname);
                 }
@@ -204,10 +211,10 @@ exports.getStudentsTrackDepartmentwise = async (req,res) => {
 
             res.status(200).json(studentTrackDTOs);
         } else {
-            res.status(404).json({message: 'No records found!'});
+            res.status(404).json({ message: 'No records found!' });
         }
     } catch (err) {
         console.error("Database query error:", err);
-        res.status(500).json({message: err.message});
+        res.status(500).json({ message: err.message });
     }
 }
