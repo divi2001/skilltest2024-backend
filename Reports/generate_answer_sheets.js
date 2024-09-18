@@ -117,7 +117,7 @@ async function createAnswerSheet(doc, data) {
     }
     
     for (const student of data.students) {
-        await createPage(doc, student, true, `http://localhost:3001/student_info/${student.seatNo}`);
+        await createPage(doc, student, true, `https://shorthandonlineexam.in/student_info/${student.seatNo}`);
         doc.addPage();
         await createPage(doc, student, false);
         if (student !== data.students[data.students.length - 1]) {
