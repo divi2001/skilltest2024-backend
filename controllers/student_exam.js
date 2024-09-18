@@ -574,44 +574,34 @@ exports.feedback = async (req, res) => {
 exports.logTextInput = async (req, res) => {
     const studentId = req.session.studentId;
     const { text, identifier, time } = req.body;
-    const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS textlogs (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      student_id INT NOT NULL,
-      mina FLOAT DEFAULT 0,
-      texta TEXT,
-      minb FLOAT DEFAULT 0,
-      textb TEXT,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      UNIQUE KEY unique_student_id (student_id)
-    )
-  `;
 
-  if (!studentId) {
-    console.error('Student ID is required');
-    return res.status(400).send('Student ID is required');
-  }
+    if (!studentId) {
+        console.error('Student ID is required');
+        return res.status(400).send('Student ID is required');
+    }
 
     try {
-        // Create the textlogs table if it doesn't exist
-        await connection.query(createTableQuery);
-
         // Check if the text is empty, null, or an empty string
         if (text && text.trim() !== '') {
-            let replaceQuery;
+            let upsertQuery;
             let values;
 
             if (identifier === 'passageA') {
-                replaceQuery = `
-                    REPLACE INTO textlogs (student_id, mina, texta, updated_at)
-                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                upsertQuery = `
+                    INSERT INTO textlogs (student_id, mina, texta)
+                    VALUES (?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                    mina = VALUES(mina),
+                    texta = VALUES(texta)
                 `;
                 values = [studentId, time, text];
             } else if (identifier === 'passageB') {
-                replaceQuery = `
-                    REPLACE INTO textlogs (student_id, minb, textb, updated_at)
-                    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                upsertQuery = `
+                    INSERT INTO textlogs (student_id, minb, textb)
+                    VALUES (?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                    minb = VALUES(minb),
+                    textb = VALUES(textb)
                 `;
                 values = [studentId, time, text];
             } else {
@@ -619,7 +609,7 @@ exports.logTextInput = async (req, res) => {
                 return res.status(400).send('Invalid identifier');
             }
 
-            await connection.query(replaceQuery, values);
+            await connection.query(upsertQuery, values);
             console.log('Response done');
         } else {
             console.log('Text is empty, skipping database insertion');
