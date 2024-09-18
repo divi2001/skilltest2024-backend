@@ -10,6 +10,7 @@ const moment = require('moment-timezone');
 
 const { encrypt, decrypt } =require('../../config/encrypt');
 const { request } = require('http');
+const { json } = require('body-parser');
 
 
 exports.loginStudent = async (req, res) => {
@@ -206,5 +207,40 @@ exports.getStudentDetails = async (req, res) => {
     }
     console.log('Ending getStudentDetails function');
 };
+
+exports.totalLoginCounts = async (req,res) => {
+
+    const {center ,batchNo , department} = req.body;
+    console.log(req.body);
+
+    try {
+        let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 0 '
+        let queryParams = [];
+        if(department){
+           query +=' AND departmentId = ?';
+           queryParams.push(department);
+        }
+        if(center){
+            query += ' AND center = ?';
+            queryParams.push(center);
+        }
+        if(center && batchNo){
+            query += ' AND batchNo = ?';
+            queryParams.push(batchNo);
+        }
+        if(!center &&batchNo){
+            return res.status(404).json({"Message":"You should also provide center no. to get the login count of a perticular batch"})
+        }
+
+        const [result] = await connection.query(query,queryParams);
+        console.log(result[0]);
+        res.status(200).json(result[0])
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({})
+    }
+    
+}
 
 

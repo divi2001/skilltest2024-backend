@@ -1,6 +1,6 @@
 const connection = require("../config/db1");
-const moment = require('moment');
 const QRCode = require('qrcode');
+const moment = require('moment-timezone');
 
 async function createAnswerSheet(doc, data) {
     // Constants for layout
@@ -88,12 +88,12 @@ async function createAnswerSheet(doc, data) {
             const leftPhotoX = margin;
             const photoY = startY;
       
-            doc.moveTo(margin + leftPhotoWidth, startY)
-               .lineTo(rightPhotoX, startY)
-               .stroke();
+            doc.moveTo(margin, startY)
+           .lineTo(doc.page.width - margin, startY)
+           .stroke();
       
-            await addPhoto(leftPhotoX, photoY, leftPhotoWidth, photoHeight, null, true, qrCodeUrl);
-            await addPhoto(rightPhotoX, photoY, rightPhotoWidth, photoHeight, Buffer.from(student.photoBase64, 'base64'));
+            await addPhoto(leftPhotoX, photoY+7, leftPhotoWidth, photoHeight, null, true, qrCodeUrl);
+            await addPhoto(rightPhotoX, photoY+7, rightPhotoWidth, photoHeight, Buffer.from(student.photoBase64, 'base64'));
       
             const fieldStartX = margin + leftPhotoWidth + 10;
             const fieldWidth = (availableWidth - 10) / 2;
@@ -105,17 +105,21 @@ async function createAnswerSheet(doc, data) {
       
             addField('Seat No', student.seatNo, fieldStartX, startY + 5, fieldWidth, fieldHeight);
             addField('Name', student.name, fieldStartX + fieldWidth + 10, startY + 5, fieldWidth, fieldHeight);
+    
+            // Second row
             addField('Subject', student.subject, fieldStartX, startY + fieldHeight + 10, fieldWidth, fieldHeight);
             addField('Batch', data.batch, fieldStartX + fieldWidth + 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
-            addField('Date', data.batch, fieldStartX + fieldWidth + 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
-            addField('Time', data.batch, fieldStartX + fieldWidth + 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
+    
+            // Third row (new)
+            addField('Date', data.examDate, fieldStartX, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
+            addField('Time', data.start_time, fieldStartX + fieldWidth + 10, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
       
             startY += 2 * fieldHeight + 20;
         } else {
             startY += 10;
         }
       
-        drawLines(doc, startY, doc.page.height - margin, lineGap);
+        drawLines(doc, startY+20, doc.page.height - margin, lineGap);
     }
     
     for (const student of data.students) {
@@ -181,16 +185,19 @@ const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
     }
 
     const batchInfo = Data.batchData[0];
-    const examDate = new Date(batchInfo.batchdate).toISOString().split('T')[0];
+    const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
 
     const data = {
         centerCode: center,
         batch: batchNo,
+        examDate:examDate,
+        start_time:batchInfo.start_time,
         students: response.map(student => ({
             seatNo: student.student_id.toString(),
             name: student.fullname,
             subject: student.subject_name,
-            photoBase64: student.base64
+            photoBase64: student.base64,
+            
         }))
     };
 
