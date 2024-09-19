@@ -38,11 +38,10 @@ const corsOptions = {
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval';"
+    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://shorthandonlineexam.in;"
   );
   next();
 });
-
 // // Use CORS with the above options
 app.use(cors(corsOptions));
 
@@ -50,6 +49,7 @@ app.use(cors({
   origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','https://shorthandonlineexam.in'],
   credentials: true
 }));
+
 
 app.use(session({
   secret: 'divis@GeYT',
