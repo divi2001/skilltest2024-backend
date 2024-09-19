@@ -180,6 +180,7 @@ exports.updateTableData = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error updating table data', error: err.message });
     }
 };
+
   exports.deleteTable = async (req, res) => {
     const tableName = req.params.tableName;
 
