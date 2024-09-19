@@ -290,7 +290,7 @@ const AttendanceReport = async(doc,center,batchNo) => {
 
     const batchInfo = Data.batchData[0];
     const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
-    if(!checkDownloadAllowedStudentLoginPass('2024-09-20T18:30:00.000Z')) {
+    if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
         throw new Error("Download not allowed at this time");
     }
 

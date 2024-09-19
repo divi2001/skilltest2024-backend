@@ -247,10 +247,10 @@ exports.generateStudentId_Password = async (req, res) => {
 
         // Check if download is allowed
         console.log(batchData[0].start_time,batchData[0].batchdate)
-        if (!checkDownloadAllowedStudentLoginPass('18.00.00','2024-09-19T18:30:00.000Z')) {
+        if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
             return res.status(403).json({ "message": "Download not allowed at this time" });
         }
-
+ 
         // If download is allowed, proceed with getting student data
         const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';
         const [results] = await connection.query(query, [center, batchNo]);
