@@ -214,7 +214,7 @@ exports.totalLoginCounts = async (req,res) => {
     console.log(req.body);
 
     try {
-        let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 0 '
+        let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 1 '
         let queryParams = [];
         if(department){
            query +=' AND departmentId = ?';
