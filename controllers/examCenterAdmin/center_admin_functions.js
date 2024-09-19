@@ -49,6 +49,7 @@ exports.loginCenterAdmin= async (req, res) => {
             res.status(404).send('center not found');
         }
     } catch (err) {
+        console.log("error: "+err.message);
         res.status(500).send(err.message);
     }
   };
