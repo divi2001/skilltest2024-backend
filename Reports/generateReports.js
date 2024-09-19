@@ -216,12 +216,12 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
+    // console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
     console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD hh:mm A'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
     // Return true if startTime is between 0 and 30 minutes ahead of the current time
-    return differenceInMinutes <= 105 ;
+    return differenceInMinutes <= 105;
 }
 exports.generateStudentId_Password = async (req, res) => {
     const { batchNo } = req.body;
@@ -246,9 +246,10 @@ exports.generateStudentId_Password = async (req, res) => {
         // }
 
         // Check if download is allowed
-        // if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
-        //     return res.status(403).json({ "message": "Download not allowed at this time" });
-        // }
+        console.log(batchData[0].start_time,batchData[0].batchdate)
+        if (!checkDownloadAllowedStudentLoginPass('18.00.00','2024-09-19T18:30:00.000Z')) {
+            return res.status(403).json({ "message": "Download not allowed at this time" });
+        }
 
         // If download is allowed, proceed with getting student data
         const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';

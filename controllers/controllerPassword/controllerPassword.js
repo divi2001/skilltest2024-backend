@@ -45,7 +45,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     console.log('Difference in Minutes:', differenceInMinutes);
 
     // Return true if startTime is between 0 and 30 minutes ahead of the current time
-    return differenceInMinutes <= 30 ;
+    return  differenceInMinutes <= 30;
 }
 exports.getControllerPassForCenter = async (req, res) => {
     const centerCode = req.session.centerId;
@@ -54,10 +54,10 @@ exports.getControllerPassForCenter = async (req, res) => {
     console.log("CenterCode: " + centerCode);
 
     const query = `SELECT controllerdb.center, controllerdb.batchNo, controllerdb.controller_pass, 
-                          batchdb.Start_time, batchdb.End_Time, batchdb.batchstatus, batchdb.batchdate 
+                    batchdb.Start_time, batchdb.End_Time, batchdb.batchstatus, batchdb.batchdate 
                    FROM controllerdb 
                    INNER JOIN batchdb ON controllerdb.batchNo = batchdb.batchNo 
-                   WHERE  controllerdb.center = ? AND batchdb.batchNo = 100;`;
+                   WHERE controllerdb.center = ?;`;
 
     try {
         const [results] = await connection.query(query, [centerCode]);
@@ -65,10 +65,9 @@ exports.getControllerPassForCenter = async (req, res) => {
         if (results.length > 0) {
             // Filter results to include only those where start_time is within 30 minutes
             // const currentTime = moment();
-            // const filteredResults = results.filter(result => {
-            //     return checkDownloadAllowedStudentLoginPass(result.Start_time,result.batchdate)
-            // });
-             const filteredResults = results;
+            const filteredResults = results.filter(result => {
+                return checkDownloadAllowedStudentLoginPass(result.Start_time,result.batchdate)
+            });
 
             // If there are any valid records after filtering, return them
             if (filteredResults.length > 0) {
