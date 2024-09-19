@@ -38,10 +38,10 @@ exports.getControllerPassForCenter = async (req, res) => {
         res.status(500).send(err.message);
     }
 }
-
+const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 function checkIfIsInTimeLimit(startTime) {
     // Parse the start time, assuming it's in 12-hour format with AM/PM
-    const startMoment = moment(startTime, 'hh:mm A');
+    const startMoment = moment.tz(startTime, 'hh:mm A', 'Asia/Kolkata');
     const now = moment();
 
     // If the start time is after the current time, assume it's for tomorrow
