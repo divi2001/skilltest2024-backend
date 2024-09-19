@@ -51,7 +51,7 @@ async function createAnswerSheet(doc, data) {
     }
 
     async function addPhoto(x, y, width, height, path, isQRCode = false, qrCodeUrl) {
-        doc.rect(x, y, width, height).stroke();
+        doc.rect(x, y-1, width, height+2).stroke();
         try {
             if (isQRCode) {
                 const qrDataURL = await generateQRCode(qrCodeUrl);
@@ -104,15 +104,15 @@ async function createAnswerSheet(doc, data) {
             }
       
             addField('Seat No', student.seatNo, fieldStartX, startY + 5, fieldWidth, fieldHeight);
-            addField('Name', student.name, fieldStartX + fieldWidth + 10, startY + 5, fieldWidth, fieldHeight);
+            addField('Name', student.name, fieldStartX + fieldWidth - 10, startY + 5, fieldWidth, fieldHeight);
     
             // Second row
             addField('Subject', student.subject, fieldStartX, startY + fieldHeight + 10, fieldWidth, fieldHeight);
-            addField('Batch', data.batch, fieldStartX + fieldWidth + 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
+            addField('Batch', data.batch, fieldStartX + fieldWidth - 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
     
             // Third row (new)
             addField('Date', data.examDate, fieldStartX, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
-            addField('Time', data.start_time, fieldStartX + fieldWidth + 10, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
+            addField('Time', data.start_time, fieldStartX + fieldWidth - 10, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
       
             startY += 2 * fieldHeight + 20;
         } else {
@@ -147,7 +147,7 @@ const getData = async(center, batchNo,student_id) => {
         const batchData = await connection.query(batchquery, [batchNo]);
         console.log(response[0], batchData[0]);
 
-        // const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
+       
         
         // if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
         return { 
@@ -169,7 +169,35 @@ function checkDownloadAllowed(batchDate) {
     // Allow download if it's the day of the batch or one day before
     return differenceInDays <= 1 && differenceInDays >= 0;
 }
+function checkDownloadAllowedStudentLoginPass(batchDate) {
+    // Set the timezone to Kolkata
+    const kolkataZone = 'Asia/Kolkata';
 
+    // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
+    const batchDateKolkata = moment(batchDate).tz(kolkataZone).startOf('day');
+
+    // Get current date in Kolkata timezone
+    const nowKolkata = moment().tz(kolkataZone).startOf('day');
+
+    // Calculate the date 1 day before the batch date
+    const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
+
+    console.log('Batch Date (UTC):', batchDate);
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
+    console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+
+    // Check if current date is after or equal to 1 day before the batch date
+    return nowKolkata.isSameOrAfter(oneDayBefore);
+}
+
+function getTextBeforePlus(inputText) {
+    const plusIndex = inputText.indexOf('+');
+    if (plusIndex !== -1) {
+        return inputText.substring(0, plusIndex).trim();
+    }
+    return inputText; // Return original text if '+' not found
+}
 
 const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
     const Data = await getData(center, batchNo , student_id);
@@ -186,7 +214,9 @@ const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
 
     const batchInfo = Data.batchData[0];
     const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-
+    if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+        throw new Error("Download not allowed at this time");
+    }
     const data = {
         centerCode: center,
         batch: batchNo,
@@ -195,7 +225,7 @@ const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
         students: response.map(student => ({
             seatNo: student.student_id.toString(),
             name: student.fullname,
-            subject: student.subject_name,
+            subject: getTextBeforePlus(student.subject_name),
             photoBase64: student.base64,
             
         }))

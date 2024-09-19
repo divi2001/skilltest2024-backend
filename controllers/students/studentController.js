@@ -37,9 +37,9 @@ exports.loginStudent = async (req, res) => {
         `;
         const [loginAttempts] = await connection.query(checkLoginAttemptsQuery, [defaultIpAddress]);
 
-        // if (loginAttempts[0].attempt_count > 15) {
-        //     return res.status(429).send('Too many login attempts. Please try again later.');
-        // }
+        if (loginAttempts[0].attempt_count > 10) {
+            return res.status(429).send('Too many login attempts. Please try again later.');
+        }
 
         const query1 = 'SELECT * FROM students WHERE student_id = ?';
         const [results] = await connection.query(query1, [userId]);
@@ -65,9 +65,9 @@ exports.loginStudent = async (req, res) => {
 
         const batchStatus = batchResults[0].batchstatus;
 
-        // if (batchStatus !== 1) {
-        //     return res.status(401).send('invalid credentials 3');
-        // }
+        if (batchStatus !== 1) {
+            return res.status(401).send('invalid credentials 3');
+        }
 
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
@@ -214,7 +214,7 @@ exports.totalLoginCounts = async (req,res) => {
     console.log(req.body);
 
     try {
-        let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 0 '
+        let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 1 '
         let queryParams = [];
         if(department){
            query +=' AND departmentId = ?';

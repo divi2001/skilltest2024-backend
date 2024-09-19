@@ -119,10 +119,10 @@ WHERE 1=1`;
 
     if(exam_type){
         if(exam_type ==='shorthand'){
-            query+= ' AND s.IsShorthand = 1'
+            query+= ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0'
         }
         else if (exam_type === 'typewriting'){
-            query+=' And s.IsTypewriting = 1'
+            query+=' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
         }
         else if(exam_type === 'both'){
             query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'

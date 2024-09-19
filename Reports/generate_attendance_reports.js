@@ -238,7 +238,10 @@ const getData = async(center , batchNo) => {
         const response = await connection.query(query,[center,batchNo]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
-        console.log(response[0],batchData[0]);
+        console.log(batchData[0].batchdate);
+        if(!checkDownloadAllowedStudentLoginPass(batchData[0].batchdate)) {
+            return res.status(403).json({ "message": "Download not allowed at this time" });
+        }
         
         return { 
             response: response[0], 
@@ -250,11 +253,31 @@ const getData = async(center , batchNo) => {
         throw error;
     }
 }
+function checkDownloadAllowedStudentLoginPass(batchDate) {
+    // Set the timezone to Kolkata
+    const kolkataZone = 'Asia/Kolkata';
 
+    // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
+    const batchDateKolkata = moment(batchDate).tz(kolkataZone).startOf('day');
+
+    // Get current date in Kolkata timezone
+    const nowKolkata = moment().tz(kolkataZone).startOf('day');
+
+    // Calculate the date 1 day before the batch date
+    const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
+
+    console.log('Batch Date (UTC):', batchDate);
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
+    console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+
+    // Check if current date is between one day before the batch date and the batch date itself (inclusive)
+    return nowKolkata.isSameOrAfter(oneDayBefore) && nowKolkata.isSameOrBefore(batchDateKolkata);
+}
 
 const AttendanceReport = async(doc,center,batchNo) => {
     const Data = await getData(center, batchNo);
-    console.log(Data);
+    // console.log(Data);
 
     const response = Data.response;
     if (!Array.isArray(response) || response.length === 0) {
@@ -267,6 +290,9 @@ const AttendanceReport = async(doc,center,batchNo) => {
 
     const batchInfo = Data.batchData[0];
     const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
+    if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+        throw new Error("Download not allowed at this time");
+    }
 
     const data = {
         centerCode: center,

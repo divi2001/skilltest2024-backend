@@ -8,6 +8,7 @@ function formatDate(dateString) {
     return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }
 
+
 exports.getStudentsTrack = async (req, res) => {
     console.log('Starting getStudentsTrack function');
     const { batchNo } = req.params;
@@ -86,7 +87,7 @@ LEFT JOIN (
     GROUP BY
         student_id
 ) sl ON s.student_id = sl.student_id
-WHERE s.center = ?`;
+WHERE s.center = ? `;
 
 
     if (batchNo) {

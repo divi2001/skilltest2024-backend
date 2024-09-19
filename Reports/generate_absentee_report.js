@@ -16,6 +16,8 @@ async function getData(center, batchNo) {
         // const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
         
         // if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
+       
+        
         return { 
             response: response[0], 
             batchData: batchData[0], 
@@ -35,6 +37,28 @@ function checkDownloadAllowed(batchDate) {
     console.log(differenceInDays);
     // Allow download if it's the day of the batch or one day before
     return differenceInDays <= 1 && differenceInDays >= 0  ;
+}
+
+function checkDownloadAllowedStudentLoginPass(batchDate) {
+    // Set the timezone to Kolkata
+    const kolkataZone = 'Asia/Kolkata';
+
+    // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
+    const batchDateKolkata = moment(batchDate).tz(kolkataZone).startOf('day');
+
+    // Get current date in Kolkata timezone
+    const nowKolkata = moment().tz(kolkataZone).startOf('day');
+
+    // Calculate the date 1 day before the batch date
+    const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
+
+    console.log('Batch Date (UTC):', batchDate);
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
+    console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+
+    // Check if current date is after or equal to 1 day before the batch date
+    return nowKolkata.isSameOrAfter(oneDayBefore);
 }
 
 function addHeader(doc, data) {
@@ -189,6 +213,9 @@ async function generateReport(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+            throw new Error("Download not allowed at this time");
+        }
         
 
         const data = {
