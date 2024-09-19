@@ -1,6 +1,6 @@
 const { generateReport } = require('./generate_absentee_report');
 const {AttendanceReport} = require('./generate_attendance_reports');
-const { generateStudentLoginPassSheet } = require('./generate_student_loginPass_sheet');
+//const { generateStudentLoginPassSheet } = require('./generate_student_loginPass_sheet');
 
 // const {}
 const PDFDocument = require('pdfkit');
@@ -29,12 +29,12 @@ exports.generateStudentLoginPassPdf = async (req, res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        generateStudentLoginPassSheet(doc,center,batchNo).then(() => {
-            doc.end();
-        }).catch((error) => {
-            console.error("Error generating report:", error);
-            reject(error);
-        });
+        // generateStudentLoginPassSheet(doc,center,batchNo).then(() => {
+        //     doc.end();
+        // }).catch((error) => {
+        //     console.error("Error generating report:", error);
+        //     reject(error);
+        // });
     });
 
     try {

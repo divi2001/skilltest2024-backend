@@ -15,8 +15,11 @@ const examDashBoardRoutes = require("./routes/examCenterAuth-dashboard")
 const examDashboardDetailsRoutes = require("./routes/examCenterDetails-dashboard");
 const departmentRoutes = require("./routes/department_routes");
 const answerSheetRoutes = require("./routes/answerSheet_routes");
-const typingRoutes = require('./routes/students/typingRoutes')
-const excelRouter = require('./routes/dataImportExport/excelImportRoutes')
+const typingRoutes = require('./routes/students/typingRoutes');
+const excelRouter = require('./routes/dataImportExport/excelImportRoutes');
+
+//super admin routes
+const superAdminRouter = require('./routes/superAdmin_updateDb');
 
 
 const app = express();
@@ -65,6 +68,8 @@ app.use(departmentRoutes);
 app.use(answerSheetRoutes);
 app.use(typingRoutes)
 app.use(excelRouter)
+
+app.use(superAdminRouter);
 
 
 //Test Route
