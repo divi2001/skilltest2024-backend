@@ -51,7 +51,7 @@ async function createAnswerSheet(doc, data) {
     }
 
     async function addPhoto(x, y, width, height, path, isQRCode = false, qrCodeUrl) {
-        doc.rect(x, y, width, height).stroke();
+        doc.rect(x, y-1, width, height+2).stroke();
         try {
             if (isQRCode) {
                 const qrDataURL = await generateQRCode(qrCodeUrl);
@@ -104,15 +104,15 @@ async function createAnswerSheet(doc, data) {
             }
       
             addField('Seat No', student.seatNo, fieldStartX, startY + 5, fieldWidth, fieldHeight);
-            addField('Name', student.name, fieldStartX + fieldWidth + 10, startY + 5, fieldWidth, fieldHeight);
+            addField('Name', student.name, fieldStartX + fieldWidth - 10, startY + 5, fieldWidth, fieldHeight);
     
             // Second row
             addField('Subject', student.subject, fieldStartX, startY + fieldHeight + 10, fieldWidth, fieldHeight);
-            addField('Batch', data.batch, fieldStartX + fieldWidth + 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
+            addField('Batch', data.batch, fieldStartX + fieldWidth - 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
     
             // Third row (new)
             addField('Date', data.examDate, fieldStartX, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
-            addField('Time', data.start_time, fieldStartX + fieldWidth + 10, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
+            addField('Time', data.start_time, fieldStartX + fieldWidth - 10, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
       
             startY += 2 * fieldHeight + 20;
         } else {
@@ -170,6 +170,13 @@ function checkDownloadAllowed(batchDate) {
     return differenceInDays <= 1 && differenceInDays >= 0;
 }
 
+function getTextBeforePlus(inputText) {
+    const plusIndex = inputText.indexOf('+');
+    if (plusIndex !== -1) {
+        return inputText.substring(0, plusIndex).trim();
+    }
+    return inputText; // Return original text if '+' not found
+}
 
 const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
     const Data = await getData(center, batchNo , student_id);
@@ -195,7 +202,7 @@ const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
         students: response.map(student => ({
             seatNo: student.student_id.toString(),
             name: student.fullname,
-            subject: student.subject_name,
+            subject: getTextBeforePlus(student.subject_name),
             photoBase64: student.base64,
             
         }))
