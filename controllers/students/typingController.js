@@ -313,3 +313,27 @@ exports.updateTypingPassageText = async (req, res) => {
         res.status(500).send(`Database error: ${err.message}`);
     }
 };
+
+// In your typing controller (e.g., typingController.js)
+exports.getFinalPassageLogs = async (req, res) => {
+    const studentId = req.session.studentId;
+
+    try {
+        const [rows] = await connection.query(
+            'SELECT trial_passage, passage FROM typingpassage WHERE student_id = ? ORDER BY time DESC LIMIT 1',
+            [studentId]
+        );
+
+        if (rows.length > 0) {
+            res.status(200).json({
+                trial_passage: rows[0].trial_passage,
+                passage: rows[0].passage
+            });
+        } else {
+            res.status(404).json({ message: 'No passage logs found for this student' });
+        }
+    } catch (err) {
+        console.error('Failed to retrieve final passage logs:', err);
+        res.status(500).send(`Database error: ${err.message}`);
+    }
+};
