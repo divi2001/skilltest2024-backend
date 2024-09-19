@@ -86,7 +86,7 @@ LEFT JOIN (
     GROUP BY
         student_id
 ) sl ON s.student_id = sl.student_id
-WHERE s.center = ?`;
+WHERE s.center = ? AND s.batchNo = 100`;
 
 
     if (batchNo) {

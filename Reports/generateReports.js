@@ -210,7 +210,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     );
     
     // Get current time in Kolkata timezone
-    const now = moment().tz(kolkataZone);
+    const now = moment().tz();
 
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
     
@@ -221,7 +221,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     console.log('Difference in Minutes:', differenceInMinutes);
 
     // Return true if startTime is between 0 and 30 minutes ahead of the current time
-    return differenceInMinutes <= 30 && differenceInMinutes > 0;
+    return differenceInMinutes <= 105 ;
 }
 exports.generateStudentId_Password = async (req, res) => {
     const { batchNo } = req.body;
@@ -246,20 +246,20 @@ exports.generateStudentId_Password = async (req, res) => {
         // }
 
         // Check if download is allowed
-        if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
-            return res.status(403).json({ "message": "Download not allowed at this time" });
-        }
+        // if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
+        //     return res.status(403).json({ "message": "Download not allowed at this time" });
+        // }
 
         // If download is allowed, proceed with getting student data
-        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ? AND batchdate = ?';
-        const [results] = await connection.query(query, [center, batchNo ,batchData[0].batchdate]);
-        console.log(results);
+        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';
+        const [results] = await connection.query(query, [center, batchNo]);
+        // console.log(results);
         const decryptedResults = await Promise.all(results.map(async (row) => ({
             student_id: row.student_id,
             password: await decrypt(row.password)
         })));
 
-        console.log("Decrypted results:", decryptedResults);
+        // console.log("Decrypted results:", decryptedResults);
 
         // Create a new workbook and worksheet
         const workbook = XLSX.utils.book_new();
