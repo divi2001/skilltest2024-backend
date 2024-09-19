@@ -256,7 +256,7 @@ exports.generateStudentId_Password = async (req, res) => {
         const [results] = await connection.query(query, [center, batchNo]);
         // console.log(results);
         const decryptedResults = await Promise.all(results.map(async (row) => ({
-            student_id: row.student_id,
+            student_id: String(row.student_id),
             password: await decrypt(row.password)
         })));
 
