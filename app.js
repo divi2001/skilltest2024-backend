@@ -34,24 +34,15 @@ const corsOptions = {
   optionsSuccessStatus: 200
 }
 
-const crypto = require('crypto');
 
-// Middleware to set CSP header with nonce
 app.use((req, res, next) => {
-  // Generate a random nonce for each request
-  const nonce = crypto.randomBytes(16).toString('base64');
-
-  // Set CSP header with the generated nonce
   res.setHeader(
     'Content-Security-Policy',
-    `default-src 'self'; style-src 'self' 'nonce-${nonce}'; script-src 'self' 'nonce-${nonce}';`
+    "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval';"
   );
-
-  // Pass the nonce to the next middleware/response
-  res.locals.nonce = nonce;
-
   next();
 });
+
 // // Use CORS with the above options
 app.use(cors(corsOptions));
 
