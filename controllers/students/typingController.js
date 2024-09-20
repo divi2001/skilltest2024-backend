@@ -221,6 +221,18 @@ exports.insertTypingPassageLog = async (req, res) => {
 
         const [result] = await connection.query(query, params);
         
+        // Create zip files for trial_passage and passage
+        const zipPromises = [];
+        if (trial_passage) {
+            zipPromises.push(createTypingPassageZip(studentId, 'trial', trial_passage));
+        }
+        if (passage) {
+            zipPromises.push(createTypingPassageZip(studentId, 'passage', passage));
+        }
+
+        // Wait for all zip files to be created
+        await Promise.all(zipPromises);
+
         res.status(200).json({
             message: existingRows.length > 0 ? 'Typing passage log updated successfully' : 'Typing passage log inserted successfully',
             affectedRows: result.affectedRows
