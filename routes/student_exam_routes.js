@@ -30,7 +30,7 @@ router.post('/passageprogress', isAuthenticated,studentController.getPassageProg
 router.post('/passagetime', isAuthenticated,studentController.updatePassagewLogTime);
 router.post('/audiotime', isAuthenticated,studentController.updateAudioLogTime);
 router.post('/batchdate',studentController.updateStudentBatchDates)
-router.post('/reset-student-login',studentController1.getCenterResetRequests)
+router.post('/reset-student-login',studentController1.getStudentResetRequests)
 
 
 

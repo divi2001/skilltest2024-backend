@@ -215,7 +215,6 @@ exports.getStudentDetails = async (req, res) => {
 };
 
 
-
 exports.getaudios = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
@@ -228,24 +227,11 @@ exports.getaudios = async (req, res) => {
             return res.status(404).send('Student not found');
         }
         const student = students[0];
-        // for (const field in student) {
-        //     if (student.hasOwnProperty(field) && !columnsToKeep.includes(field)) {
-        //         try {
-        //             student[field] = decrypt(student[field]);
-        //         } catch (err) {
-        //             // console.error(`Failed to decrypt field ${field}:`, err);
-        //             throw new Error(`Failed to decrypt field ${field}`);
-        //         }
-        //     }
-        // }
-
-
-
-
+        
         // Extract subjectsId and parse it to an array
         const subjectsId = student.subjectsId;
-        const qset = student.qset
-        console.log(qset)
+        const qset = student.qset;
+        console.log(qset);
 
         // Assuming you want the first subject from the array
         const subjectId = student.subjectsId;
@@ -255,45 +241,43 @@ exports.getaudios = async (req, res) => {
         }
         const subject = subjects[0];
 
-
         const [auidos] = await connection.query(audioQuery, [subjectId, qset]);
         if (auidos.length === 0) {
             return res.status(404).send('audio not found');
         }
         const audio = auidos[0];
 
-
-            const responseData = {
-                subjectId: subject.subjectId,
-                courseId: subject.courseId,
-                subject_name: subject.subject_name,
-                subject_name_short: subject.subject_name_short,
-                Daily_Timer: subject.daily_timer,
-                Passage_Timer: subject.passage_timer,
-                Demo_Timer: subject.demo_timer,
-                audio1: audio.audio1,
-                passage1: audio.passage1,
-                audio2: audio.audio2,
-                passage2: audio.passage2,
-                testaudio: audio.testaudio   
-            };
-            // console.log("Original responseData:", responseData);
-            
-            const encryptedResponseData = {};
-            const nullFields = [];
-            
-            for (let key in responseData) {
-                if (responseData.hasOwnProperty(key)) {
-                    if (responseData[key] === null) {
-                        nullFields.push(key);
-                        encryptedResponseData[key] = null;
-                    } else {
-                        encryptedResponseData[key] = encrypt(responseData[key].toString());
-                    }
+        const responseData = {
+            subjectId: subject.subjectId,
+            courseId: subject.courseId,
+            subject_name: subject.subject_name,
+            subject_name_short: subject.subject_name_short,
+            Daily_Timer: subject.daily_timer,
+            Passage_Timer: student.disability === 1 ? subject.disability_passage_timer : subject.passage_timer,
+            Demo_Timer: subject.demo_timer,
+            audio1: audio.audio1,
+            passage1: audio.passage1,
+            audio2: audio.audio2,
+            passage2: audio.passage2,
+            testaudio: audio.testaudio   
+        };
+        // console.log("Original responseData:", responseData);
+        
+        const encryptedResponseData = {};
+        const nullFields = [];
+        
+        for (let key in responseData) {
+            if (responseData.hasOwnProperty(key)) {
+                if (responseData[key] === null) {
+                    nullFields.push(key);
+                    encryptedResponseData[key] = null;
+                } else {
+                    encryptedResponseData[key] = encrypt(responseData[key].toString());
                 }
             }
-            
-            console.log("Null fields:", nullFields);
+        }
+        
+        console.log("Null fields:", nullFields);
 
         res.send(encryptedResponseData);
     } catch (err) {
@@ -301,6 +285,7 @@ exports.getaudios = async (req, res) => {
         res.status(500).send(err.message);
     }
 };
+
 exports.updateAudioLogs = async (req, res) => {
     const studentId = req.session.studentId;
     const { audio_type, percentage } = req.body;

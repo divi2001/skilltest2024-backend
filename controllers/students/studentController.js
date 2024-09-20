@@ -287,10 +287,10 @@ exports.totalLoginCounts = async (req,res) => {
     }
     
 }
-const moment = require('moment-timezone');
 
-exports.getCenterResetRequests = async (req, res) => {
-    const centerId = req.session.centerId;
+
+exports.getStudentResetRequests = async (req, res) => {
+   
     
     
     const reset_type = 're-login student'; // Set the reset type explicitly
@@ -307,7 +307,7 @@ exports.getCenterResetRequests = async (req, res) => {
     try {
         // First, get the student's batch
         const [student] = await connection.query(
-            'SELECT batch, loggedin FROM students WHERE student_id = ? AND center = ?',
+            'SELECT batch, loggedin FROM students WHERE student_id = ? ',
             [student_id, centerId]
         );
 
