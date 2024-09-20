@@ -336,6 +336,10 @@ exports.getStudentResetRequests = async (req, res) => {
 
         // Decrypt the stored password
         const decryptedStoredPassword = controllerData.controller_pass;
+        if (controllerData.controller_pass !== controller_password) {
+            return res.status(401).send('Unauthorized: Incorrect controller password');
+        }
+
 
         // Check if the password is correct and the batch is within the allowed time
 
