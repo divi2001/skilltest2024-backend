@@ -1,12 +1,13 @@
 const connection = require('../../config/db1');
 const StudentTrackDTO = require('../../dto/studentProgress');
 const encryptionInterface = require('../../config/encrypt');
+const moment = require('moment-timezone');
 
 // Helper function to format date to YYYY-MM-DD
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
+    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }
+
 
 exports.getStudentsTrack = async (req, res) => {
     console.log('Starting getStudentsTrack function');
@@ -48,6 +49,7 @@ exports.getStudentsTrack = async (req, res) => {
     s.start_time,
     s.end_time,
     s.batchdate,
+    s.departmentId,
     a.trial,
     a.passageA,
     a.passageB,
@@ -85,7 +87,7 @@ LEFT JOIN (
     GROUP BY
         student_id
 ) sl ON s.student_id = sl.student_id
-WHERE s.center = ?`;
+WHERE s.center = ? `;
 
 
     if (batchNo) {
@@ -108,10 +110,10 @@ WHERE s.center = ?`;
 
     if(exam_type){
         if(exam_type ==='shorthand'){
-            query+= ' AND s.IsShorthand = 1'
+            query+= ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0'
         }
         else if (exam_type === 'typewriting'){
-            query+=' And s.IsTypewriting = 1'
+            query+=' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
         }
         else if(exam_type === 'both'){
             query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
@@ -125,13 +127,14 @@ WHERE s.center = ?`;
 
     // console.log('Final query:', query);
     console.log('Query parameters:', queryParams);
-
+     
     try {
         const [results] = await connection.query(query, queryParams);
         console.log('Query result:', results);
 
         if (results.length > 0) {
             const studentTrackDTOs = results.map(result => {
+                
                 const studentTrack = new StudentTrackDTO(
                     result.student_id,
                     result.center,
@@ -154,7 +157,10 @@ WHERE s.center = ?`;
                     result.feedback_time,
                     result.subject_name,
                     result.subject_name_short,
-                    result.batchdate
+                    formatDate(result.batchdate),
+                    result.departmentId,
+                    result.trial_passage_time,
+                    result.typing_passage_time
                 );
                 
                 if (typeof studentTrack.fullname === 'string') {

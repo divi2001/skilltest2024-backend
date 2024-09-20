@@ -259,6 +259,12 @@ const schema = {
         image3: 'LONGTEXT',
         image4: 'LONGTEXT',
         upload_date: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+    },
+    resetrequests:{
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT',
+        reason : 'LONGTEXT'
+
     }
 };
 

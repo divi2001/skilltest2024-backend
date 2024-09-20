@@ -1,47 +1,104 @@
 const ControllerPasswordDTO = require('../../dto/controllerPasswordDTO');
 const connection = require('../../config/db1');
 const encryptionInterface = require('../../config/encrypt');
-const moment = require('moment');
+// const moment = require('moment-timezone');
 
+const moment = require('moment'); // Import moment for time handling
+
+
+// function checkDownloadAllowedStudentLoginPass(startTime) {
+//     const startMoment = moment(startTime, 'HH:mm');
+//     const now = moment();
+
+//     const differenceInMinutes = startMoment.diff(now, 'minutes'); // Compute difference from startTime to now
+    
+//     console.log('Current Time:', now.format('YYYY-MM-DD HH:mm:ss'));
+//     console.log('Start Time:', startMoment.format('YYYY-MM-DD HH:mm:ss'));
+//     console.log('Difference in Minutes:', differenceInMinutes);
+
+//     // Return true if startTime is between 0 and 30 minutes ahead of the current time
+//     return differenceInMinutes <= 30 && differenceInMinutes > 0;
+// }
+function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
+    // Set the timezone to Kolkata
+    const kolkataZone = 'Asia/Kolkata';
+
+    // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
+    const batchDateKolkata = moment(batchDate).tz(kolkataZone);
+
+    // Combine the Kolkata date with the provided startTime
+    const startDateTime = moment.tz(
+        `${batchDateKolkata.format('YYYY-MM-DD')} ${startTime}`,
+        'YYYY-MM-DD hh:mm A',
+        kolkataZone
+    );
+    
+    // Get current time in Kolkata timezone
+    const now = moment().tz(kolkataZone);
+
+    const differenceInMinutes = startDateTime.diff(now, 'minutes');
+    
+    console.log('Batch Date (UTC):', batchDate);
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
+    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD hh:mm A'));
+    console.log('Difference in Minutes:', differenceInMinutes);
+
+    // Return true if startTime is between 0 and 30 minutes ahead of the current time
+    return  differenceInMinutes <= 30;
+}
 exports.getControllerPassForCenter = async (req, res) => {
-    
     const centerCode = req.session.centerId;
-    const {batchNo} = req.body;
+    const { batchNo } = req.body;
 
-    console.log("CenterCode: "+centerCode);
+    console.log("CenterCode: " + centerCode);
 
-    const query = 'select controllerdb.center, controllerdb.batchNo, controllerdb.controller_pass, batchdb.Start_time, batchdb.End_Time, batchdb.batchstatus from controllerdb inner join batchdb on controllerdb.batchNo = batchdb.batchNo where batchdb.batchstatus = "active" and controllerdb.center = ?;';
-    
-    try{
-        const [results] = await connection.query(query, [centerCode,batchNo]);
-        
-        console.log("result: "+results);
+    const query = `SELECT controllerdb.center, controllerdb.batchNo, controllerdb.controller_pass, 
+                    batchdb.Start_time, batchdb.End_Time, batchdb.batchstatus, batchdb.batchdate 
+                   FROM controllerdb 
+                   INNER JOIN batchdb ON controllerdb.batchNo = batchdb.batchNo 
+                   WHERE controllerdb.center = ?;`;
+
+    try {
+        const [results] = await connection.query(query, [centerCode]);
+        console.log(results);
         if (results.length > 0) {
-            const controllerPassDto = results.map(result => {
-                const controllerPassDet = new ControllerPasswordDTO(
-                    result.center,
-                    result.batchNo,
-                    result.controller_pass,
-                    result.Start_time,
-                    result.End_Time,
-                    result.batchstatus
-                    )                    
-                    return controllerPassDet;
-                }
-            )
-            
-            res.status(200).json(controllerPassDto);
+            // Filter results to include only those where start_time is within 30 minutes
+            // const currentTime = moment();
+            const filteredResults = results.filter(result => {
+                return checkDownloadAllowedStudentLoginPass(result.Start_time,result.batchdate)
+            });
+
+            // If there are any valid records after filtering, return them
+            if (filteredResults.length > 0) {
+                const controllerPassDto = filteredResults.map(result => {
+                    return new ControllerPasswordDTO(
+                        result.center,
+                        result.batchNo,
+                        result.controller_pass,
+                        result.Start_time,
+                        result.End_Time,
+                        result.batchstatus
+                    );
+                });
+
+                console.log(controllerPassDto);
+                res.status(200).json({controllerPassDto});
+            } else {
+                res.status(404).send('No records found!');
+            }
         } else {
             res.status(404).send('No records found!');
         }
-    }catch (err) {
+    } catch (err) {
         res.status(500).send(err.message);
     }
-}
+};
 
+const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 function checkIfIsInTimeLimit(startTime) {
     // Parse the start time, assuming it's in 12-hour format with AM/PM
-    const startMoment = moment(startTime, 'hh:mm A');
+    const startMoment = moment.tz(startTime, 'hh:mm A', 'Asia/Kolkata');
     const now = moment();
 
     // If the start time is after the current time, assume it's for tomorrow
@@ -72,7 +129,7 @@ exports.getBatchwiseControllerPassForCenter = async(req,res)=>{
         }
         
         const today = moment().startOf('day');
-        const batchDate = moment(batchData[0].batchdate).startOf('day');
+        const batchDate = moment(batchData.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
         console.log(today,batchData);
         
         if (!today.isSame(batchDate)) {

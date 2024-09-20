@@ -8,16 +8,6 @@ const isAuthenticated = require('../middleware/isAuthStudent');
 const studentController = require('../controllers/student_exam');
 const studentController1 = require('../controllers/students/studentController')
 
-// Configure multer for disk storage
-
-  
- 
-  
-  // Route to handle photo upload
- 
-
-
-
 
 router.post('/student_login', studentController1.loginStudent);
 router.post('/student_info',studentController1.getStudentDetails);
@@ -31,6 +21,7 @@ router.get('/audioProgress', isAuthenticated,studentController.getAudioLogs);
 router.get('/typedtexta', isAuthenticated, studentController.getTypedTextA);
 router.get('/passage', isAuthenticated, studentController.getPassage);
 router.get('/finalpassagelogs', isAuthenticated, studentController.getPassageFinalLogs);
+router.post('/total-login-count',studentController1.totalLoginCounts);
 
 router.post('/textlogs', isAuthenticated,studentController.logTextInput); 
 router.post('/finalpassagelogs',isAuthenticated, studentController.updatePassageFinalLogs);

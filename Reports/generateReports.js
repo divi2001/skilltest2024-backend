@@ -1,6 +1,6 @@
 const connection = require("../config/db1");
 const XLSX = require('xlsx');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const { generateReport } = require('./generate_absentee_report');
 const {AttendanceReport} = require('./generate_attendance_reports');
 // const {}
@@ -183,17 +183,45 @@ exports.generateAnswerSheet = async (req, res) => {
         res.status(500).send('Error generating blank answer sheet');
     }
 }
-function checkDownloadAllowedStudentLoginPass(startTime) {
-    const startMoment = moment(startTime, 'HH:mm');
-    const now = moment();
+// function checkDownloadAllowedStudentLoginPass(startTime) {
+//     const startMoment = moment(startTime, 'HH:mm');
+//     const now = moment();
 
-    const differenceInMinutes = now.diff(startMoment, 'minutes');
+//     const differenceInMinutes = now.diff(startMoment, 'minutes');
     
-    console.log('Current Time:', now.format('YYYY-MM-DD HH:mm:ss'));
-    console.log('Start Time:', startMoment.format('YYYY-MM-DD HH:mm:ss'));
+//     console.log('Current Time:', now.format('YYYY-MM-DD HH:mm:ss'));
+//     console.log('Start Time:', startMoment.format('YYYY-MM-DD HH:mm:ss'));
+//     console.log('Difference in Minutes:', differenceInMinutes);
+
+//     return differenceInMinutes <= 15;
+// }
+function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
+    // Set the timezone to Kolkata
+    const kolkataZone = 'Asia/Kolkata';
+
+    // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
+    const batchDateKolkata = moment(batchDate).tz(kolkataZone);
+
+    // Combine the Kolkata date with the provided startTime
+    const startDateTime = moment.tz(
+        `${batchDateKolkata.format('YYYY-MM-DD')} ${startTime}`,
+        'YYYY-MM-DD hh:mm A',
+        kolkataZone
+    );
+    
+    // Get current time in Kolkata timezone
+    const now = moment().tz();
+
+    const differenceInMinutes = startDateTime.diff(now, 'minutes');
+    
+    console.log('Batch Date (UTC):', batchDate);
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    // console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
+    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD hh:mm A'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
-    return differenceInMinutes <= 15;
+    // Return true if startTime is between 0 and 30 minutes ahead of the current time
+    return differenceInMinutes <= 105;
 }
 exports.generateStudentId_Password = async (req, res) => {
     const { batchNo } = req.body;
@@ -209,29 +237,30 @@ exports.generateStudentId_Password = async (req, res) => {
             return res.status(404).json({ "message": "Batch not found" });
         }
         
-        const today = moment().startOf('day');
-        const batchDate = moment(batchData[0].batchdate).startOf('day');
-        console.log(today,batchData);
+        // const today = moment().startOf('day');
+        // const batchDate = moment(batchData[0].batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
+        // console.log(today,batchData);
         
-        if (!today.isSame(batchDate)) {
-            return res.status(403).json({ "message": "Download is only allowed on the day of the batch" });
-        }
+        // if (!today.isSame(batchDate)) {
+        //     return res.status(403).json({ "message": "Download is only allowed on the day of the batch" });
+        // }
 
         // Check if download is allowed
-        if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time)) {
+        console.log(batchData[0].start_time,batchData[0].batchdate)
+        if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
             return res.status(403).json({ "message": "Download not allowed at this time" });
         }
-
+ 
         // If download is allowed, proceed with getting student data
-        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ? AND batchdate = ?';
-        const [results] = await connection.query(query, [center, batchNo ,batchData[0].batchdate]);
-        
+        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';
+        const [results] = await connection.query(query, [center, batchNo]);
+        // console.log(results);
         const decryptedResults = await Promise.all(results.map(async (row) => ({
-            student_id: row.student_id,
+            student_id: String(row.student_id),
             password: await decrypt(row.password)
         })));
 
-        console.log("Decrypted results:", decryptedResults);
+        // console.log("Decrypted results:", decryptedResults);
 
         // Create a new workbook and worksheet
         const workbook = XLSX.utils.book_new();
