@@ -50,6 +50,11 @@ exports.loginStudent = async (req, res) => {
 
         const student = results[0];
 
+        // Check if the student is already logged in
+        if (student.loggedin === 1) {
+            return res.status(403).send('Student is already logged in');
+        }
+
         // if (!student.IsShorthand) {
         //     return res.status(403).send('Access denied. Student is not eligible for shorthand exam.');
         // }
@@ -74,11 +79,9 @@ exports.loginStudent = async (req, res) => {
         const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
         console.log(registrations)
 
-     
-
-        if (registrations.length===0) {
-            return res.status(401).send('pc not registered');
-        }
+        // if (registrations.length===0) {
+        //     return res.status(401).send('pc not registered');
+        // }
 
         let decryptedStoredPassword, decryptedStoredPassword1;
         try {
@@ -118,6 +121,12 @@ exports.loginStudent = async (req, res) => {
         `;
         await connection.query(insertStudentLogsQuery, [userId, examCenterCode, loginTime, 1, loginTime, 1]);
 
+        // Update the loggedin status to 1
+        const updateLoggedInStatusQuery = `
+            UPDATE students SET loggedin = 1 WHERE student_id = ?
+        `;
+        await connection.query(updateLoggedInStatusQuery, [userId]);
+
         res.send('Logged in successfully as a student!');
     } catch (err) {
         console.log('Database query error:', err);
@@ -125,6 +134,42 @@ exports.loginStudent = async (req, res) => {
     }
 };
 
+exports.logoutStudent = async (req, res) => {
+    const studentId = req.session.studentId;
+
+    if (!studentId) {
+        return res.status(401).send('No active session found');
+    }
+
+    try {
+        // Update the loggedin status to 0
+        const updateLoggedInStatusQuery = `
+            UPDATE students SET loggedin = 0 WHERE student_id = ?
+        `;
+        await connection.query(updateLoggedInStatusQuery, [studentId]);
+
+        // Get the current time in Kolkata, India
+        const logoutTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
+        // Update student logout details
+        const updateStudentLogsQuery = `
+            UPDATE studentlogs SET logoutTime = ?, login = 0 WHERE student_id = ?
+        `;
+        await connection.query(updateStudentLogsQuery, [logoutTime, studentId]);
+
+        // Clear the session
+        req.session.destroy((err) => {
+            if (err) {
+                console.log('Session destruction error:', err);
+                return res.status(500).send('Error during logout process');
+            }
+            res.send('Logged out successfully');
+        });
+    } catch (err) {
+        console.log('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};
 
 exports.getStudentDetails = async (req, res) => {
     // console.log('Starting getStudentDetails function');

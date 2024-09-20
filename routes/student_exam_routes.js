@@ -10,6 +10,7 @@ const studentController1 = require('../controllers/students/studentController')
 
 
 router.post('/student_login', studentController1.loginStudent);
+router.get('/student_logout',isAuthenticated, studentController1.logoutStudent);
 router.post('/student_info',studentController1.getStudentDetails);
 router.post('/audiologs',isAuthenticated, studentController.updateAudioLogs);
 router.post('/feedback',isAuthenticated, studentController.feedback);
