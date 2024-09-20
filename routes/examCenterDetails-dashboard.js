@@ -14,6 +14,7 @@ router.get('/get-controller-pass', getControllerPassForCenter);
 router.post('/get-batch-controller-password',getBatchwiseControllerPassForCenter);
 router.get('/get-pcregistration', getPcRegistrations);
 router.get('/get-current-student-details',getCurrentStudentDetails);
+router.get("/get-center-pcregistration-details",examCenter.getPcregistrationdetails);
 router.post('/delete-pcregistration',removePcRegistration);
 
 module.exports = router;
