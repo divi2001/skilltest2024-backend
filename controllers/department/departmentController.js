@@ -7,7 +7,7 @@ exports.departementLogin = async (req, res) => {
     console.log("Trying center admin login");
     const { departmentId, password } = req.body;
     // console.log("center: "+centerId+ " password: "+password);
-    console.log(req.body);
+    // console.log(req.body);
     const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
 
     try {
@@ -15,12 +15,12 @@ exports.departementLogin = async (req, res) => {
         if (results.length > 0) {
             const admin = results[0];
             // console.log("data: "+admin);
-            console.log(admin)
+            // console.log(admin)
             let decryptedStoredPassword = await decrypt(admin.departmentPassword);
-            console.log(decryptedStoredPassword);
+            // console.log(decryptedStoredPassword);
             try {
 
-                console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
+                // console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
 
             } catch (error) {
                 console.log(error);
@@ -30,13 +30,13 @@ exports.departementLogin = async (req, res) => {
             if (decryptedStoredPassword === password) {
                 // Set institute session
                 req.session.departmentId = admin.departmentId;
-                res.status(200).send('Logged in successfully as an department admin!');
+                res.status(200).send({"message":'Logged in successfully as an department admin!'});
 
             } else {
                 res.status(401).send('Invalid credentials for center admin');
             }
         } else {
-            res.status(404).send('department not found');
+            res.status(404).send({"message":'department not found'});
         }
     } catch (err) {
         res.status(500).send(err.message);
@@ -49,21 +49,21 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     console.log('Starting getStudentsTrack function');
     const departmentId = req.session.departmentId;
     let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.query;
-    console.log("Exam center code:", departmentId);
-    console.log("Batch no:", batchNo);
-    console.log("Subject:", subject_name);
-    console.log("Login status:", loginStatus);
-    console.log("exam type:", exam_type);
-    console.log("Center no:", center);
-    console.log("Original Batch date:", batchDate);
+    // console.log("Exam center code:", departmentId);
+    // console.log("Batch no:", batchNo);
+    // console.log("Subject:", subject_name);
+    // console.log("Login status:", loginStatus);
+    // console.log("exam type:", exam_type);
+    // console.log("Center no:", center);
+    // console.log("Original Batch date:", batchDate);
 
     if (batchDate) {
         batchDate = formatDate(batchDate);
-        console.log("Formatted Batch date:", batchDate);
+        // console.log("Formatted Batch date:", batchDate);
     }
 
     if (!departmentId) {
-        console.log('department admin is not logged in');
+        // console.log('department admin is not logged in');
         return res.status(404).json({ "message": "Center admin is not logged in" });
     }
 
@@ -167,7 +167,7 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     }
 
     // console.log('Final query:', query);
-    console.log('Query parameters:', queryParams);
+    // console.log('Query parameters:', queryParams);
 
     try {
         const [results] = await connection.query(query, queryParams);
@@ -271,7 +271,7 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
             s.batchNo,s.center;
     `;
 
-        console.log(query);
+        // console.log(query);
         const [results] = await connection.query(query, queryParams);
 
         // Convert date and time to Kolkata timezone
@@ -296,7 +296,7 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
             });
         });
 
-        console.log(results);
+        // console.log(results);
         res.status(200).json({ results });
     } catch (error) {
         console.log(error);

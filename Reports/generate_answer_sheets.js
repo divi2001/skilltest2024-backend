@@ -134,7 +134,7 @@ async function createAnswerSheet(doc, data) {
 
 const getData = async(center, batchNo,student_id) => {
     try {
-        console.log(center, batchNo,student_id);
+        // console.log(center, batchNo,student_id);
         let query , response , queryParams = [center,batchNo];
         if(student_id){
            query = "SELECT s.fullname, s.student_id,s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ?;";
@@ -145,7 +145,7 @@ const getData = async(center, batchNo,student_id) => {
         response = await connection.query(query, queryParams);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
-        console.log(response[0], batchData[0]);
+        // console.log(response[0], batchData[0]);
 
        
         
@@ -182,10 +182,10 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Calculate the date 1 day before the batch date
     const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
 
-    console.log('Batch Date (UTC):', batchDate);
-    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
-    console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+    // console.log('Batch Date (UTC):', batchDate);
+    // console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    // console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
+    // console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
 
     // Check if current date is after or equal to 1 day before the batch date
     return nowKolkata.isSameOrAfter(oneDayBefore);
@@ -201,7 +201,7 @@ function getTextBeforePlus(inputText) {
 
 const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
     const Data = await getData(center, batchNo , student_id);
-    console.log(Data);
+    // console.log(Data);
 
     const response = Data.response;
     if (!Array.isArray(response) || response.length === 0) {

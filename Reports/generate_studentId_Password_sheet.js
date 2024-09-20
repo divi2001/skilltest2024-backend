@@ -4,7 +4,7 @@ const {decrypt} = require('../config/encrypt');
 
 async function getData(center, batchNo) {
     try {
-        console.log(batchNo, center);
+        // console.log(batchNo, center);
 
         const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const [batchData] = await connection.query(batchQuery, [batchNo]);
@@ -13,7 +13,7 @@ async function getData(center, batchNo) {
             throw new Error("Batch not found");
         }
 
-        console.log(batchData[0].start_time, batchData[0].batchdate);
+        // console.log(batchData[0].start_time, batchData[0].batchdate);
 
         const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';
         const [results] = await connection.query(query, [center, batchNo]);
@@ -177,7 +177,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
 async function generateStudentIdPasswordPdf(doc, center, batchNo) {
     try {
         const Data = await getData(center, batchNo);
-        console.log(Data);
+        // console.log(Data);
 
         const response = Data.response;
         if (!Array.isArray(response) || response.length === 0) {

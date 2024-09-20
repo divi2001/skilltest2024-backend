@@ -4,9 +4,9 @@ const encryptionInterface = require('../../config/encrypt')
 
 exports.getExamCenterDetails = async (req, res) => {
     const center = req.session.centerId;
-    console.log(center);
+    // console.log(center);
 
-    console.log("getting exam center details Center: " + center);
+    // console.log("getting exam center details Center: " + center);
     const query = 'SELECT * FROM examcenterdb WHERE center = ?';
     const countQuery = 'SELECT COUNT(*) AS pcCount FROM pcregistration WHERE center = ?';
     console.log("Checking the number of registered PCs for the center");
@@ -29,7 +29,7 @@ exports.getExamCenterDetails = async (req, res) => {
                 //     console.log("examCenter.center_address is a string: "+ examCenter.center_address);
                 //     examCenter.center_address = encryptionInterface.decrypt(examCenter.center_address);
                 // }
-                console.log("examCenter.center_address: " + examCenter.center_address);
+                // console.log("examCenter.center_address: " + examCenter.center_address);
                 return examCenter;
             });
             res.status(200).json({ examCenterDTO, pcCount });
@@ -59,7 +59,7 @@ ORDER BY
     e.center;`
 
     const [results] =await connection.query(query);
-    console.log(results);
+    // console.log(results);
     res.status(200).json({results})
     } catch (error) {
          console.log(error);

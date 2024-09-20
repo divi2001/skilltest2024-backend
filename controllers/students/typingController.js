@@ -66,7 +66,7 @@ exports.getpassages = async (req, res) => {
             responseData.userpassage = log.passage || '';
         }
 
-        console.log(responseData);
+        // console.log(responseData);
         res.send(responseData);
     } catch (err) {
         res.status(500).send(err.message);

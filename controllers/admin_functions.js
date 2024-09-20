@@ -11,7 +11,7 @@ const { encrypt, decrypt } =require('../config/encrypt');
 const { request } = require('http');
 
 exports.loginadmin= async (req, res) => {
-    console.log("Trying admin login");
+    // console.log("Trying admin login");
     const { userId, password } = req.body;
     console.log(userId,password)
   
@@ -21,7 +21,7 @@ exports.loginadmin= async (req, res) => {
         const [results] = await connection.query(query1, [userId]);
         if (results.length > 0) {
             const admin = results[0];
-            console.log(admin);
+            // console.log(admin);
             let decryptedStoredPassword;
             try {
                 decryptedStoredPassword = (admin.password);

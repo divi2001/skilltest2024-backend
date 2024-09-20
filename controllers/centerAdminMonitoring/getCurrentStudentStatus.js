@@ -47,7 +47,7 @@ exports.getCurrentStudentDetails = async (req, res) => {
             s.batchNo;
     `;
 
-        console.log(query);
+        // console.log(query);
         const [results] = await connection.query(query, queryParams);
 
         // Convert date and time to Kolkata timezone
@@ -72,7 +72,7 @@ exports.getCurrentStudentDetails = async (req, res) => {
             });
         });
 
-        console.log(results);
+        // console.log(results);
         res.status(200).json({ results });
     } catch (error) {
         console.log(error);
