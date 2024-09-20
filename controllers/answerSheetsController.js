@@ -15,7 +15,7 @@ async function createAnswerSheetTableIfNotExists() {
         FOREIGN KEY (student_id) REFERENCES students(student_id)
       )
     `);
-    console.log('Answersheet table created or already exists');
+    // console.log('Answersheet table created or already exists');
   } catch (error) {
     console.error('Error creating answersheet table:', error);
     throw error;

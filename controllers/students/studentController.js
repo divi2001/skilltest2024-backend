@@ -15,7 +15,7 @@ const { json } = require('body-parser');
 
 exports.loginStudent = async (req, res) => {
     const { userId, password, ipAddress, diskIdentifier, macAddress } = req.body;
-    console.log(userId);
+    // console.log(userId);
 
     const defaultIpAddress = ipAddress || "default";
     const defaultDiskIdentifier = diskIdentifier || "default";
@@ -77,7 +77,7 @@ exports.loginStudent = async (req, res) => {
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
         const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
-        console.log(registrations)
+        // console.log(registrations)
 
         if (registrations.length===0) {
             return res.status(401).send('pc not registered');
@@ -94,7 +94,7 @@ exports.loginStudent = async (req, res) => {
 
         const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
         const providedPasswordStr = String(decryptedStoredPassword1).trim();
-        console.log(decryptedStoredPasswordStr, providedPasswordStr);
+        // console.log(decryptedStoredPasswordStr, providedPasswordStr);
 
         if (decryptedStoredPasswordStr !== providedPasswordStr) {
             return res.status(401).send('invalid credentials 5');
@@ -209,7 +209,7 @@ exports.getStudentDetails = async (req, res) => {
         }
 
         const subjectId = subjectsId;
-        console.log('Parsed batchdate:',batchDate1);
+        // console.log('Parsed batchdate:',batchDate1);
 
         // console.log('Querying subject data');
         const [subjects] = await connection.query(subjectsQuery, [subjectId]);
@@ -250,13 +250,13 @@ exports.getStudentDetails = async (req, res) => {
         console.error('Error in getStudentDetails:', err);
         res.status(500).send('Failed to fetch student details');
     }
-    console.log('Ending getStudentDetails function');
+    // console.log('Ending getStudentDetails function');
 };
 
 exports.totalLoginCounts = async (req,res) => {
 
     const {center ,batchNo , department} = req.body;
-    console.log(req.body);
+    // console.log(req.body);
 
     try {
         let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 1 '
@@ -278,7 +278,7 @@ exports.totalLoginCounts = async (req,res) => {
         }
 
         const [result] = await connection.query(query,queryParams);
-        console.log(result[0]);
+        // console.log(result[0]);
         res.status(200).json(result[0])
         
     } catch (error) {

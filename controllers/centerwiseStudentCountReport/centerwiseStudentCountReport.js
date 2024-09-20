@@ -62,7 +62,7 @@ exports.getStudentsTrack = async (req, res) => {
 
     try {
         //console.log("query: " + query);
-        console.log("queryParams: " + queryParams);
+        // console.log("queryParams: " + queryParams);
 
         const [results] = await connection.query(query, queryParams);
 

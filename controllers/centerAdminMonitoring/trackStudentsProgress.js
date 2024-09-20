@@ -10,17 +10,17 @@ function formatDate(dateString) {
 
 
 exports.getStudentsTrack = async (req, res) => {
-    console.log('Starting getStudentsTrack function');
+    // console.log('Starting getStudentsTrack function');
     const { batchNo } = req.params;
     const examCenterCode = req.session.centerId;
     let { subject_name, loginStatus, batchDate ,exam_type } = req.query;
 
-    console.log("Exam center code:", examCenterCode);
-    console.log("Batch no:", batchNo);
-    console.log("Subject:", subject_name);
-    console.log("Login status:", loginStatus);
-    console.log("exam type:" . exam_type);
-    console.log("Original Batch date:", batchDate);
+    // console.log("Exam center code:", examCenterCode);
+    // console.log("Batch no:", batchNo);
+    // console.log("Subject:", subject_name);
+    // console.log("Login status:", loginStatus);
+    // console.log("exam type:" . exam_type);
+    // console.log("Original Batch date:", batchDate);
 
     if (batchDate) {
         batchDate = formatDate(batchDate);
@@ -126,7 +126,7 @@ WHERE s.center = ? `;
     }
 
     // console.log('Final query:', query);
-    console.log('Query parameters:', queryParams);
+    // console.log('Query parameters:', queryParams);
      
     try {
         const [results] = await connection.query(query, queryParams);

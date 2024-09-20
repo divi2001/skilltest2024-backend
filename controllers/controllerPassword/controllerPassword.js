@@ -53,7 +53,7 @@ exports.getControllerPassForCenter = async (req, res) => {
     const centerCode = req.session.centerId;
     const { batchNo } = req.body;
 
-    console.log("CenterCode: " + centerCode);
+    // console.log("CenterCode: " + centerCode);
 
     const query = `SELECT controllerdb.center, controllerdb.batchNo, controllerdb.controller_pass, 
                     batchdb.Start_time, batchdb.End_Time, batchdb.batchstatus, batchdb.batchdate 
@@ -63,7 +63,7 @@ exports.getControllerPassForCenter = async (req, res) => {
 
     try {
         const [results] = await connection.query(query, [centerCode]);
-        console.log(results);
+        // console.log(results);
         if (results.length > 0) {
             // Filter results to include only those where start_time is within 30 minutes
             // const currentTime = moment();
@@ -84,7 +84,7 @@ exports.getControllerPassForCenter = async (req, res) => {
                     );
                 });
 
-                console.log(controllerPassDto);
+                // console.log(controllerPassDto);
                 res.status(200).json({controllerPassDto});
             } else {
                 res.status(404).send('No records found!');
@@ -120,7 +120,7 @@ function checkIfIsInTimeLimit(startTime) {
 exports.getBatchwiseControllerPassForCenter = async(req,res)=>{
     const center = req.session.centerId;
     const {batchNo} = req.body;
-    console.log(req.body);
+    // console.log(req.body);
 
     try {
         const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
@@ -132,7 +132,7 @@ exports.getBatchwiseControllerPassForCenter = async(req,res)=>{
         
         const today = moment().startOf('day');
         const batchDate = moment(batchData.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        console.log(today,batchData);
+        // console.log(today,batchData);
         
         if (!today.isSame(batchDate)) {
             return res.status(403).json({ "message": "Download is only allowed on the day of the batch" });
@@ -147,7 +147,7 @@ exports.getBatchwiseControllerPassForCenter = async(req,res)=>{
         const query = 'SELECT controller_pass  FROM controllerdb WHERE center = 1051 AND batchNo = 100';
         const [results] = await connection.query(query); //[center, batchNo ,batchData[0].batchdate]
 
-        console.log(results[0]);
+        // console.log(results[0]);
         res.status(200).json({results});
     } catch (error) {
         console.log(error);

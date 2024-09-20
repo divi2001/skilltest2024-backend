@@ -6,7 +6,7 @@ exports.loginCenterAdmin= async (req, res) => {
     console.log("Trying center admin login");
     const { centerId, password } = req.body;
     // console.log("center: "+centerId+ " password: "+password);
-    console.log(req.body);
+    // console.log(req.body);
     const centerdbQuery = 'SELECT center, centerpass FROM examcenterdb WHERE center = ?';
   
     try {
@@ -14,10 +14,10 @@ exports.loginCenterAdmin= async (req, res) => {
         if (results.length > 0) {
             const admin = results[0];
             // console.log("data: "+admin);
-            console.log(admin.centerpass);
+            // console.log(admin.centerpass);
             let decryptedStoredPassword;
             try {
-                console.log("entered:");
+                // console.log("entered:");
                 decryptedStoredPassword = decrypt(admin.centerpass);
             } catch (error) {
                 // console.log(decryptedStoredPassword + password )
@@ -30,7 +30,7 @@ exports.loginCenterAdmin= async (req, res) => {
             const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
 
             try {
-                console.log("admin pass: "+admin.centerpass + " provide pass: "+password);
+                // console.log("admin pass: "+admin.centerpass + " provide pass: "+password);
                    
             } catch (error) {                
                 return;

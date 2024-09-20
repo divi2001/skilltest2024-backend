@@ -233,12 +233,12 @@ function createAttendanceReport(doc , data) {
 
 const getData = async(center , batchNo) => {
     try {
-        console.log(center,batchNo)
+        // console.log(center,batchNo)
         const query = 'SELECT s.fullname, s.student_id, s.base64 ,s.sign_base64, sub.subject_name_short FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
         const response = await connection.query(query,[center,batchNo]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
-        console.log(batchData[0].batchdate);
+        // console.log(batchData[0].batchdate);
         if(!checkDownloadAllowedStudentLoginPass(batchData[0].batchdate)) {
             return res.status(403).json({ "message": "Download not allowed at this time" });
         }

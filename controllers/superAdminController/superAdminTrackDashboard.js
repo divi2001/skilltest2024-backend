@@ -6,19 +6,19 @@ function formatDate(dateString) {
     return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }
 exports.getAllStudentsTrack = async (req,res) => {
-    console.log('Starting getStudentsTrack function');
+    // console.log('Starting getStudentsTrack function');
     const adminId = req.params.adminid;
     // console.log(adminId);
     // if(!adminId) return res.status(404).json({"message":"Admin is not logged in!!"});
     let { subject_name, loginStatus, batchDate , batchNo, center , exam_type , departmentId } = req.query;
-    console.log("Exam center code:", departmentId);
-    console.log("Batch no:", batchNo);
-    console.log("Subject:", subject_name);
-    console.log("Login status:", loginStatus);
-    console.log("exam type:" , exam_type);
-    console.log("Center no:", center);
-    console.log("Original Batch date:", batchDate);
-    console.log("Department Id:", departmentId);
+    // console.log("Exam center code:", departmentId);
+    // console.log("Batch no:", batchNo);
+    // console.log("Subject:", subject_name);
+    // console.log("Login status:", loginStatus);
+    // console.log("exam type:" , exam_type);
+    // console.log("Center no:", center);
+    // console.log("Original Batch date:", batchDate);
+    // console.log("Department Id:", departmentId);
 
     if (batchDate) {
         batchDate = formatDate(batchDate);
@@ -135,7 +135,7 @@ WHERE 1=1`;
     }
 
     // console.log('Final query:', query);
-    console.log('Query parameters:', queryParams);
+    // console.log('Query parameters:', queryParams);
 
     try {
         const [results] = await connection.query(query, queryParams);
@@ -189,12 +189,12 @@ WHERE 1=1`;
 
 exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
     try {
-        const department = req.query.departmentId;
+        // const department = req.session.departmentId;
         const center = req.query.center;
         const batchNo = req.query.batchNo;
 
         let filter = '';
-        const queryParams = [];
+        const queryParams = [1];
 
         if (batchNo) {
             filter += ' AND s.batchNo = ?';
@@ -203,10 +203,6 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         if(center){
             filter += ' AND s.center = ?';
             queryParams.push(center);
-        }
-        if(department){
-            filter += ' AND s.departmentId = ?';
-            queryParams.push(department);
         }
 
         // First, get all subject IDs and names
@@ -223,8 +219,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
 
         let query = `
         SELECT 
-            s.departmentId
-            s.center
+            s.center,
             s.batchNo, 
             COUNT(DISTINCT s.student_id) AS total_students, 
             COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
@@ -237,14 +232,14 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             students s
         LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
         WHERE 
-            s.center = ? ${filter}
+            s.departmentId = ? ${filter}
         GROUP BY  
-            s.batchNo, s.start_time, s.batchdate, s.center, s.departmentId
+            s.batchNo, s.start_time, s.batchdate, s.center
         ORDER BY 
             s.batchNo,s.center;
     `;
 
-        console.log(query);
+        // console.log(query);
         const [results] = await connection.query(query, queryParams);
 
         // Convert date and time to Kolkata timezone
@@ -269,7 +264,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             });
         });
 
-        console.log(results);
+        // console.log(results);
         res.status(200).json({ results });
     } catch (error) {
         console.log(error);

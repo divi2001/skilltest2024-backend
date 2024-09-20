@@ -8,6 +8,6 @@ const { getAllStudentsTrack,getCurrentStudentDetailsDepartmentWise } = require('
 router.post('/fetch-update-tables', fetchUpdateTableController.fetchUpdateTable);
 router.put('/update-table/:table_name/:id', updateTableController.updateTable);
 router.post('/super-admin-student-track-dashboard',getAllStudentsTrack);
-router.get('/get-super-admin-student-count',getCurrentStudentDetailsDepartmentWise);;
+router.get('/get-super-admin-student-count',getCurrentStudentDetailsDepartmentWise)
 
 module.exports = router;
