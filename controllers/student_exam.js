@@ -616,6 +616,19 @@ exports.logTextInput = async (req, res) => {
     const studentId = req.session.studentId;
     const { text, identifier, time } = req.body;
 
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS textlogs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        mina FLOAT DEFAULT 0,
+        texta TEXT,
+        minb FLOAT DEFAULT 0,
+        textb TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY (student_id)
+      )
+    `;
+
     if (!studentId) {
         return res.status(400).send('Student ID is required');
     }
