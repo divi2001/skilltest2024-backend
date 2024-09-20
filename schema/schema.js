@@ -265,8 +265,16 @@ const schema = {
         student_id: 'BIGINT',
         reason : 'LONGTEXT',
         reseted_by:'TEXT',
-        reset_type:''
+        reset_type:'TEXT',
+        center: 'INT REFERENCES examcenterdb(center)',
+        approved:'TEXT',
+        time:"DATETIME"
 
+    },
+    features:{
+        id:'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        feature:'TEXT',
+        status:'BOOLEAN'
     }
 };
 

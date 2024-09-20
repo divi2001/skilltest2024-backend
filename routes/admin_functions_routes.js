@@ -30,6 +30,9 @@ router.post('/typing-passage-logs',isAuthenticatedAdmin, adminFunctionController
 // Route for manageTypingPassage
 router.post('/typing-passage',isAuthenticatedAdmin, adminFunctionController.manageTypingPassage);
 
+router.post('/reset-requests', adminFunctionController.createResetRequest);
+router.put('/reset-requests/:requestId', adminFunctionController.approveResetRequest);
+
 
 
 module.exports = router;

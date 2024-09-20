@@ -48,12 +48,6 @@ function addHeader(doc, data) {
             align: 'center'
         });
 
-    doc.fontSize(12).font('Helvetica')
-        .text('ATTENDENCE REPORT', 110, doc.y + 5, {
-            width: 450,
-            align: 'center'
-        });
-
     doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
     doc.moveDown();
@@ -107,7 +101,7 @@ function createSeatingArrangementReport(doc, data) {
     addHeader(doc, data);
     
     doc.fontSize(14).font('Helvetica-Bold')
-        .text('Seating Arrangement', 50, 170, {
+        .text('Student Id and Password', 50, 170, {
             width: 500,
             align: 'center'
         });
@@ -198,7 +192,7 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
         
         // Uncomment the following lines if you want to check download allowance
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+        if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time,batchInfo.batchdate)) {
             throw new Error("Download not allowed at this time");
         }
 

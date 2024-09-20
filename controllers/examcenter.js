@@ -8,15 +8,27 @@ const moment = require('moment-timezone');
 
 const { encrypt, decrypt } = require('../config/encrypt');
 const { request } = require('http');
-
 exports.loginCenter = async (req, res) => {
     console.log("Trying center login");
     const { centerId, centerPass, ipAddress, diskIdentifier, macAddress } = req.body;
     console.log(`Received data - centerId: ${centerId}, centerPass: ${centerPass}, ipAddress: ${ipAddress}, diskIdentifier: ${diskIdentifier}, macAddress: ${macAddress}`);
 
-    const query1 = 'SELECT * FROM examcenterdb WHERE center = ?';
-
     try {
+        // Check if PC registration feature is enabled
+        const checkFeatureQuery = 'SELECT status FROM features WHERE feature = "pc_registration"';
+        const [featureResult] = await connection.query(checkFeatureQuery);
+        
+        if (featureResult.length === 0 || featureResult[0].status === 0) {
+            console.log("PC registration feature is not available");
+            return res.status(403).send('PC registration is not available at this time');
+        }
+
+        console.log("PC registration feature is enabled");
+
+        console.log("PC registration feature is enabled");
+
+        const query1 = 'SELECT * FROM examcenterdb WHERE center = ?';
+
         console.log("Ensuring pcregistration table exists");
         // Ensure pcregistration table exists
         const createTableQuery = `
@@ -45,8 +57,7 @@ exports.loginCenter = async (req, res) => {
                 console.log(`Decrypted stored center pass: '${decryptedStoredCenterPass}'`);
             } catch (error) {
                 console.error('Error decrypting stored center pass:', error);
-                res.status(500).send('Error decrypting stored center pass');
-                return;
+                return res.status(500).send('Error decrypting stored center pass');
             }
 
             // Ensure both passwords are treated as strings
@@ -68,8 +79,7 @@ exports.loginCenter = async (req, res) => {
 
                 if (pcExists > 0) {
                     console.log("PC is already registered for the center");
-                    res.status(403).send('This PC is already registered for the center');
-                    return;
+                    return res.status(403).send('This PC is already registered for the center');
                 }
 
                 console.log("PC is not already registered");
@@ -96,19 +106,103 @@ exports.loginCenter = async (req, res) => {
                     `;
                     await connection.query(insertLogQuery, [centerId, ipAddress, diskIdentifier, macAddress]);
                     console.log("PC registered successfully");
-                    res.status(200).send('PC registered successfully for the center!');
+                    return res.status(200).send('PC registered successfully for the center!');
                 } else {
                     console.log("The maximum number of PCs for this center has been reached");
-                    res.status(403).send('The maximum number of PCs for this center has been reached');
+                    return res.status(403).send('The maximum number of PCs for this center has been reached');
                 }
             } else {
                 console.log("Invalid credentials for center");
-                res.status(401).send('Invalid credentials for center');
+                return res.status(401).send('Invalid credentials for center');
             }
         } else {
             console.log("Center not found");
-            res.status(404).send('Center not found');
+            return res.status(404).send('Center not found');
         }
+    } catch (err) {
+        console.error('Database query error:', err);
+        return res.status(500).send('Internal server error');
+    }
+};
+exports.getCenterResetRequests = async (req, res) => {
+    const centerId = req.session.centerId;
+    const { student_id, reason, reset_type } = req.body;
+
+    if (!centerId) {
+        return res.status(401).send('Unauthorized: No center ID in session');
+    }
+
+    try {
+        // Base query with CASE statement for approval status
+        let fetchRequestsQuery = `
+            SELECT r.*, 
+                   s.name as student_name,
+                   CASE 
+                       WHEN r.approved = 1 THEN 'Approved'
+                       ELSE 'Not Approved'
+                   END as approval_status
+            FROM resetrequests r
+            JOIN students s ON r.student_id = s.student_id
+            WHERE r.center = ?
+        `;
+
+        // Array to hold query parameters
+        const queryParams = [centerId];
+
+        // Add conditions based on provided parameters
+        if (student_id) {
+            fetchRequestsQuery += ' AND r.student_id = ?';
+            queryParams.push(student_id);
+        }
+        if (reason) {
+            fetchRequestsQuery += ' AND r.reason = ?';
+            queryParams.push(reason);
+        }
+        if (reset_type) {
+            fetchRequestsQuery += ' AND r.reset_type = ?';
+            queryParams.push(reset_type);
+        }
+
+        // Add ordering
+        fetchRequestsQuery += ' ORDER BY r.id DESC';
+
+        // Execute the query
+        const [requests] = await connection.query(fetchRequestsQuery, queryParams);
+
+        if (requests.length === 0) {
+            return res.status(404).json({ message: "No reset requests found for the given criteria" });
+        }
+
+        res.json(requests);
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
+
+
+exports.getCenterData = async (req, res) => {
+    const centerId = req.session.centerId;
+
+    if (!centerId) {
+        return res.status(401).send('Unauthorized: No center ID in session');
+    }
+
+    try {
+        // Fetch center data
+        const fetchCenterDataQuery = `
+            SELECT *
+            FROM centers
+            WHERE center_id = ?
+        `;
+        const [centerData] = await connection.query(fetchCenterDataQuery, [centerId]);
+
+        if (centerData.length === 0) {
+            return res.status(404).send('Center not found');
+        }
+
+        res.json(centerData[0]);
     } catch (err) {
         console.error('Database query error:', err);
         res.status(500).send('Internal server error');

@@ -8,5 +8,10 @@ const examcontroller = require('../controllers/examcenter');
 
 
 router.post('/center_login', examcontroller.loginCenter);
+router.post('/centerrequest',examcontroller.getCenterResetRequests)
+
+
+// Route for getting center data
+router.get('/data', examcontroller.getCenterData);
 
 module.exports = router;

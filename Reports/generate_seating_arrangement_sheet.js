@@ -46,11 +46,6 @@ function addHeader(doc, data) {
             align: 'center'
         });
 
-    doc.fontSize(12).font('Helvetica')
-        .text('ATTENDENCE REPORT', 110, doc.y + 5, {
-            width: 450,
-            align: 'center'
-        });
 
     doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
