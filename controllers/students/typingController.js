@@ -243,19 +243,24 @@ exports.insertTypingPassageLog = async (req, res) => {
     }
 };
 
+
+
 const createTypingPassageZip = async (studentId, passageType, text) => {
+    console.log(`Entering createTypingPassageZip function for student ${studentId}, passageType ${passageType}`);
     try {
-        // Query the database to get examCenterCode and batchNo
+        console.log('Querying database for student info');
         const [studentRows] = await connection.query(
             'SELECT center, batchNo FROM students WHERE student_id = ?',
             [studentId]
         );
 
         if (studentRows.length === 0) {
+            console.log('Student not found');
             throw new Error('Student not found');
         }
 
         const { center: examCenterCode, batchNo } = studentRows[0];
+        console.log('Student info:', { examCenterCode, batchNo });
 
         const currentTime = moment().tz('Asia/Kolkata').format('YYYYMMDD_HHmmss');
         const sanitizedPassageType = passageType.replace(/\s+/g, '_');
@@ -263,18 +268,20 @@ const createTypingPassageZip = async (studentId, passageType, text) => {
         const folderName = 'text_typing_passage_logs';
         const folderPath = path.join(__dirname, '..', folderName);
 
-        // Create the folder if it doesn't exist
+        console.log('File details:', { fileName, folderName, folderPath });
+
         if (!fs.existsSync(folderPath)) {
+            console.log('Creating folder:', folderPath);
             fs.mkdirSync(folderPath, { recursive: true });
         }
 
         const txtFilePath = path.join(folderPath, `${fileName}.txt`);
         const zipFilePath = path.join(folderPath, `${fileName}.zip`);
 
-        // Write text to a file
+        console.log('Writing text to file:', txtFilePath);
         fs.writeFileSync(txtFilePath, text, 'utf8');
 
-        // Create a zip file
+        console.log('Creating zip file:', zipFilePath);
         const output = fs.createWriteStream(zipFilePath);
         const archive = archiver('zip', {
             zlib: { level: 9 }
@@ -282,9 +289,12 @@ const createTypingPassageZip = async (studentId, passageType, text) => {
 
         return new Promise((resolve, reject) => {
             output.on('close', function () {
-                // Clean up the text file after zipping
+                console.log('Zip file created successfully');
+                console.log('Zip contains', archive.pointer(), 'total bytes');
                 try {
+                    console.log('Deleting temporary text file:', txtFilePath);
                     fs.unlinkSync(txtFilePath);
+                    console.log('Temporary text file deleted successfully');
                 } catch (unlinkErr) {
                     console.error('Failed to delete temporary text file:', unlinkErr);
                 }
@@ -292,11 +302,23 @@ const createTypingPassageZip = async (studentId, passageType, text) => {
             });
 
             archive.on('error', function (err) {
+                console.error('Error during zip creation:', err);
                 reject(err);
             });
 
+            archive.on('warning', function (err) {
+                if (err.code === 'ENOENT') {
+                    console.warn('Zip creation warning:', err);
+                } else {
+                    console.error('Zip creation error:', err);
+                    reject(err);
+                }
+            });
+
             archive.pipe(output);
+            console.log('Adding file to zip:', txtFilePath);
             archive.file(txtFilePath, { name: `${fileName}.txt` });
+            console.log('Finalizing zip file');
             archive.finalize();
         });
     } catch (error) {
