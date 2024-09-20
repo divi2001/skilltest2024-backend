@@ -12,6 +12,6 @@ router.post('/centerrequest',examcontroller.getCenterResetRequests)
 
 
 // Route for getting center data
-router.get('/data', examcontroller.getCenterData);
-
+router.get('/center-request-data', examcontroller.getCenterData);
+router.delete('/centerrequest/:id', examcontroller.deleteCenterResetRequest)
 module.exports = router;

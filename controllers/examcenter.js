@@ -124,6 +124,37 @@ exports.loginCenter = async (req, res) => {
         return res.status(500).send('Internal server error');
     }
 };
+
+
+exports.deleteCenterResetRequest = async (req, res) => {
+    const centerId = req.session.centerId;
+    const requestId = req.params.id;
+
+    if (!centerId) {
+        return res.status(401).send('Unauthorized: No center ID in session');
+    }
+
+    try {
+        // Delete query
+        const deleteQuery = `
+            DELETE FROM resetrequests
+            WHERE id = ? AND center = ?
+        `;
+
+        // Execute the query
+        const [result] = await connection.query(deleteQuery, [requestId, centerId]);
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({ message: "Request deleted successfully" });
+        } else {
+            res.status(404).json({ message: "Request not found or not authorized to delete" });
+        }
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
 exports.getCenterResetRequests = async (req, res) => {
     const centerId = req.session.centerId;
     const { student_id, reason, reset_type } = req.body;
@@ -131,19 +162,24 @@ exports.getCenterResetRequests = async (req, res) => {
     if (!centerId) {
         return res.status(401).send('Unauthorized: No center ID in session');
     }
+    const status = 'Not Approved';
 
     try {
-        // Base query with CASE statement for approval status
+        // First, check if the student belongs to this center
+        const [studentCheck] = await connection.query(
+            'SELECT center FROM students WHERE student_id = ?',
+            [student_id]
+        );
+
+        if (studentCheck.length === 0 || studentCheck[0].center !== centerId) {
+            return res.status(400).json({ message: "Student is not from this center" });
+        }
+
+        // Base query
         let fetchRequestsQuery = `
-            SELECT r.*, 
-                   s.name as student_name,
-                   CASE 
-                       WHEN r.approved = 1 THEN 'Approved'
-                       ELSE 'Not Approved'
-                   END as approval_status
-            FROM resetrequests r
-            JOIN students s ON r.student_id = s.student_id
-            WHERE r.center = ?
+            SELECT * 
+            FROM resetrequests
+            WHERE center = ?
         `;
 
         // Array to hold query parameters
@@ -151,36 +187,73 @@ exports.getCenterResetRequests = async (req, res) => {
 
         // Add conditions based on provided parameters
         if (student_id) {
-            fetchRequestsQuery += ' AND r.student_id = ?';
+            fetchRequestsQuery += ' AND student_id = ?';
             queryParams.push(student_id);
         }
         if (reason) {
-            fetchRequestsQuery += ' AND r.reason = ?';
+            fetchRequestsQuery += ' AND reason = ?';
             queryParams.push(reason);
         }
         if (reset_type) {
-            fetchRequestsQuery += ' AND r.reset_type = ?';
+            fetchRequestsQuery += ' AND reset_type = ?';
             queryParams.push(reset_type);
+        }
+        if (status) {
+            fetchRequestsQuery += ' AND approved = ?';
+            queryParams.push(status);
         }
 
         // Add ordering
-        fetchRequestsQuery += ' ORDER BY r.id DESC';
+        fetchRequestsQuery += ' ORDER BY id DESC';
 
         // Execute the query
         const [requests] = await connection.query(fetchRequestsQuery, queryParams);
 
         if (requests.length === 0) {
-            return res.status(404).json({ message: "No reset requests found for the given criteria" });
+            // Create a new request if no matching requests are found
+            const insertQuery = `
+                INSERT INTO resetrequests (student_id, reason, reset_type, center, reseted_by, approved, time)
+                VALUES (?, ?, ?, ?, ?, ?, NOW())
+            `;
+            const insertParams = [
+                student_id,
+                reason,
+                reset_type,
+                centerId,
+                req.session.username || 'Unknown', // Assuming the username is stored in the session
+                'Pending' // Set initial approval status
+            ];
+
+            const [result] = await connection.query(insertQuery, insertParams);
+
+            if (result.affectedRows > 0) {
+                // Fetch the newly created request
+                const [newRequest] = await connection.query('SELECT * FROM resetrequests WHERE id = ?', [result.insertId]);
+                
+                // Format the time for the new request
+                const formattedRequest = {
+                    ...newRequest[0],
+                    time: moment(newRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+                };
+
+                return res.status(201).json(formattedRequest);
+            } else {
+                return res.status(500).json({ message: "Failed to create new request" });
+            }
         }
 
-        res.json(requests);
+        // Format the time for each request
+        const formattedRequests = requests.map(request => ({
+            ...request,
+            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+        }));
+
+        res.json(formattedRequests);
     } catch (err) {
         console.error('Database query error:', err);
         res.status(500).send('Internal server error');
     }
 };
-
-
 
 exports.getCenterData = async (req, res) => {
     const centerId = req.session.centerId;
@@ -190,19 +263,26 @@ exports.getCenterData = async (req, res) => {
     }
 
     try {
-        // Fetch center data
-        const fetchCenterDataQuery = `
-            SELECT *
-            FROM centers
-            WHERE center_id = ?
+        // Fetch reset requests for the center
+        const fetchResetRequestsQuery = `
+            SELECT * 
+            FROM resetrequests
+            WHERE center = ?
+            ORDER BY id DESC
         `;
-        const [centerData] = await connection.query(fetchCenterDataQuery, [centerId]);
+        const [resetRequests] = await connection.query(fetchResetRequestsQuery, [centerId]);
 
-        if (centerData.length === 0) {
-            return res.status(404).send('Center not found');
+        if (resetRequests.length === 0) {
+            return res.status(404).json({ message: "No reset requests found for this center" });
         }
 
-        res.json(centerData[0]);
+        // Format the time for each request
+        const formattedRequests = resetRequests.map(request => ({
+            ...request,
+            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+        }));
+
+        res.json(formattedRequests);
     } catch (err) {
         console.error('Database query error:', err);
         res.status(500).send('Internal server error');
