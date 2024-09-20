@@ -263,7 +263,9 @@ const schema = {
     resetrequests:{
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT',
-        reason : 'LONGTEXT'
+        reason : 'LONGTEXT',
+        reseted_by:'TEXT',
+        reset_type:''
 
     }
 };
