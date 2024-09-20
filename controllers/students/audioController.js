@@ -2,7 +2,7 @@
 exports.updateAudioLogTime = async (req, res) => {
     const { audioType } = req.body;
     const studentId = req.session.studentId;
-    console.log(studentId,audioType)
+    // console.log(studentId,audioType)
 
     if (!studentId) {
         return res.status(400).send('Student ID is required');

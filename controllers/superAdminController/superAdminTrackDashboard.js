@@ -6,19 +6,19 @@ function formatDate(dateString) {
     return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }
 exports.getAllStudentsTrack = async (req,res) => {
-    console.log('Starting getStudentsTrack function');
+    // console.log('Starting getStudentsTrack function');
     const adminId = req.params.adminid;
     // console.log(adminId);
     // if(!adminId) return res.status(404).json({"message":"Admin is not logged in!!"});
     let { subject_name, loginStatus, batchDate , batchNo, center , exam_type , departmentId } = req.query;
-    console.log("Exam center code:", departmentId);
-    console.log("Batch no:", batchNo);
-    console.log("Subject:", subject_name);
-    console.log("Login status:", loginStatus);
-    console.log("exam type:" , exam_type);
-    console.log("Center no:", center);
-    console.log("Original Batch date:", batchDate);
-    console.log("Department Id:", departmentId);
+    // console.log("Exam center code:", departmentId);
+    // console.log("Batch no:", batchNo);
+    // console.log("Subject:", subject_name);
+    // console.log("Login status:", loginStatus);
+    // console.log("exam type:" , exam_type);
+    // console.log("Center no:", center);
+    // console.log("Original Batch date:", batchDate);
+    // console.log("Department Id:", departmentId);
 
     if (batchDate) {
         batchDate = formatDate(batchDate);
@@ -135,7 +135,7 @@ WHERE 1=1`;
     }
 
     // console.log('Final query:', query);
-    console.log('Query parameters:', queryParams);
+    // console.log('Query parameters:', queryParams);
 
     try {
         const [results] = await connection.query(query, queryParams);
@@ -239,7 +239,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             s.batchNo,s.center;
     `;
 
-        console.log(query);
+        // console.log(query);
         const [results] = await connection.query(query, queryParams);
 
         // Convert date and time to Kolkata timezone
@@ -264,7 +264,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             });
         });
 
-        console.log(results);
+        // console.log(results);
         res.status(200).json({ results });
     } catch (error) {
         console.log(error);

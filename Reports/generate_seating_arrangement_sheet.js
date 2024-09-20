@@ -5,12 +5,12 @@ const moment = require('moment-timezone'); // Make sure to install and import mo
 
 async function getData(center, batchNo) {
     try {
-        console.log(center, batchNo);
+        // console.log(center, batchNo);
         const query = 'SELECT student_id from students where batchNo = ? AND center = ?';
         const response = await connection.query(query, [batchNo, center]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
-        console.log(response[0], batchData[0]);
+        // console.log(response[0], batchData[0]);
 
         // Check if download is allowed
         // const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
@@ -147,7 +147,7 @@ function createAttendanceReport(doc, data) {
 async function generateSeatingArrangementReport(doc, center, batchNo) {
     try {
         const Data = await getData(center, batchNo);
-        console.log(Data);
+        // console.log(Data);
 
         const response = Data.response;
         if (!Array.isArray(response) || response.length === 0) {
