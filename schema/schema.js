@@ -269,7 +269,6 @@ const schema = {
         center: 'INT REFERENCES examcenterdb(center)',
         approved:'TEXT',
         time:"DATETIME"
-
     },
     features:{
         id:'BIGINT PRIMARY KEY AUTO_INCREMENT',

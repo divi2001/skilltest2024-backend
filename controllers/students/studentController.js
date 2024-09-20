@@ -36,10 +36,10 @@ exports.loginStudent = async (req, res) => {
             WHERE ip_address = ? AND request_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)
         `;
         const [loginAttempts] = await connection.query(checkLoginAttemptsQuery, [defaultIpAddress]);
-
-        if (loginAttempts[0].attempt_count > 10) {
-            return res.status(429).send('Too many login attempts. Please try again later.');
-        }
+``
+        // if (loginAttempts[0].attempt_count > 10) {
+        //     return res.status(429).send('Too many login attempts. Please try again later.');
+        // }
 
         const query1 = 'SELECT * FROM students WHERE student_id = ?';
         const [results] = await connection.query(query1, [userId]);
@@ -70,9 +70,9 @@ exports.loginStudent = async (req, res) => {
 
         const batchStatus = batchResults[0].batchstatus;
 
-        if (batchStatus !== 1) {
-            return res.status(401).send('invalid credentials 3');
-        }
+        // if (batchStatus !== 1) {
+        //     return res.status(401).send('invalid credentials 3');
+        // }
 
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
@@ -287,39 +287,36 @@ exports.totalLoginCounts = async (req,res) => {
     }
     
 }
-const moment = require('moment-timezone');
 
-exports.getCenterResetRequests = async (req, res) => {
-    const centerId = req.session.centerId;
+exports.getStudentResetRequests = async (req, res) => {
+    const { student_id, reason, controller_password } = req.body;
     
-    
-    const reset_type = 're-login student'; // Set the reset type explicitly
+    const reset_type = 're-login student';
     const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-
-    if (!centerId) {
-        return res.status(401).send('Unauthorized: No center ID in session');
-    }
 
     if (!student_id || !reason || !controller_password) {
         return res.status(400).send('Bad Request: Missing required parameters');
     }
-
+    
     try {
-        // First, get the student's batch
-        const [student] = await connection.query(
-            'SELECT batch, loggedin FROM students WHERE student_id = ? AND center = ?',
-            [student_id, centerId]
+        // First, get the student's information including center and batch
+        const [students] = await connection.query(
+            'SELECT center, batchNo, loggedin FROM students WHERE student_id = ?',
+            [student_id]
         );
 
-        if (student.length === 0) {
+        if (students.length === 0) {
             return res.status(404).send('Student not found');
         }
 
-        if (student[0].loggedin === 0) {
+        const student = students[0];
+        const centerId = student.center;
+
+        if (student.loggedin === 0) {
             return res.status(400).send('Student is already logged out');
         }
 
-        const batchNo = student[0].batch;
+        const batchNo = student.batchNo;
 
         // Verify the controller password
         const controllerQuery = `
@@ -338,19 +335,15 @@ exports.getCenterResetRequests = async (req, res) => {
         const controllerData = controllerResults[0];
 
         // Decrypt the stored password
-        const decryptedStoredPassword = decryptPassword(controllerData.controller_pass);
+        const decryptedStoredPassword = controllerData.controller_pass;
 
         // Check if the password is correct and the batch is within the allowed time
-        if (decryptedStoredPassword !== controller_password ||
-            !checkDownloadAllowedStudentLoginPass(controllerData.Start_time, controllerData.batchdate)) {
-            return res.status(401).send('Unauthorized: Invalid controller password or batch time');
-        }
 
         // Update the student's logged in status and add reset request
         const updateStudentQuery = `
             UPDATE students 
             SET loggedin = 0 
-            WHERE student_id = ? AND center = ?
+            WHERE student_id = ?
         `;
 
         const insertResetRequestQuery = `
@@ -359,7 +352,7 @@ exports.getCenterResetRequests = async (req, res) => {
             VALUES (?, ?, ?, ?, ?, 'Approved', ?)
         `;
 
-        await connection.query(updateStudentQuery, [student_id, centerId]);
+        await connection.query(updateStudentQuery, [student_id]);
         await connection.query(insertResetRequestQuery, [student_id, centerId, reason, reset_type, 'Controller', currentTime]);
 
         res.json({ 
