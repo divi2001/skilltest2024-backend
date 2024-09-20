@@ -3,6 +3,7 @@ const XLSX = require('xlsx');
 const moment = require('moment-timezone');
 const { generateReport } = require('./generate_absentee_report');
 const {AttendanceReport} = require('./generate_attendance_reports');
+const {generateSeatingArrangementReport} = require('./generate_seating_arrangement_sheet')
 // const {}
 const PDFDocument = require('pdfkit');
 const { createBlankAnswerSheet } = require('./generate_blank_answer_sheet');
@@ -183,18 +184,47 @@ exports.generateAnswerSheet = async (req, res) => {
         res.status(500).send('Error generating blank answer sheet');
     }
 }
-// function checkDownloadAllowedStudentLoginPass(startTime) {
-//     const startMoment = moment(startTime, 'HH:mm');
-//     const now = moment();
+exports.generateSeatingArrangement = async (req,res) => {
 
-//     const differenceInMinutes = now.diff(startMoment, 'minutes');
+     res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.pdf');
+    res.setHeader('Content-Transfer-Encoding', 'binary');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', 0);
+
+    const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50
+    });
     
-//     console.log('Current Time:', now.format('YYYY-MM-DD HH:mm:ss'));
-//     console.log('Start Time:', startMoment.format('YYYY-MM-DD HH:mm:ss'));
-//     console.log('Difference in Minutes:', differenceInMinutes);
+    const {batchNo} = req.body;
+    const center = req.session.centerId;
+    // Use a Promise to handle the PDF generation
+    const pdfPromise = new Promise((resolve, reject) => {
+        const chunks = [];
 
-//     return differenceInMinutes <= 15;
-// }
+        doc.on('data', (chunk) => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', reject);
+
+        generateSeatingArrangementReport(doc,center,batchNo).then(() => {
+            doc.end();
+        }).catch((error) => {
+            console.error("Error generating report:", error);
+            reject(error);
+        });
+    });
+
+    try {
+        const pdfBuffer = await pdfPromise;
+        res.send(pdfBuffer);
+    } catch (error) {
+        console.error("Error sending PDF:", error);
+        res.status(500).send('Error generating report');
+    }
+}
+
 function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     // Set the timezone to Kolkata
     const kolkataZone = 'Asia/Kolkata';

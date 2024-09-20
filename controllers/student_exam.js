@@ -516,6 +516,47 @@ exports.updatePassageFinalLogs = async (req, res) => {
     }
 };
 
+exports.getPassageFinalLogs = async (req, res) => {
+    const studentId = req.session.studentId;
+    const { passage_type } = req.query;
+
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
+
+    if (!passage_type || !['passageA', 'passageB'].includes(passage_type)) {
+        return res.status(400).send('Valid passage type is required');
+    }
+
+    const findPassageLogQuery = `SELECT ${passage_type} FROM finalPassageSubmit WHERE student_id = ?`;
+
+    try {
+        const [rows] = await connection.query(findPassageLogQuery, [studentId]);
+
+        if (rows.length === 0) {
+            return res.status(404).send('Passage log not found for this student');
+        }
+
+        const text = rows[0][passage_type];
+
+        if (!text) {
+            return res.status(404).send(`No ${passage_type} found for this student`);
+        }
+
+        const responseData = {
+            student_id: studentId,
+            passage_type: passage_type,
+            text: text
+        };
+
+        res.json(responseData);
+
+    } catch (err) {
+        console.error('Failed to fetch passage final logs:', err);
+        res.status(500).send('An error occurred while processing your request');
+    }
+};
+
 
 exports.feedback = async (req, res) => {
     const studentId = req.session.studentId;
@@ -576,49 +617,36 @@ exports.logTextInput = async (req, res) => {
     const { text, identifier, time } = req.body;
 
     if (!studentId) {
-        console.error('Student ID is required');
         return res.status(400).send('Student ID is required');
     }
 
+    if (!text || text.trim() === '') {
+        return res.status(400).send('Text is required');
+    }
+
+    if (identifier !== 'passageA' && identifier !== 'passageB') {
+        return res.status(400).send('Invalid identifier');
+    }
+
     try {
-        // Check if the text is empty, null, or an empty string
-        if (text && text.trim() !== '') {
-            let upsertQuery;
-            let values;
+        // Create the textlogs table if it doesn't exist
+        await connection.query(createTableQuery);
 
-            if (identifier === 'passageA') {
-                upsertQuery = `
-                    INSERT INTO textlogs (student_id, mina, texta)
-                    VALUES (?, ?, ?)
-                    ON DUPLICATE KEY UPDATE
-                    mina = VALUES(mina),
-                    texta = VALUES(texta)
-                `;
-                values = [studentId, time, text];
-            } else if (identifier === 'passageB') {
-                upsertQuery = `
-                    INSERT INTO textlogs (student_id, minb, textb)
-                    VALUES (?, ?, ?)
-                    ON DUPLICATE KEY UPDATE
-                    minb = VALUES(minb),
-                    textb = VALUES(textb)
-                `;
-                values = [studentId, time, text];
-            } else {
-                console.error('Invalid identifier:', identifier);
-                return res.status(400).send('Invalid identifier');
-            }
+        const insertQuery = `
+            INSERT INTO textlogs (student_id, min${identifier === 'passageA' ? 'a' : 'b'}, text${identifier === 'passageA' ? 'a' : 'b'})
+            VALUES (?, ?, ?)
+            ON DUPLICATE KEY UPDATE 
+            min${identifier === 'passageA' ? 'a' : 'b'} = VALUES(min${identifier === 'passageA' ? 'a' : 'b'}),
+            text${identifier === 'passageA' ? 'a' : 'b'} = VALUES(text${identifier === 'passageA' ? 'a' : 'b'})
+        `;
 
-            await connection.query(upsertQuery, values);
-            console.log('Response done');
-        } else {
-            console.log('Text is empty, skipping database insertion');
-        }
-
+        await connection.query(insertQuery, [studentId, time, text]);
+        
+        console.log('Response logged successfully');
         res.sendStatus(200);
     } catch (err) {
         console.error('Failed to log text input:', err);
-        res.status(500).send(err.message);
+        res.status(500).send('Internal server error');
     }
 };
 

@@ -13,17 +13,19 @@ router.post('/student_login', studentController1.loginStudent);
 router.get('/student_logout',isAuthenticated, studentController1.logoutStudent);
 router.post('/student_info',studentController1.getStudentDetails);
 router.post('/audiologs',isAuthenticated, studentController.updateAudioLogs);
-router.post('/finalpassagelogs',isAuthenticated, studentController.updatePassageFinalLogs);
 router.post('/feedback',isAuthenticated, studentController.feedback);
+
 router.get('/student_details',isAuthenticated, studentController.getStudentDetails);
 router.get('/audios', isAuthenticated,studentController.getaudios);
 router.get('/controller_pass',isAuthenticated, studentController.getcontrollerpass);
 router.get('/audioProgress', isAuthenticated,studentController.getAudioLogs); 
 router.get('/typedtexta', isAuthenticated, studentController.getTypedTextA);
 router.get('/passage', isAuthenticated, studentController.getPassage);
+router.get('/finalpassagelogs', isAuthenticated, studentController.getPassageFinalLogs);
 router.post('/total-login-count',studentController1.totalLoginCounts);
 
 router.post('/textlogs', isAuthenticated,studentController.logTextInput); 
+router.post('/finalpassagelogs',isAuthenticated, studentController.updatePassageFinalLogs);
 router.post('/passageprogress', isAuthenticated,studentController.getPassageProgress); 
 router.post('/passagetime', isAuthenticated,studentController.updatePassagewLogTime);
 router.post('/audiotime', isAuthenticated,studentController.updateAudioLogTime);

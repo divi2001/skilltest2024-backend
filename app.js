@@ -3,7 +3,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors');
-
+const helmet = require('helmet');
 // routes 
 const adminFunctionRouter = require('./routes/admin_functions_routes');
 const examcentereRoutes = require('./routes/examcenter_routes')
@@ -34,6 +34,16 @@ const corsOptions = {
   optionsSuccessStatus: 200
 }
 
+app.use(helmet());
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "script-src": ["'self'", "'unsafe-inline'", "example.com"],
+      "img-src": ["'self'", "https: data:"]
+    }
+  })
+)
 
 app.use((req, res, next) => {
   res.setHeader(
