@@ -27,7 +27,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:3001', 'http://192.168.1.102:3001/'],// Your frontend URL
+  origin: ['*', 'http://localhost:3001', 'http://192.168.1.102:3001/'],// Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -48,7 +48,7 @@ app.use(
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https://shorthandonlineexam.in; img-src 'self' data:;"
+    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' http://13.235.95.5:3000; img-src 'self' data:;"
   );
   next();
 });
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 
 app.use(cors({
-  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','https://shorthandonlineexam.in'],
+  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','http://13.235.95.5:3000'],
   credentials: true
 }));
 
