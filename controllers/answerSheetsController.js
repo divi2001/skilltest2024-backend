@@ -34,7 +34,7 @@ async function processFiles(files, studentId, connection) {
 
   const imageData = files.map(file => {
     const base64Data = file.buffer.toString('base64');
-    return `data:${file.mimetype};base64,${base64Data}`;
+    return `${base64Data}`;
   });
 
   if (existingRecord.length === 0) {

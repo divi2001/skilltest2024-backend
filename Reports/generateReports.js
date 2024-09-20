@@ -3,7 +3,8 @@ const XLSX = require('xlsx');
 const moment = require('moment-timezone');
 const { generateReport } = require('./generate_absentee_report');
 const {AttendanceReport} = require('./generate_attendance_reports');
-const {generateSeatingArrangementReport} = require('./generate_seating_arrangement_sheet')
+const {generateSeatingArrangementReport} = require('./generate_seating_arrangement_sheet');
+const {generateStudentIdPasswordPdf} = require('./generate_studentId_Password_sheet')
 // const {}
 const PDFDocument = require('pdfkit');
 const { createBlankAnswerSheet } = require('./generate_blank_answer_sheet');
@@ -186,7 +187,7 @@ exports.generateAnswerSheet = async (req, res) => {
 }
 exports.generateSeatingArrangement = async (req,res) => {
 
-     res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.pdf');
     res.setHeader('Content-Transfer-Encoding', 'binary');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -313,5 +314,46 @@ exports.generateStudentId_Password = async (req, res) => {
         console.error("Error generating student ID/password:", error);
         res.status(500).json({ "message": "Internal Server Error", "error": error.message });
     }
+}
+
+exports.generateStudentIdPasswordPdf =async (req,res) => {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.pdf');
+    res.setHeader('Content-Transfer-Encoding', 'binary');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', 0);
+
+    const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50
+    });
+    
+    const {batchNo} = req.body;
+    const center = req.session.centerId;
+    // Use a Promise to handle the PDF generation
+    const pdfPromise = new Promise((resolve, reject) => {
+        const chunks = [];
+
+        doc.on('data', (chunk) => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', reject);
+
+        generateStudentIdPasswordPdf(doc,center,batchNo).then(() => {
+            doc.end();
+        }).catch((error) => {
+            console.error("Error generating report:", error);
+            reject(error);
+        });
+    });
+
+    try {
+        const pdfBuffer = await pdfPromise;
+        res.send(pdfBuffer);
+    } catch (error) {
+        console.error("Error sending PDF:", error);
+        res.status(500).send('Error generating report');
+    }
+    
 }
 

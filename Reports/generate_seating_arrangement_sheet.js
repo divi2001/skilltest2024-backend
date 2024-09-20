@@ -29,15 +29,7 @@ async function getData(center, batchNo) {
     }
 }
 
-function checkDownloadAllowed(batchDate) {
-    const today = moment().startOf('day');
-    const batchMoment = moment(batchDate).startOf('day');
-    console.log(today,batchMoment);
-    const differenceInDays = batchMoment.diff(today, 'days');
-    console.log(differenceInDays);
-    // Allow download if it's the day of the batch or one day before
-    return differenceInDays <= 1 && differenceInDays >= 0  ;
-}
+
 
 function addHeader(doc, data) {
     doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 });
@@ -54,11 +46,6 @@ function addHeader(doc, data) {
             align: 'center'
         });
 
-    doc.fontSize(12).font('Helvetica')
-        .text('ATTENDENCE REPORT', 110, doc.y + 5, {
-            width: 450,
-            align: 'center'
-        });
 
     doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
@@ -173,9 +160,9 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
-        }
+        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+        //     throw new Error("Download not allowed at this time");
+        // }
         
 
         const data = {

@@ -3,13 +3,13 @@ const moment = require('moment-timezone');
 
 exports.getCurrentStudentDetails = async (req, res) => {
     try {
-        const center = req.session.centerId;
+        const center = req.session.centerId
         const batchNo = req.query.batchNo;
 
         let filter = '';
         const queryParams = [center];
 
-        if (batchNo) {
+        if (batchNo) { 
             filter += ' AND s.batchNo = ?';
             queryParams.push(batchNo);
         }
@@ -27,46 +27,36 @@ exports.getCurrentStudentDetails = async (req, res) => {
         ).join(', ');
 
         let query = `
-            SELECT 
-                s.batchNo, 
-                COUNT(s.student_id) AS total_students, 
-                SUM(CASE WHEN s.loggedin = TRUE THEN 1 ELSE 0 END) AS logged_in_students,
-                SUM(CASE WHEN s.done = TRUE THEN 1 ELSE 0 END) AS completed_student, 
-                s.start_time, 
-                s.batchdate,
-                ${subjectCounts},
-                ${subjectNames}
-            FROM 
-                students s
-            WHERE 
-                s.center = ? ${filter}
-            GROUP BY  
-                s.batchNo, s.start_time, s.batchdate
-            ORDER BY 
-                s.batchNo;
-        `;
+        SELECT 
+            s.batchNo, 
+            COUNT(DISTINCT s.student_id) AS total_students, 
+            COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
+            COUNT(DISTINCT CASE WHEN sl.feedback_time IS NOT NULL THEN s.student_id END) AS completed_student, 
+            s.start_time, 
+            s.batchdate,
+            ${subjectCounts},
+            ${subjectNames}
+        FROM 
+            students s
+        LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
+        WHERE 
+            s.center = ? ${filter}
+        GROUP BY  
+            s.batchNo, s.start_time, s.batchdate
+        ORDER BY 
+            s.batchNo;
+    `;
 
         console.log(query);
         const [results] = await connection.query(query, queryParams);
 
         // Convert date and time to Kolkata timezone
         results.forEach(result => {
-            const dateMoment = moment.utc(result.batchdate);
-            const timeMoment = moment.utc(result.start_time, 'HH:mm:ss');
 
-            const combinedMoment = moment.utc({
-                year: dateMoment.year(),
-                month: dateMoment.month(),
-                date: dateMoment.date(),
-                hour: timeMoment.hour(),
-                minute: timeMoment.minute(),
-                second: timeMoment.second()
-            });
+            // const kolkataDateTime = combinedMoment.tz('Asia/Kolkata');
 
-            const kolkataDateTime = combinedMoment.tz('Asia/Kolkata');
-
-            result.batchdate = kolkataDateTime.format('DD MM YYYY');
-            result.start_time = kolkataDateTime.format('hh:mm:ss A');
+            result.batchdate =  moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+            // result.start_time =  moment(result.start_time)
 
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({
