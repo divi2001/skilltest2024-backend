@@ -205,7 +205,7 @@ exports.updateTableData = async (req, res) => {
     }
 };
 
-exports.manageAudioLogs = async (req, res) => {
+exports.updateAndRetrieveAudioLogs = async (req, res) => {
     const { studentId, trial, passageA, passageB, reset } = req.body;
 
     if (!studentId) {
