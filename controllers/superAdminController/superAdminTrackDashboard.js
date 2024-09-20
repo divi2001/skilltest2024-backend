@@ -189,12 +189,12 @@ WHERE 1=1`;
 
 exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
     try {
-        const department = req.query.departmentId;
+        // const department = req.session.departmentId;
         const center = req.query.center;
         const batchNo = req.query.batchNo;
 
         let filter = '';
-        const queryParams = [];
+        const queryParams = [1];
 
         if (batchNo) {
             filter += ' AND s.batchNo = ?';
@@ -203,10 +203,6 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         if(center){
             filter += ' AND s.center = ?';
             queryParams.push(center);
-        }
-        if(department){
-            filter += ' AND s.departmentId = ?';
-            queryParams.push(department);
         }
 
         // First, get all subject IDs and names
@@ -223,8 +219,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
 
         let query = `
         SELECT 
-            s.departmentId
-            s.center
+            s.center,
             s.batchNo, 
             COUNT(DISTINCT s.student_id) AS total_students, 
             COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
@@ -237,9 +232,9 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             students s
         LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
         WHERE 
-            s.center = ? ${filter}
+            s.departmentId = ? ${filter}
         GROUP BY  
-            s.batchNo, s.start_time, s.batchdate, s.center, s.departmentId
+            s.batchNo, s.start_time, s.batchdate, s.center
         ORDER BY 
             s.batchNo,s.center;
     `;
