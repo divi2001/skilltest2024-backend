@@ -625,3 +625,107 @@ exports.approveResetRequest = async (req, res) => {
         res.status(500).send('Internal server error');
     }
 };
+
+exports.approveResetRequest = async (req, res) => {
+    const adminId = req.session.adminId;
+
+    const { requestId, action } = req.body;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: No admin ID in session');
+    }
+
+    if (!requestId || !action || (action !== 'approve' && action !== 'reject')) {
+        return res.status(400).json({ message: "Invalid request parameters" });
+    }
+
+    try {
+        // Check if the request exists and its current status
+        const [requestCheck] = await connection.query(
+            'SELECT * FROM resetrequests WHERE id = ?',
+            [requestId]
+        );
+
+        if (requestCheck.length === 0) {
+            return res.status(404).json({ message: "Reset request not found" });
+        }
+
+        if (requestCheck[0].approved !== 'Not Approved') {
+            return res.status(400).json({ message: "This request has already been processed" });
+        }
+
+        // Update the request status
+        const newStatus = action === 'approve' ? 'Approved' : 'Not Approved';
+        const updateQuery = `
+            UPDATE resetrequests 
+            SET approved = ?, reseted_by = ?
+            WHERE id = ?
+        `;
+        const updateParams = [newStatus, adminUsername, requestId];
+
+        const [result] = await connection.query(updateQuery, updateParams);
+
+        if (result.affectedRows > 0) {
+            // Fetch the updated request
+            const [updatedRequest] = await connection.query('SELECT * FROM resetrequests WHERE id = ?', [requestId]);
+            
+            // Format the time for the updated request
+            const formattedRequest = {
+                ...updatedRequest[0],
+                time: moment(updatedRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+            };
+
+            return res.status(200).json({
+                message: action === 'approve' ? "Request approved successfully" : "Request rejected",
+                request: formattedRequest
+            });
+        } else {
+            return res.status(500).json({ message: "Failed to update request status" });
+        }
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
+exports.getRequestData = async (req, res) => {
+    const centerId = req.session.centerId;
+
+    if (!centerId) {
+        return res.status(401).send('Unauthorized: No center ID in session');
+    }
+
+    try {
+        // Fetch reset requests
+        let fetchResetRequestsQuery = `
+            SELECT * 
+            FROM resetrequests
+        `;
+
+        // Uncomment the following line if you want to filter by center ID
+        // fetchResetRequestsQuery += ' WHERE center_id = ?';
+
+        fetchResetRequestsQuery += ' ORDER BY id DESC';
+
+        // Uncomment the following line if you want to filter by center ID
+        // const [resetRequests] = await connection.query(fetchResetRequestsQuery, [centerId]);
+        
+        // Use this line if you're not filtering by center ID
+        const [resetRequests] = await connection.query(fetchResetRequestsQuery);
+
+        if (resetRequests.length === 0) {
+            return res.status(404).json({ message: "No reset requests found" });
+        }
+
+        // Format the time for each request
+        const formattedRequests = resetRequests.map(request => ({
+            ...request,
+            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+        }));
+
+        res.json(formattedRequests);
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};

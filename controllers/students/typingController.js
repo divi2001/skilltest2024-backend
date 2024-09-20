@@ -248,7 +248,7 @@ const createTypingPassageZip = async (studentId, passageType, text) => {
         const currentTime = moment().tz('Asia/Kolkata').format('YYYYMMDD_HHmmss');
         const sanitizedPassageType = passageType.replace(/\s+/g, '_');
         const fileName = `${studentId}_${examCenterCode}_${currentTime}_${batchNo}_${sanitizedPassageType}`;
-        const folderName = 'typing_passage_logs';
+        const folderName = 'text_typing_passage_logs';
         const folderPath = path.join(__dirname, '..', folderName);
 
         // Create the folder if it doesn't exist

@@ -605,13 +605,12 @@ exports.logTextInput = async (req, res) => {
         return res.status(400).send('Student ID is required');
     }
 
-    if (!text || text.trim() === '') {
-        return res.status(400).send('Text is required');
-    }
-
     if (identifier !== 'passageA' && identifier !== 'passageB') {
         return res.status(400).send('Invalid identifier');
     }
+
+    // If text is null or undefined, set it to an empty string
+    const safeText = text == null ? '' : text.trim();
 
     try {
         // Create the textlogs table if it doesn't exist
@@ -625,7 +624,7 @@ exports.logTextInput = async (req, res) => {
             text${identifier === 'passageA' ? 'a' : 'b'} = VALUES(text${identifier === 'passageA' ? 'a' : 'b'})
         `;
 
-        await connection.query(insertQuery, [studentId, time, text]);
+        await connection.query(insertQuery, [studentId, time, safeText]);
         
         console.log('Response logged successfully');
         res.sendStatus(200);

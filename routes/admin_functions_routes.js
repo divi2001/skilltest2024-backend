@@ -31,7 +31,10 @@ router.post('/typing-passage-logs',isAuthenticatedAdmin, adminFunctionController
 router.post('/typing-passage',isAuthenticatedAdmin, adminFunctionController.manageTypingPassage);
 
 router.post('/reset-requests', adminFunctionController.createResetRequest);
-router.put('/reset-requests/:requestId', adminFunctionController.approveResetRequest);
+
+router.post('/admin/approve-reset-request', isAuthenticatedAdmin, adminFunctionController.approveResetRequest);
+
+router.get('/admin/center-request-data', adminFunctionController.getRequestData);
 
 
 
