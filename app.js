@@ -48,7 +48,7 @@ app.use(
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' http://13.235.95.5:3000; img-src 'self' data:;"
+    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' http://localhost:3000; img-src 'self' data:;"
   );
   next();
 });
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 
 app.use(cors({
-  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','http://13.235.95.5:3000'],
+  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','http://localhost:3000'],
   credentials: true
 }));
 
