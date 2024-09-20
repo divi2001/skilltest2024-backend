@@ -206,6 +206,341 @@ exports.updateTableData = async (req, res) => {
 };
 
 
+exports.updateAndRetrieveAudioLogs = async (req, res) => {
+    const { studentId, trial, passageA, passageB } = req.body;
+
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
+
+    try {
+        // Update logic
+        let updateFields = [];
+        let queryParams = [];
+
+        if (trial !== undefined) {
+            updateFields.push('trial = ?');
+            queryParams.push(trial);
+        }
+        if (passageA !== undefined) {
+            updateFields.push('passageA = ?');
+            queryParams.push(passageA);
+        }
+        if (passageB !== undefined) {
+            updateFields.push('passageB = ?');
+            queryParams.push(passageB);
+        }
+
+        if (updateFields.length > 0) {
+            const updateAudioLogsQuery = `
+                UPDATE audiologs
+                SET ${updateFields.join(', ')}
+                WHERE student_id = ?
+            `;
+
+            queryParams.push(studentId);
+
+            const [updateResult] = await connection.query(updateAudioLogsQuery, queryParams);
+
+            if (updateResult.affectedRows === 0) {
+                return res.status(404).send(`No audio logs found for student ID ${studentId}`);
+            }
+        }
+
+        // Retrieve logic
+        const retrieveAudioLogsQuery = `
+            SELECT * FROM audiologs
+            WHERE student_id = ?
+        `;
+
+        const [logs] = await connection.query(retrieveAudioLogsQuery, [studentId]);
+
+        if (logs.length === 0) {
+            return res.status(404).send(`No audio logs found for student ID ${studentId}`);
+        }
+
+        res.json({
+            message: updateFields.length > 0 ? `Successfully updated audio logs for student ID ${studentId}` : `Retrieved audio logs for student ID ${studentId}`,
+            audioLogs: logs[0]
+        });
+    } catch (err) {
+        console.error('Failed to update or retrieve audio logs:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
+
+exports.manageTextLogs = async (req, res) => {
+    const { studentId, mina, texta, minb, textb, reset } = req.body;
+
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
+
+    try {
+        if (reset) {
+            // Reset (remove) the entry for the student
+            const deleteQuery = `
+                DELETE FROM textlogs
+                WHERE student_id = ?
+            `;
+            const [deleteResult] = await connection.query(deleteQuery, [studentId]);
+
+            if (deleteResult.affectedRows === 0) {
+                return res.status(404).send(`No text logs found for student ID ${studentId}`);
+            }
+
+            return res.send(`Successfully removed text logs for student ID ${studentId}`);
+        }
+
+        // Update or insert logic
+        let updateFields = [];
+        let queryParams = [];
+
+        if (mina !== undefined) {
+            updateFields.push('mina = ?');
+            queryParams.push(mina);
+        }
+        if (texta !== undefined) {
+            updateFields.push('texta = ?');
+            queryParams.push(texta);
+        }
+        if (minb !== undefined) {
+            updateFields.push('minb = ?');
+            queryParams.push(minb);
+        }
+        if (textb !== undefined) {
+            updateFields.push('textb = ?');
+            queryParams.push(textb);
+        }
+
+        if (updateFields.length > 0) {
+            // Use INSERT ... ON DUPLICATE KEY UPDATE
+            const updateQuery = `
+                INSERT INTO textlogs (student_id, mina, texta, minb, textb, created_at)
+                VALUES (?, ${queryParams.map(() => '?').join(', ')}, NOW())
+                ON DUPLICATE KEY UPDATE
+                ${updateFields.join(', ')},
+                created_at = NOW()
+            `;
+
+            queryParams.unshift(studentId); // Add studentId at the beginning of queryParams
+
+            await connection.query(updateQuery, queryParams);
+        }
+
+        // Retrieve current log
+        const retrieveQuery = `
+            SELECT * FROM textlogs
+            WHERE student_id = ?
+        `;
+
+        const [logs] = await connection.query(retrieveQuery, [studentId]);
+
+        if (logs.length === 0) {
+            return res.status(404).send(`No text logs found for student ID ${studentId}`);
+        }
+
+        res.json({
+            message: updateFields.length > 0 ? `Successfully updated text logs for student ID ${studentId}` : `Retrieved text logs for student ID ${studentId}`,
+            textLogs: logs[0]
+        });
+    } catch (err) {
+        console.error('Failed to manage text logs:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
+
+exports.manageFinalPassageSubmit = async (req, res) => {
+    const { studentId, passageA, passageB, reset } = req.body;
+
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
+
+    try {
+        if (reset) {
+            const deleteQuery = 'DELETE FROM finalPassageSubmit WHERE student_id = ?';
+            const [deleteResult] = await connection.query(deleteQuery, [studentId]);
+
+            if (deleteResult.affectedRows === 0) {
+                return res.status(404).send(`No final passage submit found for student ID ${studentId}`);
+            }
+
+            return res.send(`Successfully removed final passage submit for student ID ${studentId}`);
+        }
+
+        let updateFields = [];
+        let queryParams = [];
+
+        if (passageA !== undefined) {
+            updateFields.push('passageA = ?');
+            queryParams.push(passageA);
+        }
+        if (passageB !== undefined) {
+            updateFields.push('passageB = ?');
+            queryParams.push(passageB);
+        }
+
+        if (updateFields.length > 0) {
+            const updateQuery = `
+                INSERT INTO finalPassageSubmit (student_id, passageA, passageB)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                ${updateFields.join(', ')}
+            `;
+            queryParams.unshift(studentId, passageA, passageB);
+            await connection.query(updateQuery, queryParams);
+        }
+
+        const retrieveQuery = 'SELECT * FROM finalPassageSubmit WHERE student_id = ?';
+        const [logs] = await connection.query(retrieveQuery, [studentId]);
+
+        if (logs.length === 0) {
+            return res.status(404).send(`No final passage submit found for student ID ${studentId}`);
+        }
+
+        res.json({
+            message: `Successfully managed final passage submit for student ID ${studentId}`,
+            finalPassageSubmit: logs[0]
+        });
+    } catch (err) {
+        console.error('Failed to manage final passage submit:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
+
+exports.manageTypingPassageLogs = async (req, res) => {
+    const { studentId, trialTime, trialPassage, passageTime, passage, reset } = req.body;
+
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
+
+    try {
+        if (reset) {
+            const deleteQuery = 'DELETE FROM typingpassagelogs WHERE student_id = ?';
+            const [deleteResult] = await connection.query(deleteQuery, [studentId]);
+
+            if (deleteResult.affectedRows === 0) {
+                return res.status(404).send(`No typing passage logs found for student ID ${studentId}`);
+            }
+
+            return res.send(`Successfully removed typing passage logs for student ID ${studentId}`);
+        }
+
+        let updateFields = [];
+        let queryParams = [];
+
+        if (trialTime !== undefined) {
+            updateFields.push('trial_time = ?');
+            queryParams.push(trialTime);
+        }
+        if (trialPassage !== undefined) {
+            updateFields.push('trial_passage = ?');
+            queryParams.push(trialPassage);
+        }
+        if (passageTime !== undefined) {
+            updateFields.push('passage_time = ?');
+            queryParams.push(passageTime);
+        }
+        if (passage !== undefined) {
+            updateFields.push('passage = ?');
+            queryParams.push(passage);
+        }
+
+        if (updateFields.length > 0) {
+            updateFields.push('time = NOW()');
+            const updateQuery = `
+                INSERT INTO typingpassagelogs (student_id, trial_time, trial_passage, passage_time, passage, time)
+                VALUES (?, ?, ?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE
+                ${updateFields.join(', ')}
+            `;
+            queryParams.unshift(studentId, trialTime, trialPassage, passageTime, passage);
+            await connection.query(updateQuery, queryParams);
+        }
+
+        const retrieveQuery = 'SELECT * FROM typingpassagelogs WHERE student_id = ?';
+        const [logs] = await connection.query(retrieveQuery, [studentId]);
+
+        if (logs.length === 0) {
+            return res.status(404).send(`No typing passage logs found for student ID ${studentId}`);
+        }
+
+        res.json({
+            message: `Successfully managed typing passage logs for student ID ${studentId}`,
+            typingpassagelogs: logs[0]
+        });
+    } catch (err) {
+        console.error('Failed to manage typing passage logs:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
+
+exports.manageTypingPassage = async (req, res) => {
+    const { studentId, trialPassage, passage, reset } = req.body;
+
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
+
+    try {
+        if (reset) {
+            const deleteQuery = 'DELETE FROM typingpassage WHERE student_id = ?';
+            const [deleteResult] = await connection.query(deleteQuery, [studentId]);
+
+            if (deleteResult.affectedRows === 0) {
+                return res.status(404).send(`No typing passage found for student ID ${studentId}`);
+            }
+
+            return res.send(`Successfully removed typing passage for student ID ${studentId}`);
+        }
+
+        let updateFields = [];
+        let queryParams = [];
+
+        if (trialPassage !== undefined) {
+            updateFields.push('trial_passage = ?');
+            queryParams.push(trialPassage);
+        }
+        if (passage !== undefined) {
+            updateFields.push('passage = ?');
+            queryParams.push(passage);
+        }
+
+        if (updateFields.length > 0) {
+            updateFields.push('time = NOW()');
+            const updateQuery = `
+                INSERT INTO typingpassage (student_id, trial_passage, passage, time)
+                VALUES (?, ?, ?, NOW())
+                ON DUPLICATE KEY UPDATE
+                ${updateFields.join(', ')}
+            `;
+            queryParams.unshift(studentId, trialPassage, passage);
+            await connection.query(updateQuery, queryParams);
+        }
+
+        const retrieveQuery = 'SELECT * FROM typingpassage WHERE student_id = ?';
+        const [logs] = await connection.query(retrieveQuery, [studentId]);
+
+        if (logs.length === 0) {
+            return res.status(404).send(`No typing passage found for student ID ${studentId}`);
+        }
+
+        res.json({
+            message: `Successfully managed typing passage for student ID ${studentId}`,
+            typingpassage: logs[0]
+        });
+    } catch (err) {
+        console.error('Failed to manage typing passage:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
 exports.resetAllAudioLogs = async (req, res) => {
     const updateAudioLogQuery = `UPDATE audiologs SET trial = 0, passageA = 0, passageB = 0`;
 
