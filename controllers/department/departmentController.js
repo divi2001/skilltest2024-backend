@@ -221,12 +221,12 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 
 exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
     try {
-        // const department = req.session.departmentId;
+        const department = req.session.departmentId;
         const center = req.query.center;
         const batchNo = req.query.batchNo;
 
         let filter = '';
-        const queryParams = [1];
+        const queryParams = [department];
 
         if (batchNo) {
             filter += ' AND s.batchNo = ?';
@@ -251,7 +251,7 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
 
         let query = `
         SELECT 
-            s.center
+            s.center,
             s.batchNo, 
             COUNT(DISTINCT s.student_id) AS total_students, 
             COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
@@ -264,7 +264,7 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
             students s
         LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
         WHERE 
-            s.center = ? ${filter}
+            s.departmentId = ? ${filter}
         GROUP BY  
             s.batchNo, s.start_time, s.batchdate, s.center
         ORDER BY 
