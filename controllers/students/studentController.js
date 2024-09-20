@@ -37,9 +37,9 @@ exports.loginStudent = async (req, res) => {
         `;
         const [loginAttempts] = await connection.query(checkLoginAttemptsQuery, [defaultIpAddress]);
 
-        // if (loginAttempts[0].attempt_count > 10) {
-        //     return res.status(429).send('Too many login attempts. Please try again later.');
-        // }
+        if (loginAttempts[0].attempt_count > 10) {
+            return res.status(429).send('Too many login attempts. Please try again later.');
+        }
 
         const query1 = 'SELECT * FROM students WHERE student_id = ?';
         const [results] = await connection.query(query1, [userId]);
@@ -70,18 +70,18 @@ exports.loginStudent = async (req, res) => {
 
         const batchStatus = batchResults[0].batchstatus;
 
-        // if (batchStatus !== 1) {
-        //     return res.status(401).send('invalid credentials 3');
-        // }
+        if (batchStatus !== 1) {
+            return res.status(401).send('invalid credentials 3');
+        }
 
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
         const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
         console.log(registrations)
 
-        // if (registrations.length===0) {
-        //     return res.status(401).send('pc not registered');
-        // }
+        if (registrations.length===0) {
+            return res.status(401).send('pc not registered');
+        }
 
         let decryptedStoredPassword, decryptedStoredPassword1;
         try {
