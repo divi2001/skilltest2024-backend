@@ -724,11 +724,6 @@ exports.getPassageProgress = async (req, res) => {
   
       const { passageA } = rows[0];
   
-      if (passageA === null || passageA === '') {
-        console.log('No typed text found for passageA');
-        return res.status(404).send('No typed text found for passageA');
-      }
-  
       console.log('Sending typed text for passageA');
       res.json({ typedText: passageA });
     } catch (err) {
@@ -736,7 +731,7 @@ exports.getPassageProgress = async (req, res) => {
       res.status(500).send(err.message);
     }
   };
-
+  
   exports.getPassage = async (req, res) => {
     const studentId = req.session.studentId;
   
@@ -755,11 +750,6 @@ exports.getPassageProgress = async (req, res) => {
       }
   
       const { passage } = rows[0];
-  
-      if (passage === null || passage === '') {
-        console.log('No passage text found');
-        return res.status(404).send('No passage text found');
-      }
   
       console.log('Sending passage text');
       res.json({ passageText: passage });
