@@ -205,16 +205,30 @@ exports.updateTableData = async (req, res) => {
     }
 };
 
-
-exports.updateAndRetrieveAudioLogs = async (req, res) => {
-    const { studentId, trial, passageA, passageB } = req.body;
+exports.manageAudioLogs = async (req, res) => {
+    const { studentId, trial, passageA, passageB, reset } = req.body;
 
     if (!studentId) {
         return res.status(400).send('Student ID is required');
     }
 
     try {
-        // Update logic
+        if (reset) {
+            // Reset (remove) the entry for the student
+            const deleteQuery = `
+                DELETE FROM audiologs
+                WHERE student_id = ?
+            `;
+            const [deleteResult] = await connection.query(deleteQuery, [studentId]);
+
+            if (deleteResult.affectedRows === 0) {
+                return res.status(404).send(`No audio logs found for student ID ${studentId}`);
+            }
+
+            return res.send(`Successfully removed audio logs for student ID ${studentId}`);
+        }
+
+        // Update or insert logic
         let updateFields = [];
         let queryParams = [];
 
@@ -232,28 +246,27 @@ exports.updateAndRetrieveAudioLogs = async (req, res) => {
         }
 
         if (updateFields.length > 0) {
-            const updateAudioLogsQuery = `
-                UPDATE audiologs
-                SET ${updateFields.join(', ')}
-                WHERE student_id = ?
+            // Use INSERT ... ON DUPLICATE KEY UPDATE
+            const updateQuery = `
+                INSERT INTO audiologs (student_id, trial, passageA, passageB, created_at)
+                VALUES (?, ${queryParams.map(() => '?').join(', ')}, NOW())
+                ON DUPLICATE KEY UPDATE
+                ${updateFields.join(', ')},
+                created_at = NOW()
             `;
 
-            queryParams.push(studentId);
+            queryParams.unshift(studentId); // Add studentId at the beginning of queryParams
 
-            const [updateResult] = await connection.query(updateAudioLogsQuery, queryParams);
-
-            if (updateResult.affectedRows === 0) {
-                return res.status(404).send(`No audio logs found for student ID ${studentId}`);
-            }
+            await connection.query(updateQuery, queryParams);
         }
 
-        // Retrieve logic
-        const retrieveAudioLogsQuery = `
+        // Retrieve current log
+        const retrieveQuery = `
             SELECT * FROM audiologs
             WHERE student_id = ?
         `;
 
-        const [logs] = await connection.query(retrieveAudioLogsQuery, [studentId]);
+        const [logs] = await connection.query(retrieveQuery, [studentId]);
 
         if (logs.length === 0) {
             return res.status(404).send(`No audio logs found for student ID ${studentId}`);
@@ -264,11 +277,10 @@ exports.updateAndRetrieveAudioLogs = async (req, res) => {
             audioLogs: logs[0]
         });
     } catch (err) {
-        console.error('Failed to update or retrieve audio logs:', err);
+        console.error('Failed to manage audio logs:', err);
         res.status(500).send('Internal server error');
     }
 };
-
 
 exports.manageTextLogs = async (req, res) => {
     const { studentId, mina, texta, minb, textb, reset } = req.body;
