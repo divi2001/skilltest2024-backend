@@ -130,7 +130,7 @@ WHERE s.center = ? `;
      
     try {
         const [results] = await connection.query(query, queryParams);
-        console.log('Query result:', results);
+        // console.log('Query result:', results);
 
         if (results.length > 0) {
             const studentTrackDTOs = results.map(result => {
