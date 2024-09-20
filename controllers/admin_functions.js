@@ -561,4 +561,67 @@ exports.resetAllAudioLogs = async (req, res) => {
     }
 };
 
+exports.createResetRequest = async (req, res) => {
+    const { student_id, reason, reset_type } = req.body;
 
+    if (!student_id || !reason || !reset_type) {
+        return res.status(400).send('Missing required fields');
+    }
+
+    try {
+        // Check if the student exists and get their center
+        const checkStudentQuery = 'SELECT student_id, center FROM students WHERE student_id = ?';
+        const [studentResults] = await connection.query(checkStudentQuery, [student_id]);
+
+        if (studentResults.length === 0) {
+            return res.status(404).send('Student not found');
+        }
+
+        const studentCenter = studentResults[0].center;
+
+        // Insert the reset request
+        const insertResetRequestQuery = `
+            INSERT INTO resetrequests (student_id, reason, reset_type, center, approved)
+            VALUES (?, ?, ?, ?, 'pending')
+        `;
+        const [result] = await connection.query(insertResetRequestQuery, [student_id, reason, reset_type, studentCenter]);
+
+        res.status(201).json({
+            message: 'Reset request created successfully',
+            requestId: result.insertId
+        });
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};
+
+exports.approveResetRequest = async (req, res) => {
+    const { requestId } = req.params;
+    const { approved, reseted_by } = req.body;
+
+    if (!requestId || !approved || !reseted_by) {
+        return res.status(400).send('Missing required fields');
+    }
+
+    try {
+        // Update the reset request
+        const updateResetRequestQuery = `
+            UPDATE resetrequests 
+            SET approved = ?, reseted_by = ?
+            WHERE id = ?
+        `;
+        const [result] = await connection.query(updateResetRequestQuery, [approved, reseted_by, requestId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send('Reset request not found');
+        }
+
+        res.json({
+            message: 'Reset request updated successfully'
+        });
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};

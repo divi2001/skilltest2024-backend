@@ -287,5 +287,87 @@ exports.totalLoginCounts = async (req,res) => {
     }
     
 }
+const moment = require('moment-timezone');
 
+exports.getCenterResetRequests = async (req, res) => {
+    const centerId = req.session.centerId;
+    
+    
+    const reset_type = 're-login student'; // Set the reset type explicitly
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
+    if (!centerId) {
+        return res.status(401).send('Unauthorized: No center ID in session');
+    }
+
+    if (!student_id || !reason || !controller_password) {
+        return res.status(400).send('Bad Request: Missing required parameters');
+    }
+
+    try {
+        // First, get the student's batch
+        const [student] = await connection.query(
+            'SELECT batch, loggedin FROM students WHERE student_id = ? AND center = ?',
+            [student_id, centerId]
+        );
+
+        if (student.length === 0) {
+            return res.status(404).send('Student not found');
+        }
+
+        if (student[0].loggedin === 0) {
+            return res.status(400).send('Student is already logged out');
+        }
+
+        const batchNo = student[0].batch;
+
+        // Verify the controller password
+        const controllerQuery = `
+            SELECT controllerdb.controller_pass, batchdb.Start_time, batchdb.batchdate
+            FROM controllerdb 
+            INNER JOIN batchdb ON controllerdb.batchNo = batchdb.batchNo 
+            WHERE controllerdb.center = ? AND controllerdb.batchNo = ?
+        `;
+
+        const [controllerResults] = await connection.query(controllerQuery, [centerId, batchNo]);
+
+        if (controllerResults.length === 0) {
+            return res.status(404).send('Controller data not found');
+        }
+
+        const controllerData = controllerResults[0];
+
+        // Decrypt the stored password
+        const decryptedStoredPassword = decryptPassword(controllerData.controller_pass);
+
+        // Check if the password is correct and the batch is within the allowed time
+        if (decryptedStoredPassword !== controller_password ||
+            !checkDownloadAllowedStudentLoginPass(controllerData.Start_time, controllerData.batchdate)) {
+            return res.status(401).send('Unauthorized: Invalid controller password or batch time');
+        }
+
+        // Update the student's logged in status and add reset request
+        const updateStudentQuery = `
+            UPDATE students 
+            SET loggedin = 0 
+            WHERE student_id = ? AND center = ?
+        `;
+
+        const insertResetRequestQuery = `
+            INSERT INTO resetrequests 
+            (student_id, center, reason, reset_type, reseted_by, approved, time) 
+            VALUES (?, ?, ?, ?, ?, 'Approved', ?)
+        `;
+
+        await connection.query(updateStudentQuery, [student_id, centerId]);
+        await connection.query(insertResetRequestQuery, [student_id, centerId, reason, reset_type, 'Controller', currentTime]);
+
+        res.json({ 
+            message: "Student can login again. Reset request approved.",
+            requestTime: currentTime
+        });
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};

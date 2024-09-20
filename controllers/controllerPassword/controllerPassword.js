@@ -47,6 +47,8 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     // Return true if startTime is between 0 and 30 minutes ahead of the current time
     return  differenceInMinutes <= 30;
 }
+
+
 exports.getControllerPassForCenter = async (req, res) => {
     const centerCode = req.session.centerId;
     const { batchNo } = req.body;
