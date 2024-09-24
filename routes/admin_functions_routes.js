@@ -29,14 +29,10 @@ router.post('/typing-passage-logs',isAuthenticatedAdmin, adminFunctionController
 
 // Route for manageTypingPassage
 router.post('/typing-passage',isAuthenticatedAdmin, adminFunctionController.manageTypingPassage);
-
 router.post('/reset-requests', adminFunctionController.createResetRequest);
-
 router.post('/admin/approve-reset-request', isAuthenticatedAdmin, adminFunctionController.approveResetRequest);
-
 router.get('/admin/center-request-data', adminFunctionController.getRequestData);
-router.post('/admin/passage-data',adminFunctionController.getStudentPassageData);
-
+router.post('/admin/student-data',adminFunctionController.getStudentData);
 
 
 module.exports = router;
