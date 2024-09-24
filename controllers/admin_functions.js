@@ -1,14 +1,6 @@
 
 const connection = require('../config/db1');
-
-const xl = require('excel4node');
-
-const path = require('path');
-const fs = require('fs').promises;
-const Buffer = require('buffer').Buffer;
-
-const { encrypt, decrypt } =require('../config/encrypt');
-const { request } = require('http');
+const moment = require('moment-timezone');
 
 exports.loginadmin= async (req, res) => {
     // console.log("Trying admin login");
@@ -740,4 +732,38 @@ exports.getRequestData = async (req, res) => {
         console.error('Database query error:', err);
         res.status(500).send('Internal server error');
     }
+
 };
+
+exports.getStudentPassageData = async (req,res) => {
+
+    const {student_id} = req.body;
+    console.log(student_id);
+    try {
+        let query = `
+        SELECT 
+            s.student_id,
+            s.batchNo,
+            s.batchdate,
+            tl.texta AS shorthand_passage,
+            tpl.trial_passage,
+            tpl.passage AS typing_passage
+        FROM 
+            students s
+        LEFT JOIN textlogs tl ON s.student_id = tl.student_id
+        LEFT JOIN typingpassagelogs tpl ON s.student_id = tpl.student_id
+        WHERE 
+            s.student_id = ?
+        ORDER BY 
+            s.batchNo, s.student_id;
+    `;
+        const [results] = await connection.query(query,[student_id]);
+        console.log(results);
+        results[0].batchdate = moment(results[0].batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+        res.status(201).json({results});
+    } catch (error) {
+        console.error('Database query error:', error);
+        res.status(500).send('Internal server error');
+    }
+    
+}

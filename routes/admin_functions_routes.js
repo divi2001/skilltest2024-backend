@@ -35,6 +35,7 @@ router.post('/reset-requests', adminFunctionController.createResetRequest);
 router.post('/admin/approve-reset-request', isAuthenticatedAdmin, adminFunctionController.approveResetRequest);
 
 router.get('/admin/center-request-data', adminFunctionController.getRequestData);
+router.post('/admin/passage-data',adminFunctionController.getStudentPassageData);
 
 
 

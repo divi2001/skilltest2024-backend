@@ -5,6 +5,17 @@ const moment = require('moment-timezone');
 function formatDate(dateString) {
     return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }
+function convertDateFormat(dateString) {
+    // Parse the original date string
+    const [day, month, year] = dateString.split('-');
+  
+    // Create a Date object in UTC
+    // Set the time to 18:30:00 UTC of the previous day
+    const date = new Date(Date.UTC(year, month - 1, day - 1, 18, 30, 0));
+    
+    // Convert to ISO 8601 format
+    return date
+}
 exports.getAllStudentsTrack = async (req,res) => {
     // console.log('Starting getStudentsTrack function');
     const adminId = req.params.adminid;
@@ -19,11 +30,6 @@ exports.getAllStudentsTrack = async (req,res) => {
     // console.log("Center no:", center);
     // console.log("Original Batch date:", batchDate);
     // console.log("Department Id:", departmentId);
-
-    if (batchDate) {
-        batchDate = formatDate(batchDate);
-        console.log("Formatted Batch date:", batchDate);
-    }
 
     // if (!departmentId) {
     //     console.log('department admin is not logged in');
@@ -130,7 +136,9 @@ WHERE 1=1`;
     }
 
     if (batchDate) {
-        query += ' AND DATE(s.batchdate) = ?';
+        batchDate = convertDateFormat(batchDate);
+        console.log("Formatted Batch date:", batchDate);
+        query += ' AND s.batchdate = ?';
         queryParams.push(batchDate);
     }
 

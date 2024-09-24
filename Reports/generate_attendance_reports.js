@@ -266,13 +266,13 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Calculate the date 1 day before the batch date
     const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
 
-    console.log('Batch Date (UTC):', batchDate);
-    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
-    console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+    // console.log('Batch Date (UTC):', batchDate);
+    // console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    // console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
+    // console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
 
-    // Check if current date is between one day before the batch date and the batch date itself (inclusive)
-    return nowKolkata.isSameOrAfter(oneDayBefore) && nowKolkata.isSameOrBefore(batchDateKolkata);
+    // Check if current date is after or equal to 1 day before the batch date
+    return nowKolkata.isSameOrAfter(oneDayBefore);
 }
 
 const AttendanceReport = async(doc,center,batchNo) => {
