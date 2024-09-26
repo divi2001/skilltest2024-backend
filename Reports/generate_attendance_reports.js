@@ -6,7 +6,7 @@ function createAttendanceReport(doc , data) {
         doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 })
 
         doc.fontSize(14).font('Helvetica-Bold')
-            .text('Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', 110, 50, {
+            .text(data.departmentName, 110, 50, {
                 width: 450,
                 align: 'center'
             });
@@ -234,7 +234,7 @@ function createAttendanceReport(doc , data) {
 const getData = async(center , batchNo) => {
     try {
         // console.log(center,batchNo)
-        const query = 'SELECT s.fullname, s.student_id, s.base64 ,s.sign_base64, sub.subject_name_short FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
+        const query = 'SELECT s.fullname, s.student_id, s.base64 ,s.sign_base64, sub.subject_name_short, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
         const response = await connection.query(query,[center,batchNo]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
@@ -307,7 +307,8 @@ const AttendanceReport = async(doc,center,batchNo) => {
                 photoBase64: student.base64,
                 signBase64:student.sign_base64,  // Using the same path for both photo and sign
             }
-        })
+        }),
+        departmentName:response[0].departmentName
     }
     createAttendanceReport(doc,data);
 }

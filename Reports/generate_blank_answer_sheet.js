@@ -2,7 +2,8 @@
 // Create a document
 // c
 // This will print the Marathi text correctly in a UTF-8 capable console
-async function createBlankAnswerSheet(doc)  {
+const connection = require("../config/db1");
+async function createBlankAnswerSheet(doc,data)  {
       
       // Constants for layout
       const headerHeight = 85;
@@ -50,7 +51,7 @@ async function createBlankAnswerSheet(doc)  {
       
       // Function to create a page
       function createPage(doc, isFirstPage) {
-        createHeader(doc, 'Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', ' COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
+        createHeader(doc, data.departmentName, ' COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
         
         let startY = headerHeight;
       
@@ -86,5 +87,43 @@ async function createBlankAnswerSheet(doc)  {
       createPage(doc, false);
     
 }
+async function getData(center, batchNo) {
+  try {
+      // console.log(center, batchNo);
+      const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
+      const response = await connection.query(query, [batchNo, center]);
+      
+      return { 
+          response: response[0], 
+      };
+  } catch (error) {
+      console.error('Error in getData:', error);
+      throw error;
+  }
+}
 
-module.exports = {createBlankAnswerSheet};
+async function generateBlankAnswerSheet(doc, center, batchNo) {
+  try {
+      const Data = await getData(center, batchNo);
+      // console.log(Data);
+
+      const response = Data.response;
+      if (!Array.isArray(response) || response.length === 0) {
+          throw new Error('No data returned from getData');
+      }      
+
+      const data = {
+    
+          departmentName : response[0].departmentName
+      };
+
+      createBlankAnswerSheet(doc, data);
+
+  } catch (error) {
+      console.error("Error generating report:", error);
+      throw error;
+  }
+}
+
+
+module.exports = {generateBlankAnswerSheet};

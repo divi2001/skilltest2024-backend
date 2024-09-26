@@ -6,11 +6,11 @@ const moment = require('moment-timezone'); // Make sure to install and import mo
 async function getData(center, batchNo) {
     try {
         // console.log(center, batchNo);
-        const query = 'SELECT student_id from students where batchNo = ? AND center = ?';
+        const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
         const response = await connection.query(query, [batchNo, center]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
-        // console.log(response[0], batchData[0]);
+        console.log(response[0], batchData[0]);
 
         // Check if download is allowed
         // const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
@@ -65,7 +65,7 @@ function addHeader(doc, data) {
     doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 });
 
     doc.fontSize(14).font('Helvetica-Bold')
-        .text('Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', 110, 50, {
+        .text(data.departmentName, 110, 50, {
             width: 450,
             align: 'center'
         });
@@ -223,7 +223,8 @@ async function generateReport(doc, center, batchNo) {
             batch: batchNo.toString(),
             examDate: examDate,
             examTime: batchInfo.start_time,
-            seatNumbers: response.map(student => student.student_id.toString())
+            seatNumbers: response.map(student => student.student_id.toString()),
+            departmentName : response[0].departmentName
         };
 
         createAttendanceReport(doc, data);

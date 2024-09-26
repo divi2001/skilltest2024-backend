@@ -7,7 +7,7 @@ const {generateSeatingArrangementReport} = require('./generate_seating_arrangeme
 const {generateStudentIdPasswordPdf} = require('./generate_studentId_Password_sheet')
 // const {}
 const PDFDocument = require('pdfkit');
-const { createBlankAnswerSheet } = require('./generate_blank_answer_sheet');
+const { generateBlankAnswerSheet } = require('./generate_blank_answer_sheet');
 const { decrypt } = require("../config/encrypt");
 const { generateAnswerSheets } = require("./generate_answer_sheets");
 
@@ -125,8 +125,9 @@ exports.generateBlankAnswerSheet = async (req, res) => {
         doc.on('data', (chunk) => chunks.push(chunk));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
-
-        createBlankAnswerSheet(doc).then(() => {
+        const {batchNo} = req.body;
+        const center = req.session.centerId;
+        generateBlankAnswerSheet(doc,center,batchNo).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating blank answer sheet:", error);

@@ -79,7 +79,7 @@ async function createAnswerSheet(doc, data) {
     }
     
     async function createPage(doc, student, isFirstPage, qrCodeUrl) {
-        createHeader(doc, 'Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', 'COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
+        createHeader(doc, data.departmentName, 'COMPUTER SHORTHAND EXAMINATION SEPTEMBER 2024');
         
         let startY = headerHeight+15;
       
@@ -123,7 +123,7 @@ async function createAnswerSheet(doc, data) {
     }
     
     for (const student of data.students) {
-        await createPage(doc, student, true, `https://shorthandonlineexam.in/student_info/${student.seatNo}`);
+        await createPage(doc, student, true, `https://www.shorthandonlineexam.in/student_info/${student.seatNo}`);
         doc.addPage();
         await createPage(doc, student, false);
         if (student !== data.students[data.students.length - 1]) {
@@ -140,7 +140,7 @@ const getData = async(center, batchNo,student_id) => {
            query = "SELECT s.fullname, s.student_id,s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ?;";
            queryParams.push(student_id);
         }else{
-         query = 'SELECT s.fullname, s.student_id,s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ?';
+         query = 'SELECT s.fullname, s.student_id,s.base64, sub.subject_name ,d.departmentName,d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
         }
         response = await connection.query(query, queryParams);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
@@ -228,7 +228,8 @@ const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
             subject: getTextBeforePlus(student.subject_name),
             photoBase64: student.base64,
             
-        }))
+        })),
+        departmentName:response[0].departmentName
     };
 
     await createAnswerSheet(doc, data);

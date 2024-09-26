@@ -751,24 +751,14 @@ exports.getStudentData = async (req,res) => {
                                        LEFT JOIN typingpassagelogs tpl ON s.student_id = tpl.student_id
                                        LEFT JOIN typingpassage tp ON s.student_id = tp.student_id
                                        where s.student_id = ?;`
-    //     let query = `
-    //     SELECT 
-    //         tl.texta AS shorthand_passage,
-    //         tpl.trial_passage,
-    //         tpl.passage AS typing_passage
-    //     FROM 
-    //         students s
-    //     LEFT JOIN textlogs tl ON s.student_id = tl.student_id
-    //     LEFT JOIN typingpassagelogs tpl ON s.student_id = tpl.student_id
-    //     WHERE 
-    //         s.student_id = ?
-    //     ORDER BY 
-    //         s.batchNo, s.student_id;
-    // `;
+                                       
         const [shorthandPassage] = await connection.query(shorthandPassageQuery,[student_id]);
         const [studentResults] = await connection.query(studentQuery,[student_id]);
         const [typingPassage] =await connection.query(typingPassageQuery,[student_id]);
         // console.log(results);
+        if(studentResults.length === 0){
+            return res.status(404).json({"Message":"No Student Found for this id!!!"})
+        }
         studentResults[0].batchdate = moment(studentResults[0].batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
         res.status(201).json({shorthandPassage,typingPassage,studentResults});
     } catch (error) {

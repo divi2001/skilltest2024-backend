@@ -15,7 +15,7 @@ async function getData(center, batchNo) {
 
         // console.log(batchData[0].start_time, batchData[0].batchdate);
 
-        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';
+        const query = 'SELECT s.student_id, s.password , d.departmentName , d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ?';
         const [results] = await connection.query(query, [center, batchNo]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
@@ -25,6 +25,7 @@ async function getData(center, batchNo) {
 
         return { 
             response: decryptedResults, 
+            departmentName:results[0].departmentName,
             batchData: batchData
         };
     } catch (error) {
@@ -37,7 +38,7 @@ function addHeader(doc, data) {
     doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 });
 
     doc.fontSize(14).font('Helvetica-Bold')
-        .text('Commissioner for Cooperation and Registrar, Cooperative Societies Maharashtra State, Pune', 110, 50, {
+        .text(data.departmentName, 110, 50, {
             width: 450,
             align: 'center'
         });
@@ -48,7 +49,7 @@ function addHeader(doc, data) {
             align: 'center'
         });
 
-    doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
+    doc.moveTo(50, doc.y + 15).lineTo(550, doc.y + 15).stroke();
 
     doc.moveDown();
     const yPosition = doc.y-8;
@@ -56,10 +57,10 @@ function addHeader(doc, data) {
     const spacer = '\u00A0\u00A0';
     doc.fontSize(fontSize).font('Helvetica');
 
-    doc.text(`CENTER CODE: ${data.centerCode}${spacer}`, 50, yPosition + 10);
-    doc.text(`BATCH: ${data.batch}${spacer}`, 185, yPosition + 10);
-    doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 275, yPosition + 10);
-    doc.text(`EXAM TIME: ${data.examTime}`, 425, yPosition + 10);
+    doc.text(`CENTER CODE: ${data.centerCode}${spacer}`, 50, yPosition + 13);
+    doc.text(`BATCH: ${data.batch}${spacer}`, 185, yPosition + 13);
+    doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 275, yPosition + 13);
+    doc.text(`EXAM TIME: ${data.examTime}`, 425, yPosition + 13);
 
     return doc.y + 20;
 }
@@ -177,7 +178,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
 async function generateStudentIdPasswordPdf(doc, center, batchNo) {
     try {
         const Data = await getData(center, batchNo);
-        // console.log(Data);
+        console.log(Data);
 
         const response = Data.response;
         if (!Array.isArray(response) || response.length === 0) {
@@ -201,7 +202,8 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
             batch: batchNo.toString(),
             examDate: examDate,
             examTime: batchInfo.start_time,
-            students: response
+            students: response,
+            departmentName:Data.departmentName
         };
 
         createSeatingArrangementReport(doc, data);
