@@ -4,20 +4,85 @@ const connection = require("../../config/db1")
 exports.resetStudentProgress = async (req, res) => {
     const { student_id, studentLogin, trialAudioShortHand, audioShorthandA, textShorthandA, audioShorthandB, textShorthandB, trialText, textTyping , finalShorthandPassageA ,finalShorthandPassageB , finalTrialPassageTyping , finalTypingPassage } = req.body;
     console.log("Request body:", req.body);
-
+    'StudentInfo', 'Instructions', 'InputChecker', 'HeadphoneTest',
+        'ControllerPassword', 'TrialPassage', 'AudioPassageA', 'TypingPassageA',
+        'TrialTypewriting', 'Typewriting', 'ShorthandSummary', 'TypingSummary',
+        'FeedbackForm', 'ThankYou'
     const queries = {
-        studentLogin: `UPDATE students SET loggedin = 0, done = 0 WHERE student_id = ?;`,
-        trialAudio: `UPDATE audiologs SET trial = 0 WHERE student_id = ?`,
-        audioShorthandA: `UPDATE audiologs SET passageA = 0 WHERE student_id = ?`,
-        textShorthandA: `UPDATE textlogs SET mina = 0, texta = NULL WHERE student_id = ?`,
-        finalShorthandPassageA: `UPDATE finalPassageSubmit SET passageA = NULL WHERE student_id = ?`,
-        audioShorthandB: `UPDATE audiologs SET passageB = 0 WHERE student_id = ?`,
-        textShorthandB: `UPDATE textlogs SET minb = 0, textb = NULL WHERE student_id = ?`,
-        finalShorthandPassageB: `UPDATE finalPassageSubmit SET passageB = NULL WHERE student_id = ?`,
-        trialPassageTyping: `UPDATE typingpassagelogs SET trial_time = NULL, trial_passage = NULL WHERE student_id = ?;`,
-        finalTrialPassageTyping:`UPDATE typingpassage SET trial_passage = NULL WHERE student_id = ?;`,
-        typingPassage: `UPDATE typingpassagelogs SET passage_time = NULL, passage = NULL WHERE student_id = ?;`,
-        finalTypingPassage: `UPDATE typingpassage SET passage = NULL , time = NULL WHERE student_id = ?;`,
+        studentLogin: `
+            UPDATE students s
+            JOIN exam_stages es ON s.student_id = es.StudentId
+            SET s.loggedin = 0, s.done = 0, 
+                es.StudentInfo = 0, es.Instructions = 0, es.InputChecker = 0, 
+                es.HeadphoneTest = 0, es.ControllerPassword = 0
+            WHERE s.student_id = ?;
+        `,
+        trialAudio: `
+            UPDATE audiologs a
+            JOIN exam_stages es ON a.student_id = es.StudentId
+            SET a.trial = 0, es.TrialPassage = 0
+            WHERE a.student_id = ?;
+        `,
+        audioShorthandA: `
+            UPDATE audiologs a
+            JOIN exam_stages es ON a.student_id = es.StudentId
+            SET a.passageA = 0, es.AudioPassageA = 0
+            WHERE a.student_id = ?;
+        `,
+        textShorthandA: `
+            UPDATE textlogs t
+            JOIN exam_stages es ON t.student_id = es.StudentId
+            SET t.mina = 0, t.texta = NULL, es.TypingPassageA = 0, es.ShorthandSummary = 0 ,es.ThankYou = 0
+            WHERE t.student_id = ?;
+        `,
+        finalShorthandPassageA: `
+            UPDATE finalPassageSubmit f
+            JOIN exam_stages es ON f.student_id = es.StudentId
+            SET f.passageA = NULL,es.TypingPassageA = 0, es.ShorthandSummary = 0,es.ThankYou = 0
+            WHERE f.student_id = ?;
+        `,
+        audioShorthandB: `
+            UPDATE audiologs a
+            JOIN exam_stages es ON a.student_id = es.StudentId
+            SET a.passageB = 0, es.AudioPassageA = 0
+            WHERE a.student_id = ?;
+        `,
+        textShorthandB: `
+            UPDATE textlogs t
+            JOIN exam_stages es ON t.student_id = es.StudentId
+            SET t.minb = 0, t.textb = NULL, es.TypingPassageA = 0
+            WHERE t.student_id = ?;
+        `,
+        finalShorthandPassageB: `
+            UPDATE finalPassageSubmit f
+            JOIN exam_stages es ON f.student_id = es.StudentId
+            SET f.passageB = NULL, es.ShorthandSummary = 0
+            WHERE f.student_id = ?;
+        `,
+        trialPassageTyping: `
+            UPDATE typingpassagelogs t
+            JOIN exam_stages es ON t.student_id = es.StudentId
+            SET t.trial_time = NULL, t.trial_passage = NULL, es.TrialTypewriting = 0, es.ThankYou = 0
+            WHERE t.student_id = ?;
+        `,
+        finalTrialPassageTyping: `
+            UPDATE typingpassage t
+            JOIN exam_stages es ON t.student_id = es.StudentId
+            SET t.trial_passage = NULL, es.TrialTypewriting = 0, es.ThankYou = 0
+            WHERE t.student_id = ?;
+        `,
+        typingPassage: `
+            UPDATE typingpassagelogs t
+            JOIN exam_stages es ON t.student_id = es.StudentId
+            SET t.passage_time = NULL, t.passage = NULL, es.Typewriting = 0, es.TypingSummary = 0, es.ThankYou = 0
+            WHERE t.student_id = ?;
+        `,
+        finalTypingPassage: `
+            UPDATE typingpassage t
+            JOIN exam_stages es ON t.student_id = es.StudentId
+            SET t.passage = NULL, t.time = NULL, es.Typewriting = 0, es.TypingSummary = 0, es.ThankYou = 0
+            WHERE t.student_id = ?;
+        `,
     };
 
     const queryParam = [student_id];

@@ -257,6 +257,9 @@ exports.storeExamStage = async (req, res) => {
         })
     }
 
+    const createQuery = `CREATE TABLE IF NOT EXISTS exam_stages (StudentId BIGINT, StudentInfo BOOLEAN DEFAULT 0, Instructions BOOLEAN DEFAULT 0, InputChecker BOOLEAN DEFAULT 0, HeadphoneTest BOOLEAN DEFAULT 0, ControllerPassword BOOLEAN DEFAULT 0, TrialPassage BOOLEAN DEFAULT 0, AudioPassageA BOOLEAN DEFAULT 0, TypingPassageA BOOLEAN DEFAULT 0, TrialTypewriting BOOLEAN DEFAULT 0, Typewriting BOOLEAN DEFAULT 0, ShorthandSummary BOOLEAN DEFAULT 0, TypingSummary BOOLEAN DEFAULT 0, FeedbackForm BOOLEAN DEFAULT 0, ThankYou BOOLEAN DEFAULT 0, FOREIGN KEY (StudentId) REFERENCES students(student_id));`
+    
+    
     // List of valid exam stages
     const validExamStages = [
         'StudentInfo', 'Instructions', 'InputChecker', 'HeadphoneTest',
@@ -270,6 +273,9 @@ exports.storeExamStage = async (req, res) => {
     }
 
     try {
+
+        //create table if it does not exist 
+         await connection.query(createQuery);
         // Check if the student exists in the exam_stages table
         const [existingStage] = await connection.query(
             'SELECT * FROM exam_stages WHERE StudentId = ?',
