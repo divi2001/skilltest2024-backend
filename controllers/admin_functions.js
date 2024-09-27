@@ -2,13 +2,13 @@
 const connection = require('../config/db1');
 const moment = require('moment-timezone');
 
-exports.loginadmin= async (req, res) => {
+exports.loginadmin = async (req, res) => {
     // console.log("Trying admin login");
     const { userId, password } = req.body;
-    console.log(userId,password)
-  
+    console.log(userId, password)
+
     const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
-  
+
     try {
         const [results] = await connection.query(query1, [userId]);
         if (results.length > 0) {
@@ -17,7 +17,7 @@ exports.loginadmin= async (req, res) => {
             let decryptedStoredPassword;
             try {
                 decryptedStoredPassword = (admin.password);
-                console.log(`Decrypted stored password: '${decryptedStoredPassword}'`);   
+                console.log(`Decrypted stored password: '${decryptedStoredPassword}'`);
             } catch (error) {
                 console.error('Error decrypting stored password:', error);
                 res.status(500).send('Error decrypting stored password');
@@ -27,7 +27,7 @@ exports.loginadmin= async (req, res) => {
             // Ensure both passwords are treated as strings
             const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
             const providedPasswordStr = String(password).trim();
-         
+
             if (decryptedStoredPasswordStr === providedPasswordStr) {
                 // Set institute session
                 req.session.adminid = admin.adminid;
@@ -41,66 +41,66 @@ exports.loginadmin= async (req, res) => {
     } catch (err) {
         res.status(500).send(err.message);
     }
-  };
+};
 
-  const mysql = require('mysql2/promise');
+const mysql = require('mysql2/promise');
 
-  exports.fetchTableData = async (req, res) => {
-      console.log("Fetching table data for admin");
-      const { tableName } = req.body;
-      const adminId = req.session.adminid;
-  
-      if (!adminId) {
-          return res.status(401).send('Unauthorized: Admin not logged in');
-      }
-  
-      try {
-          console.log(`Fetching column information for table: ${tableName}`);
-          // First, get the column information for the table
-          const [columns] = await connection.query(`
+exports.fetchTableData = async (req, res) => {
+    console.log("Fetching table data for admin");
+    const { tableName } = req.body;
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    try {
+        console.log(`Fetching column information for table: ${tableName}`);
+        // First, get the column information for the table
+        const [columns] = await connection.query(`
               SELECT COLUMN_NAME, DATA_TYPE 
               FROM INFORMATION_SCHEMA.COLUMNS 
               WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
           `, [tableName]);
-  
-          console.log(`Columns found:`, columns);
-  
-          if (columns.length === 0) {
-              return res.status(404).send('Table not found or has no columns');
-          }
-  
-          // Construct the SELECT part of the query, formatting DATE and DATETIME columns
-          const selectParts = columns.map(column => {
-              if (column.DATA_TYPE === 'date') {
-                  return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-              } else if (column.DATA_TYPE === 'datetime') {
-                  return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-                } else if (column.DATA_TYPE === 'timestamp') {
-                    return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-              } else {
-                  return mysql.escapeId(column.COLUMN_NAME);
-              }
-          });
-  
-          const query = `SELECT ${selectParts.join(', ')} FROM ${mysql.escapeId(tableName)}`;
-          console.log('Executing query:', query);
-  
-          const [results] = await connection.query(query);
-          console.log(`Query executed successfully. Rows returned: ${results.length}`);
-  
-          res.json(results);
-      } catch (err) {
-          console.error('Error fetching table data:', err);
-          if (err.code === 'ER_NO_SUCH_TABLE') {
-              res.status(404).send('Table not found');
-          } else if (err.sql) {
-              console.error('SQL that caused the error:', err.sql);
-              res.status(500).send('Error executing SQL query');
-          } else {
-              res.status(500).send('Error fetching table data');
-          }
-      }
-  };
+
+        console.log(`Columns found:`, columns);
+
+        if (columns.length === 0) {
+            return res.status(404).send('Table not found or has no columns');
+        }
+
+        // Construct the SELECT part of the query, formatting DATE and DATETIME columns
+        const selectParts = columns.map(column => {
+            if (column.DATA_TYPE === 'date') {
+                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
+            } else if (column.DATA_TYPE === 'datetime') {
+                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
+            } else if (column.DATA_TYPE === 'timestamp') {
+                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
+            } else {
+                return mysql.escapeId(column.COLUMN_NAME);
+            }
+        });
+
+        const query = `SELECT ${selectParts.join(', ')} FROM ${mysql.escapeId(tableName)}`;
+        console.log('Executing query:', query);
+
+        const [results] = await connection.query(query);
+        console.log(`Query executed successfully. Rows returned: ${results.length}`);
+
+        res.json(results);
+    } catch (err) {
+        console.error('Error fetching table data:', err);
+        if (err.code === 'ER_NO_SUCH_TABLE') {
+            res.status(404).send('Table not found');
+        } else if (err.sql) {
+            console.error('SQL that caused the error:', err.sql);
+            res.status(500).send('Error executing SQL query');
+        } else {
+            res.status(500).send('Error fetching table data');
+        }
+    }
+};
 
 exports.fetchTableNames = async (req, res) => {
     console.log("Fetching all table names for admin");
@@ -151,7 +151,7 @@ exports.updateTableData = async (req, res) => {
         for (const row of updatedRows) {
             const columns = Object.keys(row).filter(key => key !== 'key' && key !== primaryKeyColumn);
             const values = columns.map(col => row[col]);
-            
+
             const updateQuery = `
                 UPDATE ${tableName}
                 SET ${columns.map(col => `${col} = ?`).join(', ')}
@@ -173,7 +173,7 @@ exports.updateTableData = async (req, res) => {
     }
 };
 
-  exports.deleteTable = async (req, res) => {
+exports.deleteTable = async (req, res) => {
     const tableName = req.params.tableName;
 
     // Disallow deletion of the 'admindb' table
@@ -672,7 +672,7 @@ exports.approveResetRequest = async (req, res) => {
         if (result.affectedRows > 0) {
             // Fetch the updated request
             const [updatedRequest] = await connection.query('SELECT * FROM resetrequests WHERE id = ?', [requestId]);
-            
+
             // Format the time for the updated request
             const formattedRequest = {
                 ...updatedRequest[0],
@@ -713,7 +713,7 @@ exports.getRequestData = async (req, res) => {
 
         // Uncomment the following line if you want to filter by center ID
         // const [resetRequests] = await connection.query(fetchResetRequestsQuery, [centerId]);
-        
+
         // Use this line if you're not filtering by center ID
         const [resetRequests] = await connection.query(fetchResetRequestsQuery);
 
@@ -735,35 +735,36 @@ exports.getRequestData = async (req, res) => {
 
 };
 
-exports.getStudentData = async (req,res) => {
+exports.getStudentData = async (req, res) => {
 
-    const {student_id} = req.body;
+    const { student_id } = req.body;
     console.log(student_id);
     try {
         let studentQuery = `select student_id , base64 , batchNo , center , batchdate , fullname from students where student_id = ?`;
-        let shorthandPassageQuery = `select tl.texta AS passage_a_log ,fps.passageA AS final_passage FROM 
+        let shorthandPassageQuery = `select tl.texta AS passage_a_log , tl.textb as passage_b_log , tl.mina , tl.minb , fps.passageA  AS final_passageA ,fps.passageB  AS final_passageB FROM 
                                        students s
                                        LEFT JOIN textlogs tl ON s.student_id = tl.student_id
                                        LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
                                        where s.student_id = ?;`;
-        let typingPassageQuery = `select tpl.passage AS typing_passage_log ,tp.passage AS final_typing_passage FROM 
+        let typingPassageQuery = `select tpl.passage AS typing_passage_log ,tp.passage AS final_typing_passage,tpl.time FROM 
                                        students s
                                        LEFT JOIN typingpassagelogs tpl ON s.student_id = tpl.student_id
                                        LEFT JOIN typingpassage tp ON s.student_id = tp.student_id
                                        where s.student_id = ?;`
-                                       
-        const [shorthandPassage] = await connection.query(shorthandPassageQuery,[student_id]);
-        const [studentResults] = await connection.query(studentQuery,[student_id]);
-        const [typingPassage] =await connection.query(typingPassageQuery,[student_id]);
+
+        const [shorthandPassage] = await connection.query(shorthandPassageQuery, [student_id]);
+        const [studentResults] = await connection.query(studentQuery, [student_id]);
+        const [typingPassage] = await connection.query(typingPassageQuery, [student_id]);
         // console.log(results);
-        if(studentResults.length === 0){
-            return res.status(404).json({"Message":"No Student Found for this id!!!"})
+        if (studentResults.length === 0) {
+            return res.status(404).json({ "Message": "No Student Found for this id!!!" })
         }
         studentResults[0].batchdate = moment(studentResults[0].batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        res.status(201).json({shorthandPassage,typingPassage,studentResults});
+        typingPassage[0].time = moment(typingPassage[0].time).tz('Asia/Kolkata').format('DD-MM-YYYY hh:mm:ss A')
+        res.status(201).json({ shorthandPassage, typingPassage, studentResults });
     } catch (error) {
         console.error('Database query error:', error);
         res.status(500).send('Internal server error');
     }
-    
+
 }
