@@ -3,6 +3,7 @@ const StudentTrackDTO = require('../../dto/studentProgress');
 const encryptionInterface = require('../../config/encrypt');
 const moment = require('moment-timezone');
 
+
 // Helper function to format date to YYYY-MM-DD
 function formatDate(dateString) {
     return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
@@ -178,4 +179,117 @@ WHERE s.center = ? `;
         res.status(500).json({message: err.message});
     }
 };
+
+
+exports.getStoredStages = async (req, res) => {
+    const studentId = req.session.studentId;
+    
+    if (!studentId) {
+        return res.status(400).json({
+            error: 'Student ID is required'
+        });
+    }
+
+    try {
+        // Fetch the exam stages for the student
+        let [examStages] = await connection.query(
+            'SELECT * FROM exam_stages WHERE StudentId = ?',
+            [studentId]
+        );
+
+        if (examStages.length === 0) {
+            // If no exam stages found, insert a new row with default values
+            const defaultStages = {
+                StudentInfo: 0, Instructions: 0, InputChecker: 0, HeadphoneTest: 0,
+                ControllerPassword: 0, TrialPassage: 0, AudioPassageA: 0, TypingPassageA: 0,
+                TrialTypewriting: 0, Typewriting: 0, ShorthandSummary: 0, TypingSummary: 0,
+                FeedbackForm: 0, ThankYou: 0
+            };
+
+            const columns = Object.keys(defaultStages).join(', ');
+            const placeholders = Object.values(defaultStages).map(() => '?').join(', ');
+
+            await connection.query(
+                `INSERT INTO exam_stages (StudentId, ${columns}) VALUES (?, ${placeholders})`,
+                [studentId, ...Object.values(defaultStages)]
+            );
+
+            // Fetch the newly inserted row
+            [examStages] = await connection.query(
+                'SELECT * FROM exam_stages WHERE StudentId = ?',
+                [studentId]
+            );
+        }
+
+        // Convert the exam stages to a more readable format
+        const formattedExamStages = {};
+        for (const [key, value] of Object.entries(examStages[0])) {
+            if (key !== 'StudentId') {
+                formattedExamStages[key] = value === 1;
+            }
+        }
+
+        res.status(200).json({
+            studentId: studentId,
+            examStages: formattedExamStages
+        });
+    } catch (error) {
+        console.error("Error fetching or inserting exam stages", error);
+        res.status(500).json({error: 'Internal Server error'});
+    }
+};
+
+exports.storeExamStage = async (req, res) => {
+
+    const {examStage} = req.body;
+    const studentId = req.session.studentId;
+    
+    if (!studentId || !examStage) {
+        return res.status(400).json({
+            error: 'Student ID and exam are required'
+        })
+    }
+
+    // List of valid exam stages
+    const validExamStages = [
+        'StudentInfo', 'Instructions', 'InputChecker', 'HeadphoneTest',
+        'ControllerPassword', 'TrialPassage', 'AudioPassageA', 'TypingPassageA',
+        'TrialTypewriting', 'Typewriting', 'ShorthandSummary', 'TypingSummary',
+        'FeedbackForm', 'ThankYou'
+    ];
+
+    if (!validExamStages.includes(examStage)){
+        return res.status(400).json({error: 'Invalid exam stage'})
+    }
+
+    try {
+        // Check if the student exists in the exam_stages table
+        const [existingStage] = await connection.query(
+            'SELECT * FROM exam_stages WHERE StudentId = ?',
+            [studentId]
+        )
+
+        let query, params;
+        if (existingStage.length === 0) {
+            // If the student doesn't exist, insert a new row
+            query = `INSERT INTO exam_stages (StudentId, ${examStage}) VALUES (?, 1)`;
+            params = [studentId];
+        }
+        else {
+            // If the student exists, update the specific exam stage
+            query = `UPDATE exam_stages SET ${examStage} = 1 WHERE StudentId = ?`
+            params = [studentId];
+        }
+
+        await connection.query(query, params);
+
+        res.status(200).json({ message: 'Exam stage updated successfully'})
+    } catch(error) {
+        console.error("Error updating the exam stage", error);
+        res.status(500).json({error: 'Internal Server error'})
+    }
+}
+
+
+
 

@@ -55,9 +55,9 @@ exports.loginStudent = async (req, res) => {
             return res.status(403).send('Student is already logged in');
         }
 
-        // if (!student.IsShorthand) {
-        //     return res.status(403).send('Access denied. Student is not eligible for shorthand exam.');
-        // }
+        if (!student.IsShorthand) {
+            return res.status(403).send('Access denied. Student is not eligible for shorthand exam.');
+        }
 
         const batchNo = student.batchNo;
 
