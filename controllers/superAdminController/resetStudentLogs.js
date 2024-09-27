@@ -4,10 +4,6 @@ const connection = require("../../config/db1")
 exports.resetStudentProgress = async (req, res) => {
     const { student_id, studentLogin, trialAudioShortHand, audioShorthandA, textShorthandA, audioShorthandB, textShorthandB, trialText, textTyping , finalShorthandPassageA ,finalShorthandPassageB , finalTrialPassageTyping , finalTypingPassage } = req.body;
     console.log("Request body:", req.body);
-    'StudentInfo', 'Instructions', 'InputChecker', 'HeadphoneTest',
-        'ControllerPassword', 'TrialPassage', 'AudioPassageA', 'TypingPassageA',
-        'TrialTypewriting', 'Typewriting', 'ShorthandSummary', 'TypingSummary',
-        'FeedbackForm', 'ThankYou'
     const queries = {
         studentLogin: `
             UPDATE students s
