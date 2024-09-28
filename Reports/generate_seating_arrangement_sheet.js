@@ -101,7 +101,7 @@ function createTable(doc, seatNumbers, headerData) {
 
     for (let i = 0; i < seatNumbers.length; i += columnsPerRow) {
         if (rowsOnCurrentPage >= maxRowsPerPage) {
-            currentY = addSignatureLines(doc, currentY, signatureGap);
+            
             doc.addPage();
             addHeader(doc, headerData);
             currentY = tableTop;
@@ -143,11 +143,39 @@ function createAttendanceReport(doc, data) {
     // doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
     createTable(doc, data.seatNumbers, data);
 }
+function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
+    // Set the timezone to Kolkata
+    const kolkataZone = 'Asia/Kolkata';
+
+    // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
+    const batchDateKolkata = moment(batchDate).tz(kolkataZone);
+
+    // Combine the Kolkata date with the provided startTime
+    const startDateTime = moment.tz(
+        `${batchDateKolkata.format('YYYY-MM-DD')} ${startTime}`,
+        'YYYY-MM-DD hh:mm A',
+        kolkataZone
+    );
+    
+    // Get current time in Kolkata timezone
+    const now = moment().tz();
+
+    const differenceInMinutes = startDateTime.diff(now, 'minutes');
+    
+    console.log('Batch Date (UTC):', batchDate);
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    // console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
+    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD hh:mm A'));
+    console.log('Difference in Minutes:', differenceInMinutes);
+
+    // Return true if startTime is between 0 and 30 minutes ahead of the current time
+    return differenceInMinutes <= 105;
+}
 
 async function generateSeatingArrangementReport(doc, center, batchNo) {
     try {
         const Data = await getData(center, batchNo);
-        // console.log(Data);
+        console.log(Data);
 
         const response = Data.response;
         if (!Array.isArray(response) || response.length === 0) {
@@ -160,9 +188,9 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-        //     throw new Error("Download not allowed at this time");
-        // }
+        if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time,batchInfo.batchdate)) {
+            throw new Error("Download not allowed at this time");
+        }
         
 
         const data = {
