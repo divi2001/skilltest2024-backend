@@ -16,13 +16,13 @@ exports.resetStudentProgress = async (req, res) => {
         trialAudio: `
             UPDATE audiologs a
             JOIN exam_stages es ON a.student_id = es.StudentId
-            SET a.trial = 0, es.TrialPassage = 0
+            SET a.trial = 0, es.TrialPassage = 0, es.ThankYou = 0
             WHERE a.student_id = ?;
         `,
         audioShorthandA: `
             UPDATE audiologs a
             JOIN exam_stages es ON a.student_id = es.StudentId
-            SET a.passageA = 0, es.AudioPassageA = 0
+            SET a.passageA = 0, es.AudioPassageA = 0, es.ThankYou = 0
             WHERE a.student_id = ?;
         `,
         textShorthandA: `
@@ -40,19 +40,19 @@ exports.resetStudentProgress = async (req, res) => {
         audioShorthandB: `
             UPDATE audiologs a
             JOIN exam_stages es ON a.student_id = es.StudentId
-            SET a.passageB = 0, es.AudioPassageA = 0
+            SET a.passageB = 0, es.AudioPassageA = 0, es.ThankYou = 0
             WHERE a.student_id = ?;
         `,
         textShorthandB: `
             UPDATE textlogs t
             JOIN exam_stages es ON t.student_id = es.StudentId
-            SET t.minb = 0, t.textb = NULL, es.TypingPassageA = 0
+            SET t.minb = 0, t.textb = NULL, es.TypingPassageA = 0, es.ThankYou = 0
             WHERE t.student_id = ?;
         `,
         finalShorthandPassageB: `
             UPDATE finalPassageSubmit f
             JOIN exam_stages es ON f.student_id = es.StudentId
-            SET f.passageB = NULL, es.ShorthandSummary = 0
+            SET f.passageB = NULL, es.ShorthandSummary = 0, es.ThankYou = 0
             WHERE f.student_id = ?;
         `,
         trialPassageTyping: `
