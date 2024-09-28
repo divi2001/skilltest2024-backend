@@ -197,9 +197,9 @@ WHERE 1=1`;
 
 exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
     try {
+        const department = req.query.departmentId;
         const center = req.query.center;
         const batchNo = req.query.batchNo;
-        const department = req.query.departmentId;
 
         let filter = '';
         const queryParams = [];
@@ -251,7 +251,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         GROUP BY  
             s.batchNo, s.start_time, s.batchdate, s.center, s.departmentId
         ORDER BY 
-            s.departmentId, s.batchNo, s.center;
+            s.batchNo, s.center, s.departmentId ;
     `;
 
         const [results] = await connection.query(query, queryParams);
