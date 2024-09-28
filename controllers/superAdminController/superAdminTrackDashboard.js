@@ -200,7 +200,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         const department = req.query.departmentId;
         const center = req.query.center;
         const batchNo = req.query.batchNo;
-
+        
         let filter = '';
         const queryParams = [];
 

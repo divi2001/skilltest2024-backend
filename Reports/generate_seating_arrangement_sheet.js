@@ -32,7 +32,7 @@ async function getData(center, batchNo) {
 
 
 function addHeader(doc, data) {
-    doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 });
+    doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 50, { width: 60, height: 50 });
 
     doc.fontSize(14).font('Helvetica-Bold')
         .text(data.departmentName, 110, 50, {
@@ -171,7 +171,8 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
             examDate: examDate,
             examTime: batchInfo.start_time,
             seatNumbers: response.map(student => student.student_id.toString()),
-            departmentName:response[0].departmentName
+            departmentName:response[0].departmentName,
+            departmentLogo:response[0].logo
         };
 
         createAttendanceReport(doc, data);
