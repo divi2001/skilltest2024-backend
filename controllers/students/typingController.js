@@ -141,7 +141,7 @@ exports.insertTypingPassageLog = async (req, res) => {
     const { trial_time, trial_passage, passage_time, passage } = req.body;
 
     // Validate that we have at least some data to update
-    if (!trial_time && !trial_passage && !passage_time && !passage) {
+    if (!trial_time && !passage_time) {
         return res.status(400).send('Invalid data: Provide at least one field to update');
     }
 
@@ -331,9 +331,9 @@ exports.updateTypingPassageText = async (req, res) => {
     const studentId = req.session.studentId;
     const { trial_passage, passage } = req.body;
 
-    if (!trial_passage && !passage) {
-        return res.status(400).send('Invalid data: Provide at least one text field to update');
-    }
+    // if (!trial_passage && !passage) {
+    //     return res.status(400).send('Invalid data: Provide at least one text field to update');
+    // }
 
     try {
         const [existingRows] = await connection.query(
