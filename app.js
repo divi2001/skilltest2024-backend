@@ -48,7 +48,7 @@ app.use(
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https://shorthandonlineexam.in; img-src 'self' data:;"
+    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https://www.shorthandonlineexam.in; img-src 'self' data:;"
   );
   next();
 });
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 
 app.use(cors({
-  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','https://shorthandonlineexam.in'],
+  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','https://www.shorthandonlineexam.in'],
   credentials: true
 }));
 
@@ -101,6 +101,6 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on https://www.shorthandonlineexam.in`);
   });
   
