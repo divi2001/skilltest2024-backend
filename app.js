@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 
 app.use(cors({
-  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','http://localhost:3000'],
+  origin: ['*','http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000','https://www.shorthandonlineexam.in'],
   credentials: true
 }));
 
