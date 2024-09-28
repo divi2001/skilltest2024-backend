@@ -229,7 +229,8 @@ const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
             photoBase64: student.base64,
             
         })),
-        departmentName:response[0].departmentName
+        departmentName:response[0].departmentName,
+        departmentLogo : response[0].logo
     };
 
     await createAnswerSheet(doc, data);

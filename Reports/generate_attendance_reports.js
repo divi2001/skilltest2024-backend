@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 
 function createAttendanceReport(doc , data) {
     function addHeader() {
-        doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 })
+        doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 50, { width: 60, height: 50 })
 
         doc.fontSize(14).font('Helvetica-Bold')
             .text(data.departmentName, 110, 50, {
@@ -308,7 +308,8 @@ const AttendanceReport = async(doc,center,batchNo) => {
                 signBase64:student.sign_base64,  // Using the same path for both photo and sign
             }
         }),
-        departmentName:response[0].departmentName
+        departmentName:response[0].departmentName,
+        departmentLogo:response[0].logo
     }
     createAttendanceReport(doc,data);
 }
