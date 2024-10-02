@@ -197,6 +197,25 @@ const schema = {
         status: 'BOOLEAN',
         submitted: 'DATETIME'
     },
+    modreviewlog: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT',
+        passageA: 'TEXT',
+        passageB: 'TEXT',
+        passageA_word_count: 'INT',
+        passageB_word_count: 'INT',
+        ansPassageA: 'TEXT',
+        ansPassageB: 'TEXT',
+        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        qset: 'INT',
+        expertId: 'INT REFERENCES expertdb(expertId)',
+        loggedin: 'DATETIME',
+        status: 'BOOLEAN',
+        subm_done: 'BOOLEAN',
+        subm_time: 'DATETIME',
+        QPA: 'TEXT',
+        QPB: 'TEXT'
+    },
     typingpassagelogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT',
@@ -241,6 +260,18 @@ const schema = {
         super_mod: 'BOOLEAN'
     },
     qsetdb: {
+        id: 'INT PRIMARY KEY AUTO_INCREMENT',
+        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        Q1PA: 'TEXT',
+        Q1PB: 'TEXT',
+        Q2PA: 'TEXT',
+        Q2PB: 'TEXT',
+        Q3PA: 'TEXT',
+        Q3PB: 'TEXT',
+        Q4PA: 'TEXT',
+        Q4PB: 'TEXT'
+    },
+    modqsetdb: {
         id: 'INT PRIMARY KEY AUTO_INCREMENT',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
         Q1PA: 'TEXT',
