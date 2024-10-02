@@ -28,10 +28,10 @@ exports.populateModReviewLog = async (req, res) => {
         LEFT JOIN modqsetdb mq ON s.subjectsId = mq.subjectId
         WHERE s.departmentId = ?`;
 
-        // const [results] = await connection.query(query, [department]);
-        // if(results.length === 0) return res.status(201).json({"message":"No students Available "})
-        const [results] = await connection.query("select * from modreviewlog");
-        return res.status(201).json(results);
+        const [results] = await connection.query(query, [department]);
+        if(results.length === 0) return res.status(201).json({"message":"No students Available "})
+        // const [results] = await connection.query("select * from modreviewlog");
+        // return res.status(201).json(results);
 
         let inserted = 0;
         let updated = 0;
