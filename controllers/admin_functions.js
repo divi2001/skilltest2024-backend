@@ -734,7 +734,10 @@ exports.getRequestData = async (req, res) => {
     }
 
 };
-
+const formatDate = (date) =>{
+    if(!date) return null;
+    return moment(date).tz('Asia/Kolkata').format('DD-MM-YYYY hh:mm:ss A')
+}
 exports.getStudentData = async (req, res) => {
 
     const { student_id } = req.body;
@@ -751,17 +754,35 @@ exports.getStudentData = async (req, res) => {
                                        LEFT JOIN typingpassagelogs tpl ON s.student_id = tpl.student_id
                                        LEFT JOIN typingpassage tp ON s.student_id = tp.student_id
                                        where s.student_id = ?;`
+        let audioLogsQuery = `select trial , passageA , passageB from audiologs where student_id = ?`
+        let examStagesQuery = `select * from exam_stages where StudentId = ?`
+        let studentLogsQuery = `select * from studentlogs where student_id = ?`
 
         const [shorthandPassage] = await connection.query(shorthandPassageQuery, [student_id]);
         const [studentResults] = await connection.query(studentQuery, [student_id]);
         const [typingPassage] = await connection.query(typingPassageQuery, [student_id]);
+        const [audioLogs] = await connection.query(audioLogsQuery,[student_id]);
+        const [examStages] = await  connection.query(examStagesQuery,[student_id]);
+        const [studentLogs] = await connection.query(studentLogsQuery,[student_id]);
         // console.log(results);
         if (studentResults.length === 0) {
             return res.status(404).json({ "Message": "No Student Found for this id!!!" })
         }
-        studentResults[0].batchdate = moment(studentResults[0].batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        typingPassage[0].time = moment(typingPassage[0].time).tz('Asia/Kolkata').format('DD-MM-YYYY hh:mm:ss A')
-        res.status(201).json({ shorthandPassage, typingPassage, studentResults });
+        console.log(studentLogs);
+        studentLogs[0].loginTime = formatDate(studentLogs[0].loginTime);
+        studentLogs[0].trial_time = formatDate(studentLogs[0].trial_time);
+        studentLogs[0].audio1_time= formatDate(studentLogs[0].audio1_time);
+        studentLogs[0].passage1_time= formatDate(studentLogs[0].passage1_time);
+        studentLogs[0].audio2_time= formatDate(studentLogs[0].audio2_time);
+        studentLogs[0].passage2_time= formatDate(studentLogs[0].passage2_time);
+        studentLogs[0].trial_passage_time= formatDate(studentLogs[0].trial_passage_time);
+        studentLogs[0].typing_passage_time= formatDate(studentLogs[0].typing_passage_time);
+        studentLogs[0].feedback_time= formatDate(studentLogs[0].feedback_time);
+        
+
+        studentResults[0].batchdate = formatDate(studentResults[0].batchdate);
+        typingPassage[0].time = formatDate(typingPassage[0].time);
+        res.status(201).json({ shorthandPassage, typingPassage, studentResults,audioLogs,examStages,studentLogs });
     } catch (error) {
         console.error('Database query error:', error);
         res.status(500).send('Internal server error');

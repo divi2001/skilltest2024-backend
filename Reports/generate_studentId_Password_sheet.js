@@ -26,6 +26,7 @@ async function getData(center, batchNo) {
         return { 
             response: decryptedResults, 
             departmentName:results[0].departmentName,
+            logo:results[0].logo,
             batchData: batchData
         };
     } catch (error) {
@@ -35,7 +36,7 @@ async function getData(center, batchNo) {
 }
 
 function addHeader(doc, data) {
-    doc.image('Reports/logo.png', 50, 50, { width: 60, height: 50 });
+    doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 50, { width: 60, height: 50 });
 
     doc.fontSize(14).font('Helvetica-Bold')
         .text(data.departmentName, 110, 50, {
@@ -203,7 +204,8 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
             examDate: examDate,
             examTime: batchInfo.start_time,
             students: response,
-            departmentName:Data.departmentName
+            departmentName:Data.departmentName,
+            departmentLogo:Data.logo
         };
 
         createSeatingArrangementReport(doc, data);

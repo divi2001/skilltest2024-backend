@@ -251,9 +251,11 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
         const [subjects] = await connection.query('SELECT subjectId, subject_name FROM subjectsdb');
 
         // Construct dynamic parts of the query
-        const subjectCounts = subjects.map(sub => 
-            `SUM(CASE WHEN s.subjectsId = ${sub.subjectId} THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_count`
-        ).join(', ');
+        const subjectCounts = subjects.map(sub => `
+            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_count,
+            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_logged_in,
+            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_completed
+        `).join(', ');
 
         const subjectNames = subjects.map(sub => 
             `'${sub.subject_name}' AS subject_${sub.subjectId}_name`
@@ -278,35 +280,33 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
         GROUP BY  
             s.batchNo, s.start_time, s.batchdate, s.center
         ORDER BY 
-            s.batchNo,s.center;
+            s.batchNo, s.center;
     `;
 
-        // console.log(query);
         const [results] = await connection.query(query, queryParams);
 
         // Convert date and time to Kolkata timezone
         results.forEach(result => {
-
-            // const kolkataDateTime = combinedMoment.tz('Asia/Kolkata');
-
-            result.batchdate =  moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-            // result.start_time =  moment(result.start_time)
+            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
 
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({
                 id: sub.subjectId,
                 name: result[`subject_${sub.subjectId}_name`],
-                count: result[`subject_${sub.subjectId}_count`]
+                count: result[`subject_${sub.subjectId}_count`],
+                loggedIn: result[`subject_${sub.subjectId}_logged_in`],
+                completed: result[`subject_${sub.subjectId}_completed`]
             }));
 
             // Remove individual subject fields
             subjects.forEach(sub => {
                 delete result[`subject_${sub.subjectId}_name`];
                 delete result[`subject_${sub.subjectId}_count`];
+                delete result[`subject_${sub.subjectId}_logged_in`];
+                delete result[`subject_${sub.subjectId}_completed`];
             });
         });
 
-        // console.log(results);
         res.status(200).json({ results });
     } catch (error) {
         console.log(error);
