@@ -112,7 +112,9 @@ const schema = {
         passage1: 'LONGTEXT',
         audio2: 'VARCHAR(255)',
         passage2: 'LONGTEXT',
-        testaudio: 'VARCHAR(255)'
+        testaudio: 'VARCHAR(255)',
+        textPassageA: 'LONGTEXT',
+        textPassageB: 'LONGTEXT'
     },
     computerTyping: {
         id: 'INT PRIMARY KEY',
