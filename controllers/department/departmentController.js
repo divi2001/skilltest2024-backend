@@ -313,3 +313,17 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
         res.status(500).json({ "message": "Internal Server Error!!" });
     }
 };
+
+exports.getDepartmentswithstudents = async(rea,res)=>{
+
+    try {
+        let query =`select d.departmentId from departmentdb d join students s on s.departmentId = d.departmentId group by d.departmentId;`;
+
+        const [results] = await connection.query(query);
+        if(results.length === 0) return res.status(404).json({"message":"No deparments found"});
+        res.status(201).json(results); 
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ "message": "Internal Server Error!!" });
+    }
+}

@@ -1,6 +1,6 @@
 const connection = require("../../config/db1");
 
-exports.populateExpertReviewLog = async (req, res) => {
+exports.populateModReviewLog = async (req, res) => {
     const { department } = req.body;
     try {
         let query = `
@@ -11,7 +11,8 @@ exports.populateExpertReviewLog = async (req, res) => {
             s.subjectsId,
             s.qset,
             COALESCE(ad.textPassageA, 'empty') AS modelPassageA,
-            COALESCE(ad.textPassageB, 'empty') AS modelPassageB
+            COALESCE(ad.textPassageB, 'empty') AS modelPassageB,
+            
         FROM 
             students s
         LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
