@@ -78,7 +78,7 @@ exports.populateExpertReviewLog = async (req, res) => {
         
         console.log(`Inserted ${inserted} rows and updated ${updated} rows in expertreviewlog`);
         res.status(200).json({ 
-            message: `Successfully inserted ${inserted} rows and updated ${updated} rows.` 
+            message: `Successfully inserted ${inserted} rows and updated ${updated} rows in expertreviewlog.` 
         });
 
     } catch (error) {

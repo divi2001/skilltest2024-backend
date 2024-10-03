@@ -96,8 +96,8 @@ exports.populateModReviewLog = async (req, res) => {
                 await connection.execute(`
                     INSERT INTO modreviewlog 
                     (student_id, passageA, passageB, passageA_word_count, passageB_word_count, 
-                    ansPassageA, ansPassageB, subjectId, qset, QPA, QPB, status, subm_done)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE, FALSE)
+                    ansPassageA, ansPassageB, subjectId, qset, QPA, QPB)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
                     row.student_id,
                     row.passageA,
@@ -115,9 +115,9 @@ exports.populateModReviewLog = async (req, res) => {
             }
         }
         
-        console.log(`Inserted ${inserted} rows and updated ${updated} rows in expertreviewlog`);
+        console.log(`Inserted ${inserted} rows and updated ${updated} rows in modreviewlog`);
         res.status(200).json({ 
-            message: `Successfully inserted ${inserted} rows and updated ${updated} rows.` 
+            message: `Successfully inserted ${inserted} rows and updated ${updated} rows in modreviewlog.` 
         });
 
     } catch (error) {
