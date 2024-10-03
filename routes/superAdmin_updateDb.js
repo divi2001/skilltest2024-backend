@@ -7,6 +7,7 @@ const resetStudentLogs = require("../controllers/superAdminController/resetStude
 const {populateExpertReviewLog} = require("../controllers/superAdminController/populateExpertReviewLog");
 const {populateModReviewLog} = require("../controllers/superAdminController/populateModReviewLog");
 const { getAllStudentsTrack,getCurrentStudentDetailsDepartmentWise } = require('../controllers/superAdminController/superAdminTrackDashboard');
+const { getStudentsFromExpertReviewlog,getStudentsFromModReviewlog } = require('../controllers/superAdminController/fetchStudentsForChecking');
 
 router.post('/fetch-update-tables', fetchUpdateTableController.fetchUpdateTable);
 router.put('/update-table/:table_name/:id', updateTableController.updateTable);
@@ -15,5 +16,6 @@ router.get('/get-super-admin-student-count',getCurrentStudentDetailsDepartmentWi
 router.post('/super-admin-reset-student-logs',resetStudentLogs.resetStudentProgress);
 router.post('/populate-expert-review-log',populateExpertReviewLog);
 router.post('/populate-mod-review-log',populateModReviewLog);
-
+router.get('/get-expert-review-logs',getStudentsFromExpertReviewlog);
+router.get('/get-mod-review-logs',getStudentsFromModReviewlog);
 module.exports = router;
