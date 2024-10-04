@@ -95,9 +95,13 @@ exports.insertExpert = async (req, res) => {
 }
 
 exports.getStudentsforExperts = async (req, res) => {
-    const { department, subject } = req.query;
+    const { department, subject , expert , mod } = req.query;
     try {
         let query, queryParams = [];
+        if(!expert && !mod) return res.status(400).json({"message":"Please select a option"});
+        let tableName ;
+        if(expert) tableName = "expertreviewlog";
+        if(mod) tableName = "modreviewlog"
 
         if (!department && !subject) {
             // Get department-wise stats
@@ -109,7 +113,7 @@ exports.getStudentsforExperts = async (req, res) => {
                 FROM 
                     departmentdb d
                 JOIN students s ON d.departmentId = s.departmentId
-                JOIN expertreviewlog e ON s.student_id = e.student_id
+                JOIN ${tableName} e ON s.student_id = e.student_id
                 WHERE 
                     e.expertId IS NULL
                 GROUP BY 
@@ -126,7 +130,7 @@ exports.getStudentsforExperts = async (req, res) => {
                     COUNT(DISTINCT e.student_id) as student_count
                 FROM 
                     subjectsdb sub
-                LEFT JOIN expertreviewlog e ON sub.subjectId = e.subjectId
+                LEFT JOIN ${tableName} e ON sub.subjectId = e.subjectId
                 LEFT JOIN students s ON e.student_id = s.student_id
                 WHERE 
                     s.departmentId = ? AND e.expertId IS NULL
@@ -143,7 +147,7 @@ exports.getStudentsforExperts = async (req, res) => {
                     e.qset,
                     COUNT(DISTINCT e.student_id) as student_count
                 FROM 
-                    expertreviewlog e
+                    ${tableName} e
                 JOIN students s ON e.student_id = s.student_id
                 WHERE 
                     e.subjectId = ? AND s.departmentId = ? AND e.expertId IS NULL
@@ -184,8 +188,8 @@ exports.assignExpertToStudents = async (req, res) => {
         // First, select the IDs of the rows we want to update
         if(!paper_mod && !super_mod) return res.status(400).json({"message":"Please select a option"});
         let tableName ;
-        if(paper_mod) tableName = expertreviewlog;
-        if(super_mod) tableName = modreviewlog
+        if(paper_mod) tableName = "expertreviewlog";
+        if(super_mod) tableName = "modreviewlog"
 
         const selectQuery = `
             SELECT e.id
