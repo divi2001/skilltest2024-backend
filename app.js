@@ -18,9 +18,11 @@ const departmentRoutes = require("./routes/department_routes");
 const answerSheetRoutes = require("./routes/answerSheet_routes");
 const typingRoutes = require('./routes/students/typingRoutes')
 const excelRouter = require('./routes/dataImportExport/excelImportRoutes')
-const superAdminTrackDashboardRoute = require('./routes/superAdmin_updateDb')
-const expertDashboardRoutes = require('./routes/expertsAuth');
+const superAdminTrackDashboardRoute = require('./routes/superAdmin_updateDb');
 
+// ExpertRoutes
+const expertLoginRoutes = require('./routes/expertsCheckingRoutes/expertsAuthRoutes'); //ExpertLoginRoutes
+const expertDashboardStage3Routes = require('./routes/expertsCheckingRoutes/studentSpecificRoutes')
 
 const app = express();
 const PORT = 3000;
@@ -94,8 +96,10 @@ app.use(answerSheetRoutes);
 app.use(typingRoutes)
 app.use(excelRouter)
 app.use(superAdminTrackDashboardRoute);
-app.use(expertDashboardRoutes);
 
+//Expert Routes
+app.use(expertLoginRoutes);
+app.use(expertDashboardStage3Routes);
 
 app.use(express.static(path.join(__dirname, 'build')));
 
