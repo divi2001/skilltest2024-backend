@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const examExpertAdminStudentSpecificController = require('../../controllers/expertAuthentication/StudentSpecific-Stage3/studentSpecific');
+const examExpertAdminStudentSpecificController = require('../../controllers/expertAuthentication/studentSpecific');
 
 // Subject and QSet management routes
 router.get('/all-subjects', examExpertAdminStudentSpecificController.getAllSubjects);
