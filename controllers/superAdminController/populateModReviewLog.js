@@ -26,7 +26,8 @@ exports.populateModReviewLog = async (req, res) => {
         LEFT JOIN textlogs tl ON s.student_id = tl.student_id
         LEFT JOIN audiodb ad ON s.subjectsId = ad.subjectId AND s.qset = ad.qset
         LEFT JOIN modqsetdb mq ON s.subjectsId = mq.subjectId
-        WHERE s.departmentId = ?`;
+        WHERE s.departmentId = ?
+        ORDER BY s.student_id`;
 
         const [results] = await connection.query(query, [department]);
         if(results.length === 0) return res.status(201).json({"message":"No students Available "})

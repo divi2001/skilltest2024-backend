@@ -213,6 +213,7 @@ exports.assignExpertToStudents = async (req, res) => {
             AND e.subjectId = ?
             AND e.qset = ?
             AND e.expertId IS NULL
+
             LIMIT ?
         `;
 
