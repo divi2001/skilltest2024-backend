@@ -94,66 +94,128 @@ exports.insertExpert = async (req, res) => {
     }
 }
 
-exports.getStudentsforExperts = async(req,res)=>{
-    const {department , subject} = req.query;
+exports.getStudentsforExperts = async (req, res) => {
+    const { department, subject } = req.query;
     try {
-        let query = ` SELECT 
-          d.departmentId,
-          d.departmentName,
-          COUNT(DISTINCT e.student_id) as student_count
-      FROM 
-          departmentdb d
-      LEFT JOIN students s ON d.departmentId = s.departmentId
-      LEFT JOIN expertreviewlog e ON s.student_id = e.student_id
-      GROUP BY 
-          d.departmentId, d.departmentName
-      ORDER BY 
-          d.departmentId;`
-          let queryParams= [];
+        let query, queryParams = [];
 
-          if (department && !subject) {
+        if (!department && !subject) {
+            // Get department-wise stats
+            query = `
+                SELECT 
+                    d.departmentId,
+                    d.departmentName,
+                    COUNT(DISTINCT e.student_id) as student_count
+                FROM 
+                    departmentdb d
+                JOIN students s ON d.departmentId = s.departmentId
+                JOIN expertreviewlog e ON s.student_id = e.student_id
+                WHERE 
+                    e.expertId IS NULL
+                GROUP BY 
+                    d.departmentId, d.departmentName
+                ORDER BY 
+                    d.departmentId;
+            `;
+        } else if (department && !subject) {
             // Get subject-wise stats for a specific department
             query = `
-              SELECT 
-                  sub.subjectId,
-                  sub.subject_name,
-                  COUNT(DISTINCT e.student_id) as student_count
-              FROM 
-                  subjectsdb sub
-              LEFT JOIN expertreviewlog e ON sub.subjectId = e.subjectId
-              LEFT JOIN students s ON e.student_id = s.student_id
-              WHERE 
-                  s.departmentId = ?
-              GROUP BY 
-                  sub.subjectId, sub.subject_name
-              ORDER BY 
-                  sub.subjectId;
+                SELECT 
+                    sub.subjectId,
+                    sub.subject_name,
+                    COUNT(DISTINCT e.student_id) as student_count
+                FROM 
+                    subjectsdb sub
+                LEFT JOIN expertreviewlog e ON sub.subjectId = e.subjectId
+                LEFT JOIN students s ON e.student_id = s.student_id
+                WHERE 
+                    s.departmentId = ? AND e.expertId IS NULL
+                GROUP BY 
+                    sub.subjectId, sub.subject_name
+                ORDER BY 
+                    sub.subjectId;
             `;
             queryParams = [department];
-          }else if(department && subject){
+        } else if (department && subject) {
+            // Get qset-wise stats for a specific subject and department
             query = `
-            SELECT 
-                e.qset,
-                COUNT(DISTINCT e.student_id) as student_count
-            FROM 
-                expertreviewlog e
-            JOIN students s ON e.student_id = s.student_id
-            WHERE 
-                e.subjectId = ? AND s.departmentId = ?
-            GROUP BY 
-                e.qset
-            ORDER BY 
-                e.qset;
-          `;
-          queryParams = [subject, department];
-          }
+                SELECT 
+                    e.qset,
+                    COUNT(DISTINCT e.student_id) as student_count
+                FROM 
+                    expertreviewlog e
+                JOIN students s ON e.student_id = s.student_id
+                WHERE 
+                    e.subjectId = ? AND s.departmentId = ? AND e.expertId IS NULL
+                GROUP BY 
+                    e.qset
+                ORDER BY 
+                    e.qset;
+            `;
+            queryParams = [subject, department];
+        } else {
+            return res.status(400).json({ "message": "Invalid query parameters" });
+        }
 
-          const [results]= await connection.query(query,queryParams);
-          if(results.length === 0) return res.status(404).json({"message":"No students Found!!"});
+        const [results] = await connection.query(query, queryParams);
+        
+        if (results.length === 0) {
+            return res.status(404).json({ "message": "No unassigned students found!" });
+        }
 
-          res.status(201).json({"message":"Students Count calculated successfully",results});
+        res.status(200).json({
+            "message": "Unassigned students count calculated successfully",
+            results
+        });
     } catch (error) {
         console.error('Error fetching students:', error);
         res.status(500).json({ message: "Internal Server error" });
     }
-}
+};
+
+exports.assignExpertToStudents = async (req, res) => {
+    const { department, subject, qset, expertId, count } = req.body;
+
+    if (!department || !subject || !qset || !expertId || !count) {
+        return res.status(400).json({ message: "Missing required parameters" });
+    }
+
+    try {
+        // First, select the IDs of the rows we want to update
+        const selectQuery = `
+            SELECT e.id
+            FROM expertreviewlog e
+            JOIN students s ON e.student_id = s.student_id
+            WHERE s.departmentId = ?
+            AND e.subjectId = ?
+            AND e.qset = ?
+            AND e.expertId IS NULL
+            LIMIT ?
+        `;
+
+        const [selectedRows] = await connection.query(selectQuery, [department, subject, qset, count]);
+
+        if (selectedRows.length === 0) {
+            return res.status(404).json({ message: "No unassigned students found matching the criteria" });
+        }
+
+        // Now, update these specific rows
+        const updateQuery = `
+            UPDATE expertreviewlog
+            SET expertId = ?
+            WHERE id IN (?)
+        `;
+
+        const student_ids = selectedRows.map(row => row.id);
+        const [updateResult] = await connection.query(updateQuery, [expertId, student_ids]);
+
+        res.status(200).json({
+            message: `Successfully assigned expert to ${updateResult.affectedRows} students`,
+            assignedCount: updateResult.affectedRows
+        });
+
+    } catch (error) {
+        console.error('Error assigning expert to students:', error);
+        res.status(500).json({ message: "Internal Server error" });
+    }
+};
