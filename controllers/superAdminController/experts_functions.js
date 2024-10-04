@@ -174,17 +174,22 @@ exports.getStudentsforExperts = async (req, res) => {
 };
 
 exports.assignExpertToStudents = async (req, res) => {
-    const { department, subject, qset, expertId, count } = req.body;
+    const { department, subject, qset, expertId, count , paper_mod , super_mod } = req.body;
 
     if (!department || !subject || !qset || !expertId || !count) {
         return res.status(400).json({ message: "Missing required parameters" });
     }
-
+    
     try {
         // First, select the IDs of the rows we want to update
+        if(!paper_mod && !super_mod) return res.status(400).json({"message":"Please select a option"});
+        let tableName ;
+        if(paper_mod) tableName = expertreviewlog;
+        if(super_mod) tableName = modreviewlog
+
         const selectQuery = `
             SELECT e.id
-            FROM expertreviewlog e
+            FROM ${tableName} e
             JOIN students s ON e.student_id = s.student_id
             WHERE s.departmentId = ?
             AND e.subjectId = ?
@@ -201,7 +206,7 @@ exports.assignExpertToStudents = async (req, res) => {
 
         // Now, update these specific rows
         const updateQuery = `
-            UPDATE expertreviewlog
+            UPDATE ${tableName}
             SET expertId = ?
             WHERE id IN (?)
         `;
