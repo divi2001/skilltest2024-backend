@@ -93,3 +93,67 @@ exports.insertExpert = async (req, res) => {
         res.status(500).json({ message: "Internal Server error" });
     }
 }
+
+exports.getStudentsforExperts = async(req,res)=>{
+    const {department , subject} = req.query;
+    try {
+        let query = ` SELECT 
+          d.departmentId,
+          d.departmentName,
+          COUNT(DISTINCT e.student_id) as student_count
+      FROM 
+          departmentdb d
+      LEFT JOIN students s ON d.departmentId = s.departmentId
+      LEFT JOIN expertreviewlog e ON s.student_id = e.student_id
+      GROUP BY 
+          d.departmentId, d.departmentName
+      ORDER BY 
+          d.departmentId;`
+          let queryParams= [];
+
+          if (department && !subject) {
+            // Get subject-wise stats for a specific department
+            query = `
+              SELECT 
+                  sub.subjectId,
+                  sub.subject_name,
+                  COUNT(DISTINCT e.student_id) as student_count
+              FROM 
+                  subjectsdb sub
+              LEFT JOIN expertreviewlog e ON sub.subjectId = e.subjectId
+              LEFT JOIN students s ON e.student_id = s.student_id
+              WHERE 
+                  s.departmentId = ?
+              GROUP BY 
+                  sub.subjectId, sub.subject_name
+              ORDER BY 
+                  sub.subjectId;
+            `;
+            queryParams = [department];
+          }else if(department && subject){
+            query = `
+            SELECT 
+                e.qset,
+                COUNT(DISTINCT e.student_id) as student_count
+            FROM 
+                expertreviewlog e
+            JOIN students s ON e.student_id = s.student_id
+            WHERE 
+                e.subjectId = ? AND s.departmentId = ?
+            GROUP BY 
+                e.qset
+            ORDER BY 
+                e.qset;
+          `;
+          queryParams = [subject, department];
+          }
+
+          const [results]= await connection.query(query,queryParams);
+          if(results.length === 0) return res.status(404).json({"message":"No students Found!!"});
+
+          res.status(201).json({"message":"Students Count calculated successfully",results});
+    } catch (error) {
+        console.error('Error fetching students:', error);
+        res.status(500).json({ message: "Internal Server error" });
+    }
+}
