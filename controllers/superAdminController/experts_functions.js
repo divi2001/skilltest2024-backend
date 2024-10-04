@@ -95,13 +95,13 @@ exports.insertExpert = async (req, res) => {
 }
 
 exports.getStudentsforExperts = async (req, res) => {
-    const { department, subject , expert , mod } = req.query;
+    const { department, subject , stage_1 , stage_3 } = req.query;
     try {
         let query, queryParams = [];
-        if(!expert && !mod) return res.status(400).json({"message":"Please select a option"});
+        if(!stage_1 && !stage_3) return res.status(400).json({"message":"Please select a option"});
         let tableName ;
-        if(expert) tableName = "expertreviewlog";
-        if(mod) tableName = "modreviewlog"
+        if(stage_1) tableName = "expertreviewlog";
+        if(stage_3) tableName = "modreviewlog"
 
         if (!department && !subject) {
             // Get department-wise stats
@@ -178,7 +178,7 @@ exports.getStudentsforExperts = async (req, res) => {
 };
 
 exports.assignExpertToStudents = async (req, res) => {
-    const { department, subject, qset, expertId, count , paper_mod , super_mod } = req.body;
+    const { department, subject, qset, expertId, count , stage_1 , stage_3 } = req.body;
 
     if (!department || !subject || !qset || !expertId || !count) {
         return res.status(400).json({ message: "Missing required parameters" });
@@ -186,11 +186,25 @@ exports.assignExpertToStudents = async (req, res) => {
     
     try {
         // First, select the IDs of the rows we want to update
-        if(!paper_mod && !super_mod) return res.status(400).json({"message":"Please select a option"});
+        if(!stage_1 && !stage_3) return res.status(400).json({"message":"Please select a option"});
         let tableName ;
-        if(paper_mod) tableName = "expertreviewlog";
-        if(super_mod) tableName = "modreviewlog"
+        let columnName;
+        if(stage_1){
+             tableName = "expertreviewlog";
+             columnName = "paper_check"
+        };
+        if(stage_3){
+             tableName = "modreviewlog";
+             columnName = "super_mod"
+        }
 
+        const updateExpertQuery =  `update expertdb set ${columnName}= true where expertId = ?`;
+        const[results] = await connection.query(updateExpertQuery,[expertId]);
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ "message": "Expert not found or papercheck already set to true" });
+        }
+
+        
         const selectQuery = `
             SELECT e.id
             FROM ${tableName} e
