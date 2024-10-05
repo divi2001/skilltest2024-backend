@@ -346,3 +346,73 @@ exports.assignedStudentsSummary = async (req, res) => {
         res.status(500).json({ message: "Internal Server error" });
     }
 };
+
+exports.unassignExpertFromStudents = async (req, res) => {
+    const { department, subject, qset, expertId, count, stage_1, stage_3 } = req.body;
+
+    if (!department || !subject || !qset || !expertId || count === undefined) {
+        return res.status(400).json({ message: "Missing required parameters" });
+    }
+
+    if (!stage_1 && !stage_3) {
+        return res.status(400).json({ "message": "Please select an option (stage_1 or stage_3)" });
+    }
+
+    try {
+        let tableName;
+        if (stage_1) {
+            tableName = "expertreviewlog";
+           
+        }
+        if (stage_3) {
+            tableName = "modreviewlog";
+            
+        }
+
+        // Check current assignment count
+        const countQuery = `
+            SELECT COUNT(*) as currentCount
+            FROM ${tableName}
+            WHERE expertId = ? AND subjectId = ? AND qset = ?
+        `;
+        const [countResult] = await connection.query(countQuery, [expertId, subject, qset]);
+        const currentCount = countResult[0].currentCount;
+
+        // Calculate the number of students to unassign
+        const unassignCount = currentCount - count;
+
+        if (unassignCount <= 0) {
+            return res.status(400).json({ message: "No students to unassign based on the provided count" });
+        }
+
+        // Unassign students
+        const unassignQuery = `
+            UPDATE ${tableName}
+            SET expertId = NULL
+            WHERE expertId = ? AND subjectId = ? AND qset = ?
+            ORDER BY id DESC
+            LIMIT ?
+        `;
+        const [unassignResult] = await connection.query(unassignQuery, [expertId, subject, qset, unassignCount]);
+
+        if (unassignResult.affectedRows === 0) {
+            return res.status(404).json({ message: "No students found to unassign" });
+        }
+
+        // If all students are unassigned, update the expert's status
+        // if (count === 0) {
+        //     const updateExpertQuery = `UPDATE expertdb SET ${columnName} = false WHERE expertId = ?`;
+        //     await connection.query(updateExpertQuery, [expertId]);
+        // }
+
+        res.status(200).json({
+            message: `Successfully unassigned ${unassignResult.affectedRows} students from the expert`,
+            unassignedCount: unassignResult.affectedRows,
+            remainingAssignedCount: currentCount - unassignResult.affectedRows
+        });
+
+    } catch (error) {
+        console.error('Error unassigning students from expert:', error);
+        res.status(500).json({ message: "Internal Server error" });
+    }
+};
