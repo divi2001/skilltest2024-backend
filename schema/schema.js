@@ -46,7 +46,8 @@ const schema = {
         departmentId: 'INT PRIMARY KEY',
         departmentName: 'VARCHAR(255)',
         departmentPassword: 'LONGTEXT',
-        logo: 'LONGTEXT'
+        logo: 'LONGTEXT',
+        departmentStatus: 'BOOLEAN'
     },
     studentlogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
@@ -195,7 +196,8 @@ const schema = {
         expertId: 'INT REFERENCES expertdb(expertId)',
         loggedin: 'DATETIME',
         status: 'BOOLEAN',
-        submitted: 'DATETIME'
+        subm_done: 'BOOLEAN',
+        subm_time: 'DATETIME'
     },
     modreviewlog: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',

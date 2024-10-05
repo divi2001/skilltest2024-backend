@@ -28,14 +28,31 @@ exports.getAllSubjects = async (req, res) => {
             s.daily_timer, 
             s.passage_timer, 
             s.demo_timer,
-            COUNT(DISTINCT CASE WHEN m.subm_done IS NULL OR m.subm_done = 0 THEN m.student_id END) AS incomplete_count,
-            COUNT(DISTINCT m.student_id) AS total_count
+            COUNT(DISTINCT CASE 
+                WHEN m.subm_done IS NULL OR m.subm_done = 0 
+                THEN m.student_id 
+            END) AS incomplete_count,
+            COUNT(DISTINCT m.student_id) AS total_count,
+            st.departmentId
         FROM 
             subjectsdb s
         LEFT JOIN 
             ${tableName} m ON s.subjectId = m.subjectId AND m.expertId = ?
+        LEFT JOIN 
+            students st ON m.student_id = st.student_id
+        LEFT JOIN 
+            departmentdb d ON st.departmentId = d.departmentId
+        WHERE 
+            d.departmentStatus = 1
         GROUP BY 
-            s.subjectId, s.subject_name, s.subject_name_short, s.daily_timer, s.passage_timer, s.demo_timer
+            s.subjectId, 
+            s.subject_name, 
+            s.subject_name_short, 
+            s.daily_timer, 
+            s.passage_timer, 
+            s.demo_timer, 
+            st.departmentId, 
+            d.departmentName
         HAVING 
             incomplete_count > 0;
     `;
@@ -190,12 +207,22 @@ exports.assignStudentForQSet = async (req, res) => {
         console.log("Transaction begun");
 
         // Check if the expert already has an active assignment
-        const checkExistingAssignmentQuery = `
-            SELECT student_id, loggedin, status, subm_done, subm_time, QPA, QPB
-            FROM ${tableName} 
-            WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done IS NULL OR subm_done = 0)
-            LIMIT 1
-        `;
+        let checkExistingAssignmentQuery;
+        if (tableName === 'expertreviewlog') {
+            checkExistingAssignmentQuery = `
+                SELECT student_id, loggedin, status, subm_done, subm_time
+                FROM ${tableName} 
+                WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done IS NULL OR subm_done = 0)
+                LIMIT 1
+            `;
+        } else {
+            checkExistingAssignmentQuery = `
+                SELECT student_id, loggedin, status, subm_done, subm_time, QPA, QPB
+                FROM ${tableName} 
+                WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done IS NULL OR subm_done = 0)
+                LIMIT 1
+            `;
+        }
         console.log("Checking existing assignment query:", checkExistingAssignmentQuery);
         const [existingAssignment] = await conn.query(checkExistingAssignmentQuery, [subjectId, qset, expertId]);
         console.log("Existing assignment result:", existingAssignment);
@@ -203,9 +230,11 @@ exports.assignStudentForQSet = async (req, res) => {
         let student_id, loggedin, status, subm_done, subm_time, QPA, QPB;
 
         if (existingAssignment.length > 0) {
-            // Expert has an existing active assignment
             console.log("Existing active assignment found");
-            ({ student_id, loggedin, status, subm_done, subm_time, QPA, QPB } = existingAssignment[0]);
+            ({ student_id, loggedin, status, subm_done, subm_time } = existingAssignment[0]);
+            if (tableName === 'modreviewlog') {
+                ({ QPA, QPB } = existingAssignment[0]);
+            }
 
             // Update the existing assignment
             const updateAssignmentQuery = `
@@ -232,7 +261,10 @@ exports.assignStudentForQSet = async (req, res) => {
             if (assignResult.affectedRows > 0) {
                 // Fetch the new assignment details
                 const [newAssignment] = await conn.query(checkExistingAssignmentQuery, [subjectId, qset, expertId]);
-                ({ student_id, loggedin, status, subm_done, subm_time, QPA, QPB } = newAssignment[0]);
+                ({ student_id, loggedin, status, subm_done, subm_time } = newAssignment[0]);
+                if (tableName === 'modreviewlog') {
+                    ({ QPA, QPB } = newAssignment[0]);
+                }
             } else {
                 // No available students
                 await conn.rollback();
@@ -242,8 +274,9 @@ exports.assignStudentForQSet = async (req, res) => {
 
         // Check if QPA and QPB are already filled
         if (paper_check === 1){
-            console.log("paper_check is 1, returning 0");
-            return res.status(200).json({ message: 'Paper check completed' });
+            console.log("paper_check is 1, returning assignment details");
+            await conn.commit();
+            return res.status(200).json({ qset, student_id, loggedin, status, subm_done, subm_time });
         }
         else if(super_mod === 1){
             console.log("super_mod is 1, proceeding with QPA and QPB check");
@@ -253,7 +286,7 @@ exports.assignStudentForQSet = async (req, res) => {
                 const fetchIgnoreListsQuery = `
                     SELECT Q${qset}PA as QPA, Q${qset}PB as QPB
                     FROM qsetdb
-                    WHERE subject_id = ?
+                    WHERE subjectId = ?
                 `;
                 const [ignoreListsResult] = await conn.query(fetchIgnoreListsQuery, [subjectId]);
     
@@ -314,7 +347,7 @@ exports.getIgnoreList = async (req, res) => {
             const query = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb
-                WHERE subject_id = ?
+                WHERE subjectId = ?
             `;
             
             const [results] = await connection.query(query, [subjectId]);
@@ -431,7 +464,7 @@ exports.getStudentIgnoreList = async (req, res) => {
             const query = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb
-                WHERE subject_id = ?
+                WHERE subjectId = ?
             `;
             
             const [results] = await connection.query(query, [subjectId]);
@@ -537,7 +570,7 @@ exports.addToIgnoreList = async (req, res) => {
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb
-                WHERE subject_id = ?
+                WHERE subjectId = ?
                 FOR UPDATE
             `;
             
@@ -560,7 +593,7 @@ exports.addToIgnoreList = async (req, res) => {
             const updateQuery = `
                 UPDATE qsetdb
                 SET ${columnName} = ?
-                WHERE subject_id = ?
+                WHERE subjectId = ?
             `;
     
             await conn.query(updateQuery, [updatedIgnoreList, subjectId]);
@@ -677,7 +710,7 @@ exports.addToStudentIgnoreList = async (req, res) => {
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb
-                WHERE subject_id = ?
+                WHERE subjectId = ?
                 FOR UPDATE
             `;
             
@@ -700,7 +733,7 @@ exports.addToStudentIgnoreList = async (req, res) => {
             const updateQuery = `
                 UPDATE qsetdb
                 SET ${columnName} = ?
-                WHERE subject_id = ?
+                WHERE subjectId = ?
             `;
     
             await conn.query(updateQuery, [updatedIgnoreList, subjectId]);
@@ -826,7 +859,7 @@ exports.removeFromIgnoreList = async (req, res) => {
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb 
-                WHERE subject_id = ?
+                WHERE subjectId = ?
                 FOR UPDATE
             `;
             
@@ -849,7 +882,7 @@ exports.removeFromIgnoreList = async (req, res) => {
             const updateQuery = `
                 UPDATE qsetdb
                 SET ${columnName} = ?
-                WHERE subject_id = ?
+                WHERE subjectId = ?
             `;
     
             await conn.query(updateQuery, [updatedIgnoreList, subjectId]);
@@ -963,7 +996,7 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb 
-                WHERE subject_id = ?
+                WHERE subjectId = ?
                 FOR UPDATE
             `;
             
@@ -986,7 +1019,7 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
             const updateQuery = `
                 UPDATE qsetdb
                 SET ${columnName} = ?
-                WHERE subject_id = ?
+                WHERE subjectId = ?
             `;
     
             await conn.query(updateQuery, [updatedIgnoreList, subjectId]);

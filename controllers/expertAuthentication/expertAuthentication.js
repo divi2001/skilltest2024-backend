@@ -10,6 +10,7 @@ exports.loginExpertAdmin = async (req, res) => {
 
     try {
         const [results] = await connection.query(expertQuery, [expertId]);
+
         if (results.length > 0) {
             const expert = results[0];
             console.log("data: "+ expert);
