@@ -7,63 +7,93 @@ exports.getAllSubjects = async (req, res) => {
     }
 
     const paper_check = req.session.paper_check;
+    const paper_mod = req.session.paper_mod;
     const super_mod = req.session.super_mod;
     let tableName;
+    let subjectsQuery;
 
-    if (paper_check === 1){
-        tableName = 'expertreviewlog';
+    if (paper_check !== 1 && paper_mod !== 1 && super_mod !== 1) {
+        return res.status(403).json({ error: 'Forbidden - No stages alloted' });
     }
-    else if (super_mod === 1){
+
+    if (paper_check === 1) {
+        tableName = 'expertreviewlog';
+    } else if (super_mod === 1) {
         tableName = 'modreviewlog';
     }
-    else{
-        return res.status(403).json({error: 'Forbidden - No stages alloted'})
+
+    if (paper_mod === 1) {
+        subjectsQuery = `
+            SELECT DISTINCT
+                s.subjectId,
+                s.subject_name
+            FROM 
+                subjectsdb s
+            JOIN 
+                students st ON s.subjectId = st.subjectsId
+            JOIN 
+                departmentdb d ON st.departmentId = d.departmentId
+            WHERE 
+                d.departmentStatus = 1
+            ORDER BY 
+                s.subjectId;
+        `;
+    } else {
+        // Original query for paper_check and super_mod
+        subjectsQuery = `
+            SELECT 
+                s.subjectId, 
+                s.subject_name, 
+                s.subject_name_short, 
+                s.daily_timer, 
+                s.passage_timer, 
+                s.demo_timer,
+                COUNT(DISTINCT CASE 
+                    WHEN m.subm_done IS NULL OR m.subm_done = 0 
+                    THEN m.student_id 
+                END) AS incomplete_count,
+                COUNT(DISTINCT m.student_id) AS total_count,
+                st.departmentId
+            FROM 
+                subjectsdb s
+            LEFT JOIN 
+                ${tableName} m ON s.subjectId = m.subjectId AND m.expertId = ?
+            LEFT JOIN 
+                students st ON m.student_id = st.student_id
+            LEFT JOIN 
+                departmentdb d ON st.departmentId = d.departmentId
+            WHERE 
+                d.departmentStatus = 1
+            GROUP BY 
+                s.subjectId, 
+                s.subject_name, 
+                s.subject_name_short, 
+                s.daily_timer, 
+                s.passage_timer, 
+                s.demo_timer, 
+                st.departmentId, 
+                d.departmentName
+            HAVING 
+                incomplete_count > 0;
+        `;
     }
 
-    let subjectsQuery = `
-        SELECT 
-            s.subjectId, 
-            s.subject_name, 
-            s.subject_name_short, 
-            s.daily_timer, 
-            s.passage_timer, 
-            s.demo_timer,
-            COUNT(DISTINCT CASE 
-                WHEN m.subm_done IS NULL OR m.subm_done = 0 
-                THEN m.student_id 
-            END) AS incomplete_count,
-            COUNT(DISTINCT m.student_id) AS total_count,
-            st.departmentId
-        FROM 
-            subjectsdb s
-        LEFT JOIN 
-            ${tableName} m ON s.subjectId = m.subjectId AND m.expertId = ?
-        LEFT JOIN 
-            students st ON m.student_id = st.student_id
-        LEFT JOIN 
-            departmentdb d ON st.departmentId = d.departmentId
-        WHERE 
-            d.departmentStatus = 1
-        GROUP BY 
-            s.subjectId, 
-            s.subject_name, 
-            s.subject_name_short, 
-            s.daily_timer, 
-            s.passage_timer, 
-            s.demo_timer, 
-            st.departmentId, 
-            d.departmentName
-        HAVING 
-            incomplete_count > 0;
-    `;
-
     try {
-        const [results] = await connection.query(subjectsQuery, [req.session.expertId]);
+        let results;
+        if (paper_mod === 1) {
+            [results] = await connection.query(subjectsQuery);
+        } else {
+            [results] = await connection.query(subjectsQuery, [req.session.expertId]);
+        }
         
         // Console log the subjects and their student counts
-        console.log("Subjects available for expert with student counts:");
+        console.log("Subjects available for expert:");
         results.forEach(subject => {
-            console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}, Incomplete Count: ${subject.incomplete_count}, Total Count: ${subject.total_count}`);
+            if (paper_mod === 1) {
+                console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}`);
+            } else {
+                console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}, Incomplete Count: ${subject.incomplete_count}, Total Count: ${subject.total_count}`);
+            }
         });
 
         res.status(200).json(results);
@@ -82,40 +112,66 @@ exports.getQSetsForSubject = async (req, res) => {
     const expertId = req.session.expertId;
 
     const paper_check = req.session.paper_check;
+    const paper_mod = req.session.paper_mod;
     const super_mod = req.session.super_mod;
     let tableName;
+    let qsetQuery;
 
-    if (paper_check === 1){
+    if (paper_check === 1) {
         tableName = 'expertreviewlog';
-    }
-    else if (super_mod === 1){
+    } else if (super_mod === 1) {
         tableName = 'modreviewlog';
-    }
-    else{
-        return res.status(403).json({error: 'Forbidden - No stages alloted'})
+    } else if (paper_mod !== 1) {
+        return res.status(403).json({ error: 'Forbidden - No stages alloted' });
     }
 
     try {
-        const qsetQuery = `
-            SELECT 
-                qset, 
-                COUNT(DISTINCT CASE WHEN subm_done IS NULL OR subm_done = 0 THEN student_id END) as incomplete_count,
-                COUNT(DISTINCT student_id) as total_count
-            FROM ${tableName} 
-            WHERE subjectId = ?
-            AND expertId = ?
-            GROUP BY qset
-            HAVING incomplete_count > 0
-            ORDER BY qset
-        `;
-        const [qsetResults] = await connection.query(qsetQuery, [subjectId, expertId]);
+        if (paper_mod === 1) {
+            qsetQuery = `
+                SELECT DISTINCT
+                    a.qset
+                FROM 
+                    audiodb a
+                JOIN 
+                    students st ON a.subjectId = st.subjectsId
+                JOIN 
+                    departmentdb d ON st.departmentId = d.departmentId
+                WHERE 
+                    a.subjectId = ?
+                    AND d.departmentStatus = 1
+                ORDER BY 
+                    a.qset
+            `;
+            const [qsetResults] = await connection.query(qsetQuery, [subjectId]);
 
-        console.log(`QSets for subject ${subjectId} and expert ${expertId} with student counts:`);
-        qsetResults.forEach(qset => {
-            console.log(`QSet: ${qset.qset}, Incomplete Count: ${qset.incomplete_count}, Total Count: ${qset.total_count}`);
-        });
+            console.log(`QSets for subject ${subjectId} from audiodb:`);
+            qsetResults.forEach(qset => {
+                console.log(`QSet: ${qset.qset}`);
+            });
 
-        res.status(200).json(qsetResults);
+            res.status(200).json(qsetResults);
+        } else {
+            qsetQuery = `
+                SELECT 
+                    qset, 
+                    COUNT(DISTINCT CASE WHEN subm_done IS NULL OR subm_done = 0 THEN student_id END) as incomplete_count,
+                    COUNT(DISTINCT student_id) as total_count
+                FROM ${tableName} 
+                WHERE subjectId = ?
+                AND expertId = ?
+                GROUP BY qset
+                HAVING incomplete_count > 0
+                ORDER BY qset
+            `;
+            const [qsetResults] = await connection.query(qsetQuery, [subjectId, expertId]);
+
+            console.log(`QSets for subject ${subjectId} and expert ${expertId} with student counts:`);
+            qsetResults.forEach(qset => {
+                console.log(`QSet: ${qset.qset}, Incomplete Count: ${qset.incomplete_count}, Total Count: ${qset.total_count}`);
+            });
+
+            res.status(200).json(qsetResults);
+        }
     } catch (err) {
         console.error("Error fetching qsets:", err);
         res.status(500).json({ error: 'Error fetching qsets' });
