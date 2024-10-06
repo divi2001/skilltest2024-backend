@@ -369,7 +369,7 @@ exports.assignStudentForQSet = async (req, res) => {
                 // Fetch ignore lists only if QPA or QPB is not filled
                 const fetchIgnoreListsQuery = `
                     SELECT Q${qset}PA as QPA, Q${qset}PB as QPB
-                    FROM qsetdb
+                    FROM modqsetdb
                     WHERE subjectId = ?
                 `;
                 const [ignoreListsResult] = await conn.query(fetchIgnoreListsQuery, [subjectId]);
@@ -420,24 +420,31 @@ exports.getIgnoreList = async (req, res) => {
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
     const paper_mod = req.session.paper_mod;
+    let tableName;
+
+    if (paper_check === 1) {
+        tableName = 'qsetdb';
+    } else if (paper_mod === 1) {
+        tableName = 'modqsetdb';
+    }
 
     // Input validation
     if (!subjectId || !qset || !activePassage) {
         return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    if (paper_check === 1){ 
+    if (paper_check === 1 || paper_mod === 1){ 
         try {
             const columnName = `Q${qset}P${activePassage}`;
             
             const query = `
                 SELECT ${columnName} AS ignoreList
-                FROM qsetdb
+                FROM ${tableName}
                 WHERE subjectId = ?
             `;
             
             const [results] = await connection.query(query, [subjectId]);
-
+            
             if (results.length > 0 && results[0].ignoreList) {
                 // Split the ignore list string into an array
                 const ignoreList = results[0].ignoreList.split(',').map(item => item.trim());
@@ -642,10 +649,19 @@ exports.addToIgnoreList = async (req, res) => {
 
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
+    const paper_mod = req.session.paper_mod;
+
+    let tableName;
+
+    if (paper_check === 1) {
+        tableName = 'qsetdb';
+    } else if (paper_mod === 1) {
+        tableName = 'modqsetdb';
+    }
 
     let conn;
 
-    if (paper_check === 1){
+    if (paper_check === 1 || paper_mod === 1){
         try {
             conn = await connection.getConnection();
             await conn.beginTransaction();
@@ -655,7 +671,7 @@ exports.addToIgnoreList = async (req, res) => {
             // First, fetch the current ignore list
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
-                FROM qsetdb
+                FROM ${tableName}
                 WHERE subjectId = ?
                 FOR UPDATE
             `;
@@ -677,7 +693,7 @@ exports.addToIgnoreList = async (req, res) => {
     
             // Update the database with the new ignore list
             const updateQuery = `
-                UPDATE qsetdb
+                UPDATE ${tableName}
                 SET ${columnName} = ?
                 WHERE subjectId = ?
             `;
@@ -931,10 +947,19 @@ exports.removeFromIgnoreList = async (req, res) => {
 
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
+    const paper_mod = req.session.paper_mod;
+
+    let tableName;
+
+    if (paper_check === 1) {
+        tableName = 'qsetdb';
+    } else if (paper_mod === 1) {
+        tableName = 'modqsetdb';
+    }
 
     let conn;
 
-    if (paper_check === 1){
+    if (paper_check === 1 || paper_mod === 1){
         try {
             conn = await connection.getConnection();
             await conn.beginTransaction();
@@ -944,7 +969,7 @@ exports.removeFromIgnoreList = async (req, res) => {
             // First, fetch the current ignore list
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
-                FROM qsetdb 
+                FROM ${tableName} 
                 WHERE subjectId = ?
                 FOR UPDATE
             `;
@@ -966,7 +991,7 @@ exports.removeFromIgnoreList = async (req, res) => {
     
             // Update the database with the new ignore list
             const updateQuery = `
-                UPDATE qsetdb
+                UPDATE ${tableName}
                 SET ${columnName} = ?
                 WHERE subjectId = ?
             `;
@@ -1058,7 +1083,6 @@ exports.removeFromIgnoreList = async (req, res) => {
             if (conn) conn.release();
         }
     }
-
 };
 
 exports.removeFromStudentIgnoreList = async (req, res) => {
