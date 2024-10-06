@@ -188,38 +188,60 @@ exports.getExpertAssignedPassages = async (req, res) => {
     const expertId = req.session.expertId;
 
     const paper_check = req.session.paper_check;
+    const paper_mod = req.session.paper_mod;
     const super_mod = req.session.super_mod;
-    let tableName
+    let tableName;
+    let query;
 
-    if (paper_check === 1){
+    if (paper_check === 1) {
         tableName = 'expertreviewlog';
-    }
-    else if (super_mod === 1){
+    } else if (super_mod === 1) {
         tableName = 'modreviewlog';
-    }
-    else{
-        return res.status(403).json({error: 'Forbidden - No stages alloted'})
+    } else if (paper_mod !== 1) {
+        return res.status(403).json({ error: 'Forbidden - No stages alloted' });
     }
 
     try {
-        const query = `
-            SELECT passageA, passageB, ansPassageA, ansPassageB, student_id
-            FROM ${tableName} 
-            WHERE subjectId = ? AND qset = ? AND expertId = ?
-            ORDER BY loggedin DESC
-            LIMIT 1
-        `;
-        const [results] = await connection.query(query, [subjectId, qset, expertId]);
+        if (paper_mod === 1) {
+            query = `
+                SELECT subjectId, qset, textPassageA, textPassageB
+                FROM audiodb
+                WHERE subjectId = ? AND qset = ?
+                LIMIT 1
+            `;
+            const [results] = await connection.query(query, [subjectId, qset]);
 
-        if (results.length > 0) {
-            console.log("Assigned student_id:", results[0].student_id);
-            res.status(200).json(results[0]);
+            if (results.length > 0) {
+                console.log(`Fetched passages for subject ${subjectId}, qset ${qset} from audiodb`);
+                res.status(200).json({
+                    subjectId: results[0].subjectId,
+                    qset: results[0].qset,
+                    passageA: results[0].textPassageA,
+                    passageB: results[0].textPassageB
+                });
+            } else {
+                res.status(404).json({ error: 'No passages found' });
+            }
         } else {
-            res.status(404).json({ error: 'No assigned passages found' });
+            query = `
+                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id
+                FROM ${tableName} 
+                WHERE subjectId = ? AND qset = ? AND expertId = ?
+                ORDER BY loggedin DESC
+                LIMIT 1
+            `;
+            const [results] = await connection.query(query, [subjectId, qset, expertId]);
+
+            if (results.length > 0) {
+                console.log("Assigned student_id:", results[0].student_id);
+                res.status(200).json(results[0]);
+            } else {
+                res.status(404).json({ error: 'No assigned passages found' });
+            }
         }
     } catch (err) {
-        console.error("Error fetching assigned passages:", err);
-        res.status(500).json({ error: 'Error fetching assigned passages' });
+        console.error("Error fetching passages:", err);
+        res.status(500).json({ error: 'Error fetching passages' });
     }
 };
 
@@ -239,6 +261,7 @@ exports.assignStudentForQSet = async (req, res) => {
 
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
+    const paper_mod = req.session.paper_mod;
     let tableName;
 
     console.log(`paper_check=${paper_check}, super_mod=${super_mod}`);
@@ -334,6 +357,11 @@ exports.assignStudentForQSet = async (req, res) => {
             await conn.commit();
             return res.status(200).json({ qset, student_id, loggedin, status, subm_done, subm_time });
         }
+        else if (paper_mod === 1) {
+            console.log("paper_mod is 1, returning qset details without assigning student");
+            await conn.commit();
+            return res.status(200).json({ qset, paper_mod });
+        }
         else if(super_mod === 1){
             console.log("super_mod is 1, proceeding with QPA and QPB check");
             if (!QPA || !QPB) {
@@ -368,6 +396,7 @@ exports.assignStudentForQSet = async (req, res) => {
             console.log("Sending response:", { qset, student_id, loggedin, status, subm_done, subm_time, QPA, QPB });
             res.status(200).json({ qset, student_id, loggedin, status, subm_done, subm_time, QPA, QPB });            
         }
+
     } catch (err) {
         if (conn) await conn.rollback();
         console.error("Error assigning student for QSet:", err);
@@ -390,13 +419,14 @@ exports.getIgnoreList = async (req, res) => {
 
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
+    const paper_mod = req.session.paper_mod;
 
     // Input validation
     if (!subjectId || !qset || !activePassage) {
         return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    if (paper_check === 1){ //Fetching ignore list from qsetdb for Stage 1
+    if (paper_check === 1){ 
         try {
             const columnName = `Q${qset}P${activePassage}`;
             
