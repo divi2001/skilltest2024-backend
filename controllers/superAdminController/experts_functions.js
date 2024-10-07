@@ -373,7 +373,7 @@ exports.unassignExpertFromStudents = async (req, res) => {
         const countQuery = `
             SELECT COUNT(*) as currentCount
             FROM ${tableName}
-            WHERE expertId = ? AND subjectId = ? AND qset = ?
+            WHERE expertId = ? AND subjectId = ? AND qset = ? AND subm_done = 0 
         `;
         const [countResult] = await connection.query(countQuery, [expertId, subject, qset]);
         const currentCount = countResult[0].currentCount;
@@ -393,7 +393,7 @@ exports.unassignExpertFromStudents = async (req, res) => {
         const unassignQuery = `
             UPDATE ${tableName}
             SET expertId = NULL
-            WHERE expertId = ? AND subjectId = ? AND qset = ?
+            WHERE expertId = ? AND subjectId = ? AND qset = ? AND subm_done = 0
             ORDER BY id DESC
             LIMIT ?
         `;

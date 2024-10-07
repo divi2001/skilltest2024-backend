@@ -4,24 +4,28 @@ exports.populateExpertReviewLog = async (req, res) => {
     const { department } = req.body;
     try {
         let query = `
-        SELECT 
-            s.student_id,
-            COALESCE(fps.passageA, tl.texta, 'empty') AS passageA,
-            COALESCE(fps.passageB, tl.textb, 'empty') AS passageB,
-            s.subjectsId,
-            s.qset,
-            COALESCE(ad.textPassageA, 'empty') AS modelPassageA,
-            COALESCE(ad.textPassageB, 'empty') AS modelPassageB
-        FROM 
-            students s
-        LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
-        LEFT JOIN textlogs tl ON s.student_id = tl.student_id
-        LEFT JOIN audiodb ad ON s.subjectsId = ad.subjectId AND s.qset = ad.qset
-        WHERE s.departmentId = ?
-        ORDER BY s.student_id`;
+       SELECT 
+    s.student_id,
+    COALESCE(fps.passageA, tl.texta, 'empty') AS passageA,
+    COALESCE(fps.passageB, tl.textb, 'empty') AS passageB,
+    s.subjectsId,
+    s.qset,
+    COALESCE(ad.textPassageA, 'empty') AS modelPassageA,
+    COALESCE(ad.textPassageB, 'empty') AS modelPassageB
+FROM 
+    students s
+LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
+LEFT JOIN textlogs tl ON s.student_id = tl.student_id
+LEFT JOIN audiodb ad ON s.subjectsId = ad.subjectId AND s.qset = ad.qset
+INNER JOIN studentlogs sl ON s.student_id = sl.student_id
+WHERE 
+    s.departmentId = ?
+    AND sl.feedback_time IS NOT NULL
+    AND sl.login = true
+ORDER BY s.student_id`;
 
         const [results] = await connection.query(query, [department]);
-        if(results.length === 0) return res.status(201).json({"message":"No students Available "})
+        if (results.length === 0) return res.status(201).json({ "message": "No students Available " })
 
         let inserted = 0;
         let updated = 0;
@@ -76,10 +80,10 @@ exports.populateExpertReviewLog = async (req, res) => {
                 inserted++;
             }
         }
-        
+
         console.log(`Inserted ${inserted} rows and updated ${updated} rows in expertreviewlog`);
-        res.status(200).json({ 
-            message: `Successfully inserted ${inserted} rows and updated ${updated} rows in expertreviewlog.` 
+        res.status(200).json({
+            message: `Successfully inserted ${inserted} rows and updated ${updated} rows in expertreviewlog.`
         });
 
     } catch (error) {
