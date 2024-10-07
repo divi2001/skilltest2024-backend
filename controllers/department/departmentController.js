@@ -2,6 +2,7 @@ const connection = require('../../config/db1');
 const StudentTrackDTO = require("../../dto/studentProgress");
 const { decrypt } = require("../../config/encrypt");
 const moment = require('moment-timezone');
+const { stat } = require('fs/promises');
 exports.departementLogin = async (req, res) => {
 
     console.log("Trying center admin login");
@@ -314,10 +315,10 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
     }
 };
 
-exports.getDepartmentswithstudents = async(rea,res)=>{
+exports.getDepartmentswithstudents = async(req,res)=>{
 
     try {
-        let query =`select d.departmentId ,d.departmentName from departmentdb d join students s on s.departmentId = d.departmentId group by d.departmentId;`;
+        let query =`select d.departmentId ,d.departmentName, d.departmentStatus from departmentdb d join students s on s.departmentId = d.departmentId group by d.departmentId;`;
 
         const [results] = await connection.query(query);
         if(results.length === 0) return res.status(404).json({"message":"No deparments found"});
@@ -327,3 +328,30 @@ exports.getDepartmentswithstudents = async(rea,res)=>{
         res.status(500).json({ "message": "Internal Server Error!!" });
     }
 } 
+
+exports.updateDepartmentStatus = async (req, res) => {
+    const { department, status } = req.body;
+
+    if (department === undefined || status === undefined) {
+        return res.status(400).json({ "message": "Missing required parameters" });
+    }
+
+    try {
+        let query = `UPDATE departmentdb SET departmentStatus = ? WHERE departmentId = ?`;
+
+        const [result] = await connection.query(query, [status, department]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ "message": "Department not found" });
+        }
+
+        res.status(200).json({
+            "message": "Department status updated successfully",
+            "affectedRows": result.affectedRows
+        });
+        
+    } catch (error) {
+        console.log("Error", error);
+        res.status(500).json({ "message": "Internal server error" });
+    }
+};
