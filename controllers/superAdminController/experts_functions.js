@@ -380,9 +380,13 @@ exports.unassignExpertFromStudents = async (req, res) => {
 
         // Calculate the number of students to unassign
         
+        console.log(count,currentCount);
 
         if (count <= 0) {
             return res.status(400).json({ message: "No students to unassign based on the provided count" });
+        }
+        if(count > currentCount){
+            return res.status(400).json({ message: "Count cannot exceed the assigne students count!!" });
         }
 
         // Unassign students
