@@ -379,9 +379,9 @@ exports.unassignExpertFromStudents = async (req, res) => {
         const currentCount = countResult[0].currentCount;
 
         // Calculate the number of students to unassign
-        const unassignCount = currentCount - count;
+        
 
-        if (unassignCount <= 0) {
+        if (count <= 0) {
             return res.status(400).json({ message: "No students to unassign based on the provided count" });
         }
 
@@ -393,7 +393,7 @@ exports.unassignExpertFromStudents = async (req, res) => {
             ORDER BY id DESC
             LIMIT ?
         `;
-        const [unassignResult] = await connection.query(unassignQuery, [expertId, subject, qset, unassignCount]);
+        const [unassignResult] = await connection.query(unassignQuery, [expertId, subject, qset, count]);
 
         if (unassignResult.affectedRows === 0) {
             return res.status(404).json({ message: "No students found to unassign" });
