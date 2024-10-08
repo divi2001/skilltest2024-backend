@@ -1349,6 +1349,34 @@ exports.clearStudentIgnoreList = async (req, res) => {
     }
 };
 
+
+exports.modelAnswerAudio = async(req, res) => {
+    // if (!req.session.expertId){
+    //     return res.status(401).json({ error: 'Unauthorized' });
+    // }
+
+    const { subjectId, qset } = req.params;
+
+    let conn;
+
+    try{
+        conn = await connection.getConnection();
+
+        audioQuery = `select subjectId, qset, passage1 from audiodb where subjectId = ? and qset = ?;`
+
+        const [audioResults] = await conn.query(audioQuery, [subjectId, qset])
+        
+        if (audioResults.length === 0) {
+            return res.status(404).json({ error: 'No Audio found for this subject and qset' });
+        }
+
+        res.status(200).json(audioResults[0]);
+    } catch (err) {
+        console.error("Error fetching the audio", err);
+        res.status(500).json({ error: 'Error fetching the audio' });
+    }
+}
+
 // Passage review submission function
 exports.submitPassageReview = async (req, res) => {
     if (!req.session.expertId) {
@@ -1431,3 +1459,4 @@ exports.submitPassageReview = async (req, res) => {
         if (conn) conn.release();
     }
 };
+

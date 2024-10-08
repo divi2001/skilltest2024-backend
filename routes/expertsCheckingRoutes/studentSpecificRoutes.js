@@ -8,6 +8,7 @@ router.get('/qsets/:subjectId', examExpertAdminStudentSpecificController.getQSet
 
 // Expert assignment and passage retrieval routes
 router.get('/expert-assigned-passages/:subjectId/:qset', examExpertAdminStudentSpecificController.getExpertAssignedPassages);
+router.get('/get-subject-qset-audio', examExpertAdminStudentSpecificController.modelAnswerAudio);
 router.post('/assignStudent/:subjectId/:qset', examExpertAdminStudentSpecificController.assignStudentForQSet);
 
 // Ignore list management routes
@@ -19,6 +20,7 @@ router.post('/undo-word', examExpertAdminStudentSpecificController.removeFromIgn
 router.post('/student-undo-word', examExpertAdminStudentSpecificController.removeFromStudentIgnoreList);
 router.post('/clear-ignore-list', examExpertAdminStudentSpecificController.clearIgnoreList);  // New route
 router.post('/student-clear-ignore-list', examExpertAdminStudentSpecificController.clearStudentIgnoreList)
+
 
 // Passage review submission route
 router.post('/submit-passage-review/:subjectId/:qset', examExpertAdminStudentSpecificController.submitPassageReview);
