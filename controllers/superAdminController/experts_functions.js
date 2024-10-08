@@ -1,47 +1,47 @@
 const connection = require("../../config/db1")
 
-exports.getAllExperts = async(req,res)=>{
+exports.getAllExperts = async (req, res) => {
 
     try {
-        let query =  `select * from expertdb`;
-        
+        let query = `select * from expertdb`;
+
         const [results] = await connection.query(query);
 
         if (results.length === 0) {
             return res.status(404).json({ "message": "No expert review logs found for this department" });
         }
 
-        res.status(201).json({"message":"experts fethed successfully",results});
+        res.status(201).json({ "message": "experts fethed successfully", results });
     } catch (error) {
-        console.log("error fetching experts",error);
-        res.status(500).json({"message":"Internal Server Error"});
+        console.log("error fetching experts", error);
+        res.status(500).json({ "message": "Internal Server Error" });
     }
 }
 
-exports.updateExpertsdb = async (req,res) => {
+exports.updateExpertsdb = async (req, res) => {
 
-    const {experts , paper_check , paper_mod , super_mod ,updateAll} = req.body;
+    const { experts, paper_check, paper_mod, super_mod, updateAll } = req.body;
 
-    
-        const fieldsToUpdate = [];
-        const values = [];
-        if (paper_check !== undefined) {
-            fieldsToUpdate.push('paper_check = ?');
-            values.push(paper_check);
-        }
-        if (paper_mod !== undefined) {
-            fieldsToUpdate.push('paper_mod = ?');
-            values.push(paper_mod);
-        }
-        if (super_mod !== undefined) {
-            fieldsToUpdate.push('super_mod = ?');
-            values.push(super_mod);
-        }
-    
-        // Validate input
-        if (fieldsToUpdate.length === 0) {
-            return res.status(400).json({ message: "No valid fields provided for update" });
-        }
+
+    const fieldsToUpdate = [];
+    const values = [];
+    if (paper_check !== undefined) {
+        fieldsToUpdate.push('paper_check = ?');
+        values.push(paper_check);
+    }
+    if (paper_mod !== undefined) {
+        fieldsToUpdate.push('paper_mod = ?');
+        values.push(paper_mod);
+    }
+    if (super_mod !== undefined) {
+        fieldsToUpdate.push('super_mod = ?');
+        values.push(super_mod);
+    }
+
+    // Validate input
+    if (fieldsToUpdate.length === 0) {
+        return res.status(400).json({ message: "No valid fields provided for update" });
+    }
     try {
         let query = 'UPDATE expertdb SET ' + fieldsToUpdate.join(', ');
         if (!updateAll && (!experts || experts.length === 0)) {
@@ -51,7 +51,7 @@ exports.updateExpertsdb = async (req,res) => {
             query += ' WHERE expertId IN (?)';
             values.push(experts);
         }
-        
+
         const [result] = await connection.query(query, values);
 
         if (result.affectedRows === 0) {
@@ -66,21 +66,21 @@ exports.updateExpertsdb = async (req,res) => {
         console.error('Error updating expert fields:', error);
         res.status(500).json({ message: "Internal Server error" });
     }
-    
+
 }
 
 exports.insertExpert = async (req, res) => {
-    const { password, expert_name , expertId } = req.body;
+    const { password, expert_name, expertId } = req.body;
 
     // Validate input
     if (!password || !expert_name) {
         return res.status(400).json({ message: "Both password and expert_name are required" });
     }
-    
+
     try {
         const super_mod = true;
         const query = 'INSERT INTO expertdb (expertId,password, expert_name , super_mod) VALUES (?,?, ? ,?)';
-        const values = [expertId , password, expert_name , super_mod];
+        const values = [expertId, password, expert_name, super_mod];
 
         const [result] = await connection.query(query, values);
 
@@ -95,13 +95,13 @@ exports.insertExpert = async (req, res) => {
 }
 
 exports.getStudentsforExperts = async (req, res) => {
-    const { department, subject , stage_1 , stage_3 } = req.query;
+    const { department, subject, stage_1, stage_3 } = req.query;
     try {
         let query, queryParams = [];
-        if(!stage_1 && !stage_3) return res.status(400).json({"message":"Please select a option"});
-        let tableName ;
-        if(stage_1) tableName = "expertreviewlog";
-        if(stage_3) tableName = "modreviewlog"
+        if (!stage_1 && !stage_3) return res.status(400).json({ "message": "Please select a option" });
+        let tableName;
+        if (stage_1) tableName = "expertreviewlog";
+        if (stage_3) tableName = "modreviewlog"
 
         if (!department && !subject) {
             // Get department-wise stats
@@ -162,7 +162,7 @@ exports.getStudentsforExperts = async (req, res) => {
         }
 
         const [results] = await connection.query(query, queryParams);
-        
+
         if (results.length === 0) {
             return res.status(404).json({ "message": "No unassigned students found!" });
         }
@@ -178,33 +178,33 @@ exports.getStudentsforExperts = async (req, res) => {
 };
 
 exports.assignExpertToStudents = async (req, res) => {
-    const { department, subject, qset, expertId, count , stage_1 , stage_3 } = req.body;
+    const { department, subject, qset, expertId, count, stage_1, stage_3 } = req.body;
 
     if (!department || !subject || !qset || !expertId || !count) {
         return res.status(400).json({ message: "Missing required parameters" });
     }
-    
+
     try {
         // First, select the IDs of the rows we want to update
-        if(!stage_1 && !stage_3) return res.status(400).json({"message":"Please select a option"});
-        let tableName ;
+        if (!stage_1 && !stage_3) return res.status(400).json({ "message": "Please select a option" });
+        let tableName;
         let columnName;
-        if(stage_1){
-             tableName = "expertreviewlog";
-             columnName = "paper_check"
+        if (stage_1) {
+            tableName = "expertreviewlog";
+            columnName = "paper_check"
         };
-        if(stage_3){
-             tableName = "modreviewlog";
-             columnName = "super_mod"
+        if (stage_3) {
+            tableName = "modreviewlog";
+            columnName = "super_mod"
         }
 
-        const updateExpertQuery =  `update expertdb set ${columnName}= true where expertId = ?`;
-        const[results] = await connection.query(updateExpertQuery,[expertId]);
+        const updateExpertQuery = `update expertdb set ${columnName}= true where expertId = ?`;
+        const [results] = await connection.query(updateExpertQuery, [expertId]);
         if (results.affectedRows === 0) {
             return res.status(404).json({ "message": "Expert not found or papercheck already set to true" });
         }
 
-        
+
         const selectQuery = `
             SELECT e.id
             FROM ${tableName} e
@@ -245,16 +245,16 @@ exports.assignExpertToStudents = async (req, res) => {
 };
 
 exports.assignedStudentsSummary = async (req, res) => {
-    const {stage_1 , stage_3 } = req.query;
+    const { stage_1, stage_3 } = req.query;
 
-    let tableName ;
-    if(!stage_1 && !stage_3) return res.status(400).json({"message":"Please select a option"});
-    if(stage_1){
+    let tableName;
+    if (!stage_1 && !stage_3) return res.status(400).json({ "message": "Please select a option" });
+    if (stage_1) {
         tableName = "expertreviewlog";
     }
-    if(stage_3){
+    if (stage_3) {
         tableName = "modreviewlog";
-   }
+    }
 
 
     const query = `
@@ -362,11 +362,11 @@ exports.unassignExpertFromStudents = async (req, res) => {
         let tableName;
         if (stage_1) {
             tableName = "expertreviewlog";
-           
+
         }
         if (stage_3) {
             tableName = "modreviewlog";
-            
+
         }
 
         // Check current assignment count
@@ -379,13 +379,13 @@ exports.unassignExpertFromStudents = async (req, res) => {
         const currentCount = countResult[0].currentCount;
 
         // Calculate the number of students to unassign
-        
-        console.log(count,currentCount);
+
+        console.log(count, currentCount);
 
         if (count <= 0) {
             return res.status(400).json({ message: "No students to unassign based on the provided count" });
         }
-        if(count > currentCount){
+        if (count > currentCount) {
             return res.status(400).json({ message: "Count cannot exceed the assigne students count!!" });
         }
 
@@ -417,6 +417,104 @@ exports.unassignExpertFromStudents = async (req, res) => {
 
     } catch (error) {
         console.error('Error unassigning students from expert:', error);
+        res.status(500).json({ message: "Internal Server error" });
+    }
+};
+
+exports.submmitedByExperts = async (req, res) => {
+    const { stage_1, stage_3 } = req.query;
+
+    let tableName;
+    if (!stage_1 && !stage_3) return res.status(400).json({ "message": "Please select a option" });
+    if (stage_1) {
+        tableName = "expertreviewlog";
+    }
+    if (stage_3) {
+        tableName = "modreviewlog";
+    }
+
+
+    const query = `
+    SELECT 
+        e.expertId,
+        e.expert_name,
+        s.subjectId,
+        s.subject_name,
+        st.departmentId,
+        erl.qset,
+        COUNT(DISTINCT erl.student_id) AS expert_assigned_count,
+        SUM(CASE WHEN erl.subm_done = 1 THEN 1 ELSE 0 END) AS submitted_students,
+        SUM(CASE WHEN erl.subm_done = 0 THEN 1 ELSE 0 END) AS pending_students
+    FROM 
+        expertdb e
+    JOIN ${tableName} erl ON e.expertId = erl.expertId
+    JOIN subjectsdb s ON erl.subjectId = s.subjectId
+    JOIN students st ON erl.student_id = st.student_id
+    GROUP BY 
+        e.expertId, e.expert_name, s.subjectId, s.subject_name, st.departmentId, erl.qset
+    ORDER BY 
+        st.departmentId, e.expertId, s.subjectId, erl.qset;`;
+
+    try {
+        const [results] = await connection.query(query);
+
+        if (results.length === 0) {
+            return res.status(200).json({
+                message: "No expert assignments found",
+                departments: []
+            });
+        }
+
+        // Group the results by department, expert, subject, and qset
+        const groupedAssignments = results.reduce((acc, row) => {
+            if (!acc[row.departmentId]) {
+                acc[row.departmentId] = {
+                    departmentId: row.departmentId,
+                    experts: {}
+                };
+            }
+
+            if (!acc[row.departmentId].experts[row.expertId]) {
+                acc[row.departmentId].experts[row.expertId] = {
+                    expertId: row.expertId,
+                    expert_name: row.expert_name,
+                    subjects: {}
+                };
+            }
+
+            if (!acc[row.departmentId].experts[row.expertId].subjects[row.subjectId]) {
+                acc[row.departmentId].experts[row.expertId].subjects[row.subjectId] = {
+                    subjectId: row.subjectId,
+                    subject_name: row.subject_name,
+                    qsets: []
+                };
+            }
+
+            acc[row.departmentId].experts[row.expertId].subjects[row.subjectId].qsets.push({
+                qset: row.qset,
+                expert_assigned_count: row.expert_assigned_count,
+                submitted_students: Number(row.submitted_students),
+                pending_students: Number(row.pending_students)
+            });
+
+            return acc;
+        }, {});
+
+        // Convert the grouped assignments to the desired array format
+        const formattedAssignments = Object.values(groupedAssignments).map(department => ({
+            ...department,
+            experts: Object.values(department.experts).map(expert => ({
+                ...expert,
+                subjects: Object.values(expert.subjects)
+            }))
+        }));
+
+        res.status(200).json({
+            departments: formattedAssignments
+        });
+
+    } catch (error) {
+        console.error('Error fetching expert assignment summary:', error);
         res.status(500).json({ message: "Internal Server error" });
     }
 };
