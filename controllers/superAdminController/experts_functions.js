@@ -109,13 +109,12 @@ exports.getStudentsforExperts = async (req, res) => {
                 SELECT 
                     d.departmentId,
                     d.departmentName,
-                    COUNT(DISTINCT e.student_id) as student_count
+                    COUNT(DISTINCT e.student_id) as total_count,
+                    COUNT(DISTINCT CASE WHEN e.expertId IS NULL THEN e.student_id END) as unassigned_count
                 FROM 
                     departmentdb d
                 JOIN students s ON d.departmentId = s.departmentId
                 JOIN ${tableName} e ON s.student_id = e.student_id
-                WHERE 
-                    e.expertId IS NULL
                 GROUP BY 
                     d.departmentId, d.departmentName
                 ORDER BY 
@@ -127,13 +126,14 @@ exports.getStudentsforExperts = async (req, res) => {
                 SELECT 
                     sub.subjectId,
                     sub.subject_name,
-                    COUNT(DISTINCT e.student_id) as student_count
+                    COUNT(DISTINCT e.student_id) as total_count,
+                    COUNT(DISTINCT CASE WHEN e.expertId IS NULL THEN e.student_id END) as unassigned_count
                 FROM 
                     subjectsdb sub
                 LEFT JOIN ${tableName} e ON sub.subjectId = e.subjectId
                 LEFT JOIN students s ON e.student_id = s.student_id
                 WHERE 
-                    s.departmentId = ? AND e.expertId IS NULL
+                    s.departmentId = ?
                 GROUP BY 
                     sub.subjectId, sub.subject_name
                 ORDER BY 
@@ -145,12 +145,13 @@ exports.getStudentsforExperts = async (req, res) => {
             query = `
                 SELECT 
                     e.qset,
-                    COUNT(DISTINCT e.student_id) as student_count
+                    COUNT(DISTINCT e.student_id) as total_count,
+                    COUNT(DISTINCT CASE WHEN e.expertId IS NULL THEN e.student_id END) as unassigned_count
                 FROM 
                     ${tableName} e
                 JOIN students s ON e.student_id = s.student_id
                 WHERE 
-                    e.subjectId = ? AND s.departmentId = ? AND e.expertId IS NULL
+                    e.subjectId = ? AND s.departmentId = ?
                 GROUP BY 
                     e.qset
                 ORDER BY 
