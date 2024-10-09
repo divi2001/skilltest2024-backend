@@ -25,7 +25,7 @@ exports.populateModReviewLog = async (req, res) => {
         LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
         LEFT JOIN textlogs tl ON s.student_id = tl.student_id
         LEFT JOIN audiodb ad ON s.subjectsId = ad.subjectId AND s.qset = ad.qset
-        LEFT JOIN qsetdb mq ON s.subjectsId = mq.subjectId
+        LEFT JOIN modqsetdb mq ON s.subjectsId = mq.subjectId
         INNER JOIN studentlogs sl ON s.student_id = sl.student_id
         WHERE 
             s.departmentId = ?
