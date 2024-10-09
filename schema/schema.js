@@ -196,7 +196,7 @@ const schema = {
         expertId: 'INT REFERENCES expertdb(expertId)',
         loggedin: 'DATETIME',
         status: 'BOOLEAN',
-        subm_done: 'BOOLEAN',
+        subm_done: 'BOOLEAN DEFAULT 0',
         subm_time: 'DATETIME'
     },
     modreviewlog: {
@@ -213,7 +213,7 @@ const schema = {
         expertId: 'INT REFERENCES expertdb(expertId)',
         loggedin: 'DATETIME',
         status: 'BOOLEAN',
-        subm_done: 'BOOLEAN',
+        subm_done: 'BOOLEAN DEFAULT 0',
         subm_time: 'DATETIME',
         QPA: 'TEXT',
         QPB: 'TEXT'
