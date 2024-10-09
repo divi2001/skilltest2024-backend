@@ -25,12 +25,16 @@ exports.populateModReviewLog = async (req, res) => {
         LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
         LEFT JOIN textlogs tl ON s.student_id = tl.student_id
         LEFT JOIN audiodb ad ON s.subjectsId = ad.subjectId AND s.qset = ad.qset
-        LEFT JOIN modqsetdb mq ON s.subjectsId = mq.subjectId
-        WHERE s.departmentId = ?
+        LEFT JOIN qsetdb mq ON s.subjectsId = mq.subjectId
+        INNER JOIN studentlogs sl ON s.student_id = sl.student_id
+        WHERE 
+            s.departmentId = ?
+        AND sl.feedback_time IS NOT NULL
+        AND sl.login = true
         ORDER BY s.student_id`;
 
         const [results] = await connection.query(query, [department]);
-        if(results.length === 0) return res.status(201).json({"message":"No students Available "})
+        if (results.length === 0) return res.status(201).json({ "message": "No students Available " })
         // const [results] = await connection.query("select * from modreviewlog");
         // return res.status(201).json(results);
 
@@ -43,7 +47,7 @@ exports.populateModReviewLog = async (req, res) => {
 
             // Determine QPA and QPB based on qset
             let QPA, QPB;
-            switch(row.qset) {
+            switch (row.qset) {
                 case 1:
                     QPA = row.Q1PA;
                     QPB = row.Q1PB;
@@ -115,10 +119,10 @@ exports.populateModReviewLog = async (req, res) => {
                 inserted++;
             }
         }
-        
+
         console.log(`Inserted ${inserted} rows and updated ${updated} rows in modreviewlog`);
-        res.status(200).json({ 
-            message: `Successfully inserted ${inserted} rows and updated ${updated} rows in modreviewlog.` 
+        res.status(200).json({
+            message: `Successfully inserted ${inserted} rows and updated ${updated} rows in modreviewlog.`
         });
 
     } catch (error) {

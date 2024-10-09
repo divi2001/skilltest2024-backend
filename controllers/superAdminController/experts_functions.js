@@ -519,3 +519,42 @@ exports.submmitedByExperts = async (req, res) => {
         res.status(500).json({ message: "Internal Server error" });
     }
 };
+
+exports.copyQsetToModqset = async (req, res) => {
+    try {
+        // First, add a unique constraint to subjectId in modqsetdb
+        const addUniqueConstraintQuery = `
+            ALTER TABLE modqsetdb ADD UNIQUE (subjectId);
+        `;
+        
+        await connection.query(addUniqueConstraintQuery);
+
+        // Now, run your original query
+        const query = `
+            INSERT INTO modqsetdb (subjectId, Q1PA, Q1PB, Q2PA, Q2PB, Q3PA, Q3PB, Q4PA, Q4PB)
+            SELECT subjectId, Q1PA, Q1PB, Q2PA, Q2PB, Q3PA, Q3PB, Q4PA, Q4PB
+            FROM qsetdb
+            ON DUPLICATE KEY UPDATE
+                Q1PA = VALUES(Q1PA),
+                Q1PB = VALUES(Q1PB),
+                Q2PA = VALUES(Q2PA),
+                Q2PB = VALUES(Q2PB),
+                Q3PA = VALUES(Q3PA),
+                Q3PB = VALUES(Q3PB),
+                Q4PA = VALUES(Q4PA),
+                Q4PB = VALUES(Q4PB);
+        `;
+
+        const [result] = await connection.query(query);
+
+        console.log(`Affected rows: ${result.affectedRows}. Inserted: ${result.insertId}. Updated: ${result.changedRows}`);
+        res.status(201).json({
+            affectedRows: result.affectedRows,
+            insertedRows: result.insertId,
+            updatedRows: result.changedRows
+        });
+    } catch (error) {
+        console.error('Error updating or copying data from qsetdb to modqsetdb:', error);
+        res.status(500).json({ error: error.message });
+    }
+};

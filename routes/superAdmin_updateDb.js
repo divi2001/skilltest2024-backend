@@ -8,7 +8,7 @@ const { populateExpertReviewLog } = require("../controllers/superAdminController
 const { populateModReviewLog } = require("../controllers/superAdminController/populateModReviewLog");
 const { getAllStudentsTrack, getCurrentStudentDetailsDepartmentWise } = require('../controllers/superAdminController/superAdminTrackDashboard');
 const { getStudentsFromExpertReviewlog, getStudentsFromModReviewlog } = require('../controllers/superAdminController/fetchStudentsForChecking');
-const { getAllExperts, updateExpertsdb, insertExpert, getStudentsforExperts, assignExpertToStudents, assignedStudentsSummary ,unassignExpertFromStudents,submmitedByExperts } = require('../controllers/superAdminController/experts_functions');
+const { getAllExperts, updateExpertsdb, insertExpert, getStudentsforExperts, assignExpertToStudents, assignedStudentsSummary ,unassignExpertFromStudents,submmitedByExperts ,copyQsetToModqset } = require('../controllers/superAdminController/experts_functions');
 const { expertdb } = require('../schema/schema');
 
 router.post('/fetch-update-tables', fetchUpdateTableController.fetchUpdateTable);
@@ -24,7 +24,7 @@ router.post('/update-experts', updateExpertsdb);
 router.post('/insert-expert', insertExpert);
 router.post('/assign-expert', assignExpertToStudents);
 router.post('/unassign-expert', unassignExpertFromStudents);
-
+router.post("/qset-to-modqset",copyQsetToModqset);
 
 router.get('/get-expert-review-logs', getStudentsFromExpertReviewlog);
 router.get('/get-mod-review-logs', getStudentsFromModReviewlog);
