@@ -262,9 +262,16 @@ exports.assignStudentForQSet = async (req, res) => {
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
     const paper_mod = req.session.paper_mod;
-    let tableName;
 
-    console.log(`paper_check=${paper_check}, super_mod=${super_mod}`);
+    console.log(`paper_check=${paper_check}, super_mod=${super_mod}, paper_mod=${paper_mod}`);
+
+    // Check paper_mod condition first
+    if (paper_mod === 1) {
+        console.log("paper_mod is 1, returning qset details without assigning student");
+        return res.status(200).json({ qset, paper_mod });
+    }
+
+    let tableName;
 
     if (paper_check === 1){
         tableName = 'expertreviewlog';
@@ -357,11 +364,6 @@ exports.assignStudentForQSet = async (req, res) => {
             await conn.commit();
             return res.status(200).json({ qset, student_id, loggedin, status, subm_done, subm_time });
         }
-        else if (paper_mod === 1) {
-            console.log("paper_mod is 1, returning qset details without assigning student");
-            await conn.commit();
-            return res.status(200).json({ qset, paper_mod });
-        }
         else if(super_mod === 1){
             console.log("super_mod is 1, proceeding with QPA and QPB check");
             if (!QPA || !QPB) {
@@ -400,7 +402,7 @@ exports.assignStudentForQSet = async (req, res) => {
     } catch (err) {
         if (conn) await conn.rollback();
         console.error("Error assigning student for QSet:", err);
-        res.status(500).json({ error: 'Error assigning student for QSet' });
+        res.status(500).json({ error: 'Error assigning student for QSet', details: err.message });
     } finally {
         if (conn) conn.release();
         console.log("Connection released");
@@ -1349,6 +1351,34 @@ exports.clearStudentIgnoreList = async (req, res) => {
     }
 };
 
+
+exports.modelAnswerAudio = async(req, res) => {
+    if (!req.session.expertId){
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { subjectId, qset } = req.params;
+
+    let conn;
+
+    try{
+        conn = await connection.getConnection();
+
+        audioQuery = `select subjectId, qset, passage1 from audiodb where subjectId = ? and qset = ?;`
+
+        const [audioResults] = await conn.query(audioQuery, [subjectId, qset])
+        
+        if (audioResults.length === 0) {
+            return res.status(404).json({ error: 'No Audio found for this subject and qset' });
+        }
+
+        res.status(200).json(audioResults[0]);
+    } catch (err) {
+        console.error("Error fetching the audio", err);
+        res.status(500).json({ error: 'Error fetching the audio' });
+    }
+}
+
 // Passage review submission function
 exports.submitPassageReview = async (req, res) => {
     if (!req.session.expertId) {
@@ -1431,3 +1461,4 @@ exports.submitPassageReview = async (req, res) => {
         if (conn) conn.release();
     }
 };
+

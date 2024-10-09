@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
+
 // routes 
 const adminFunctionRouter = require('./routes/admin_functions_routes');
 const examcentereRoutes = require('./routes/examcenter_routes')
@@ -43,7 +44,8 @@ app.use(
     useDefaults: true,
     directives: {
       "script-src": ["'self'", "'unsafe-inline'", "example.com"],
-      "img-src": ["'self'", "https: data:"]
+      "img-src": ["'self'", "https: data:"],
+      "media-src": ["'self'", "https://shorthandexam2024.s3.ap-south-1.amazonaws.com"]
     }
   })
 )
@@ -51,7 +53,7 @@ app.use(
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https://www.shorthandonlineexam.in http://3.6.86.1:5000 http://3.6.86.1:5000/api/compare; img-src 'self' data:;"
+    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https://www.shorthandonlineexam.in http://3.6.86.1:5000 http://3.6.86.1:5000/compare; img-src 'self' data:; media-src 'self' https://shorthandexam2024.s3.ap-south-1.amazonaws.com;"
   );
   next();
 });
