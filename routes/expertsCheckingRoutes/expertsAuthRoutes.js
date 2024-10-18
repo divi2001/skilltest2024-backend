@@ -11,5 +11,6 @@ router.get('/expert-details', examExpertAdminController.getExpertDetails);
 // Expert assignment and passage retrieval routes
 router.get('/student-passages/:subjectId/:qset/:studentId', examExpertAdminController.getStudentPassages);
 router.post('/get-student-passages', examExpertAdminController.getPassagesByStudentId);
+router.post('/update-student-marks/:subjectId/:qset', examExpertAdminController.updateStudentMarks);
 
 module.exports = router;

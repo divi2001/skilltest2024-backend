@@ -224,3 +224,81 @@ exports.getStudentPassages = async (req, res) => {
         }
     }
 };
+
+// Update student marks
+
+exports.updateStudentMarks = async(req, res) => {
+    console.log("updateStudentMarks function called");
+
+    const {subjectId, qset} = req.params;
+    const {spelling, missed, added, grammar, total_mistakes, total_marks} = req.body;
+
+    const expertId = req.session.expertId;
+
+    if (!req.session.expertId){
+        return res.status(401).json({error: 'Unauthorized'});
+    }
+
+    const super_mod = req.session.super_mod;
+
+    let conn;
+    
+    if (super_mod === 1){
+        try {
+            conn = await connection.getConnection();
+            await conn.beginTransaction();
+    
+            const currentStudentAssignment = `
+                SELECT student_id, spelling, missed, added, grammar, total_mistakes, total_marks
+                FROM modreviewlog
+                WHERE subjectId = ? AND qset = ? AND expertId = ? AND subm_done = 0
+                ORDER BY loggedin DESC
+                LIMIT 1`;
+
+            const [storeStudentAssignment] = await conn.query(currentStudentAssignment, [subjectId, qset, expertId]);
+
+            if (storeStudentAssignment.length === 0){
+                await conn.rollback();
+                return res.status(404).json({error: 'No active assignment available'});
+            }
+
+            const studentId = storeStudentAssignment[0].student_id;
+
+            const updateQuery = `
+                UPDATE modreviewlog 
+                SET spelling = ?, missed = ?, added = ?, grammar = ?, total_mistakes = ?, total_marks = ?
+                WHERE student_id = ? AND subjectId = ? AND qset = ? AND expertId = ?`;
+            
+            const [updateResult] = await conn.query(updateQuery, [spelling, missed, added, grammar, total_mistakes, total_marks, studentId, subjectId, qset, expertId]);
+
+            if (updateResult.affectedRows === 0){
+                await conn.rollback();
+                return res.status(404).json({error: 'No matching record found to update'});               
+            }
+
+            // fetch the updated record
+            const updatedResult = `
+                SELECT spelling, missed, added, grammar, total_mistakes, total_marks
+                FROM modreviewlog
+                WHERE student_id = ? AND subjectId = ? AND qset = ? AND expertId = ?`;
+            
+            const [results] = await conn.query(updatedResult, [studentId, subjectId, qset, expertId]);
+
+            if (results.length === 0){
+                await conn.rollback();
+                return res.status(404).json({error: 'Updated record not found!'});
+            }
+
+            await conn.commit();
+            res.status(200).json(results[0]);
+        } catch (error) {
+            if (conn) await conn.rollback();
+            console.error("Error updating marks: ", error);
+            res.status(500).json({error: "Error updating marks"});
+        } finally {
+            if (conn) conn.release();
+        }
+    } else {
+        return res.status(403).json({error: 'Access denied. Only super moderators can update marks.'});
+    }
+};

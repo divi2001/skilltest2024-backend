@@ -1390,6 +1390,7 @@ exports.submitPassageReview = async (req, res) => {
 
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
+    
     let tableName;
 
     if (paper_check === 1){
@@ -1461,4 +1462,6 @@ exports.submitPassageReview = async (req, res) => {
         if (conn) conn.release();
     }
 };
+
+
 
