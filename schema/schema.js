@@ -216,7 +216,14 @@ const schema = {
         subm_done: 'BOOLEAN DEFAULT 0',
         subm_time: 'DATETIME',
         QPA: 'TEXT',
-        QPB: 'TEXT'
+        QPB: 'TEXT',
+        spelling: 'INT DEFAULT 0',
+        missed:'INT DEFAULT 0',
+        added:'INT DEFAULT 0',
+        grammar:'INT DEFAULT 0',
+        total_mistakes:'DECIMAL(5,2) DEFAULT 0.00',
+        total_marks: 'DECIMAL(5,2) DEFAULT 0.00'
+
     },
     typingpassagelogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',

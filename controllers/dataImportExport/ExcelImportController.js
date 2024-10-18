@@ -179,9 +179,9 @@ const insertChunk = async (tableName, columns, chunk) => {
         }
       }
 
-      if (column === 'loggedin' || column === 'done') {
-        return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
-      }
+      // if (column === 'loggedin' || column === 'done') {
+      //   return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
+      // }
 
       if(column === 'centerpass' && tableName === 'examcenterdb'){
         return encrypt(value);
