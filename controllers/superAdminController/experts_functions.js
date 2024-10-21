@@ -93,15 +93,19 @@ exports.insertExpert = async (req, res) => {
         res.status(500).json({ message: "Internal Server error" });
     }
 }
-
 exports.getStudentsforExperts = async (req, res) => {
     const { department, subject, stage_1, stage_3 } = req.query;
     try {
         let query, queryParams = [];
-        if (!stage_1 && !stage_3) return res.status(400).json({ "message": "Please select a option" });
+        if (!stage_1 && !stage_3) {
+            console.log('Error: No stage selected');
+            return res.status(400).json({ "message": "Please select a option" });
+        }
         let tableName;
         if (stage_1) tableName = "expertreviewlog";
         if (stage_3) tableName = "modreviewlog"
+
+        console.log(`Using table: ${tableName}`);
 
         if (!department && !subject) {
             // Get department-wise stats
@@ -159,12 +163,19 @@ exports.getStudentsforExperts = async (req, res) => {
             `;
             queryParams = [subject, department];
         } else {
+            console.log('Error: Invalid query parameters', { department, subject });
             return res.status(400).json({ "message": "Invalid query parameters" });
         }
 
+        console.log('Executing query:', query);
+        console.log('Query parameters:', queryParams);
+
         const [results] = await connection.query(query, queryParams);
 
+        console.log('Query results:', results);
+
         if (results.length === 0) {
+            console.log('No results found');
             return res.status(404).json({ "message": "No unassigned students found!" });
         }
 
@@ -173,8 +184,20 @@ exports.getStudentsforExperts = async (req, res) => {
             results
         });
     } catch (error) {
-        console.error('Error fetching students:', error);
-        res.status(500).json({ message: "Internal Server error" });
+        console.error('Error in getStudentsforExperts:');
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        
+        if (error.sql) {
+            console.error('SQL query:', error.sql);
+        }
+        
+        if (error.sqlMessage) {
+            console.error('SQL error message:', error.sqlMessage);
+        }
+        
+        res.status(500).json({ message: "Internal Server error", error: error.message });
     }
 };
 
