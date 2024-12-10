@@ -731,6 +731,33 @@ exports.getPassageProgress = async (req, res) => {
       res.status(500).send(err.message);
     }
   };
+
+  exports.getTypedTextB = async (req, res) => {
+    const studentId = req.session.studentId;
+  
+    if (!studentId) {
+        console.error('Student ID is required');
+        return res.status(400).send('Student ID is required');
+    }
+  
+    try {
+        const query = 'SELECT passageB FROM finalPassageSubmit WHERE student_id = ?';
+        const [rows] = await connection.query(query, [studentId]);
+  
+        if (rows.length === 0) {
+            console.log('No data found for the student');
+            return res.status(404).send('No data found for the student');
+        }
+  
+        const { passageB } = rows[0];  // Fixed to use passageB
+  
+        console.log('Sending typed text for passageB');  // Updated log message
+        res.json({ typedText: passageB });  // Fixed to use passageB
+    } catch (err) {
+        console.error('Failed to fetch typed text for passageB:', err);  // Updated error message
+        res.status(500).send(err.message);
+    }
+};
   
   exports.getPassage = async (req, res) => {
     const studentId = req.session.studentId;

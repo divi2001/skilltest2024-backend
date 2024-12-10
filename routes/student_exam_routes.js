@@ -20,6 +20,8 @@ router.get('/audios', isAuthenticated,studentController.getaudios);
 router.get('/controller_pass',isAuthenticated, studentController.getcontrollerpass);
 router.get('/audioProgress', isAuthenticated,studentController.getAudioLogs); 
 router.get('/typedtexta', isAuthenticated, studentController.getTypedTextA);
+router.get('/typedtextb', isAuthenticated, studentController.getTypedTextB);
+
 router.get('/passage', isAuthenticated, studentController.getPassage);
 router.post('/total-login-count',studentController1.totalLoginCounts);
 router.get('/finalpassagelogs', isAuthenticated, studentController.getPassageFinalLogs);
