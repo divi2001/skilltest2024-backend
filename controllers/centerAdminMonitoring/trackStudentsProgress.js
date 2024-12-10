@@ -197,7 +197,14 @@ exports.getStoredStages = async (req, res) => {
         });
     }
 
-    const createQuery = `CREATE TABLE IF NOT EXISTS exam_stages (StudentId BIGINT, StudentInfo BOOLEAN DEFAULT 0, Instructions BOOLEAN DEFAULT 0, InputChecker BOOLEAN DEFAULT 0, HeadphoneTest BOOLEAN DEFAULT 0, ControllerPassword BOOLEAN DEFAULT 0, TrialPassage BOOLEAN DEFAULT 0, AudioPassageA BOOLEAN DEFAULT 0, TypingPassageA BOOLEAN DEFAULT 0, TrialTypewriting BOOLEAN DEFAULT 0, Typewriting BOOLEAN DEFAULT 0, ShorthandSummary BOOLEAN DEFAULT 0, TypingSummary BOOLEAN DEFAULT 0, FeedbackForm BOOLEAN DEFAULT 0, ThankYou BOOLEAN DEFAULT 0, FOREIGN KEY (StudentId) REFERENCES students(student_id));`
+    const createQuery = `CREATE TABLE IF NOT EXISTS exam_stages 
+    (StudentId BIGINT, StudentInfo BOOLEAN DEFAULT 0, 
+    Instructions BOOLEAN DEFAULT 0, InputChecker BOOLEAN DEFAULT 0, HeadphoneTest BOOLEAN DEFAULT 0, 
+    ControllerPassword BOOLEAN DEFAULT 0, TrialPassage BOOLEAN DEFAULT 0, AudioPassageA BOOLEAN DEFAULT 0, 
+    TypingPassageA BOOLEAN DEFAULT 0, AudioPassageB BOOLEAN DEFAULT 0, TypingPassageB BOOLEAN DEFAULT 0,
+    TrialTypewriting BOOLEAN DEFAULT 0, Typewriting BOOLEAN DEFAULT 0, 
+    ShorthandSummary BOOLEAN DEFAULT 0, ShorthandSummaryB BOOLEAN DEFAULT 0, TypingSummary BOOLEAN DEFAULT 0, FeedbackForm BOOLEAN DEFAULT 0, 
+    ThankYou BOOLEAN DEFAULT 0, FOREIGN KEY (StudentId) REFERENCES students(student_id));`
 
     try {
         //create table if it does not exist 
@@ -214,7 +221,9 @@ exports.getStoredStages = async (req, res) => {
             const defaultStages = {
                 StudentInfo: 0, Instructions: 0, InputChecker: 0, HeadphoneTest: 0,
                 ControllerPassword: 0, TrialPassage: 0, AudioPassageA: 0, TypingPassageA: 0,
-                TrialTypewriting: 0, Typewriting: 0, ShorthandSummary: 0, TypingSummary: 0,
+                AudioPassageB: 0, TypingPassageB: 0,
+                TrialTypewriting: 0, Typewriting: 0, ShorthandSummary: 0, 
+                ShorthandSummaryB: 0, TypingSummary: 0,
                 FeedbackForm: 0, ThankYou: 0
             };
 
@@ -262,7 +271,14 @@ exports.storeExamStage = async (req, res) => {
         })
     }
 
-    const createQuery = `CREATE TABLE IF NOT EXISTS exam_stages (StudentId BIGINT, StudentInfo BOOLEAN DEFAULT 0, Instructions BOOLEAN DEFAULT 0, InputChecker BOOLEAN DEFAULT 0, HeadphoneTest BOOLEAN DEFAULT 0, ControllerPassword BOOLEAN DEFAULT 0, TrialPassage BOOLEAN DEFAULT 0, AudioPassageA BOOLEAN DEFAULT 0, TypingPassageA BOOLEAN DEFAULT 0, AudioPassageB BOOLEAN DEFAULT 0, TypingPassageB BOOLEAN DEFAULT 0, TrialTypewriting BOOLEAN DEFAULT 0, Typewriting BOOLEAN DEFAULT 0, ShorthandSummary BOOLEAN DEFAULT 0, ShorthandSummaryB BOOLEAN DEFAULT 0, TypingSummary BOOLEAN DEFAULT 0, FeedbackForm BOOLEAN DEFAULT 0, ThankYou BOOLEAN DEFAULT 0, FOREIGN KEY (StudentId) REFERENCES students(student_id));`
+    const createQuery = `CREATE TABLE IF NOT EXISTS exam_stages 
+    (StudentId BIGINT, StudentInfo BOOLEAN DEFAULT 0, Instructions BOOLEAN DEFAULT 0, 
+    InputChecker BOOLEAN DEFAULT 0, HeadphoneTest BOOLEAN DEFAULT 0, ControllerPassword BOOLEAN DEFAULT 0, 
+    TrialPassage BOOLEAN DEFAULT 0, AudioPassageA BOOLEAN DEFAULT 0, TypingPassageA BOOLEAN DEFAULT 0, 
+    AudioPassageB BOOLEAN DEFAULT 0, TypingPassageB BOOLEAN DEFAULT 0, TrialTypewriting BOOLEAN DEFAULT 0, 
+    Typewriting BOOLEAN DEFAULT 0, ShorthandSummary BOOLEAN DEFAULT 0, ShorthandSummaryB BOOLEAN DEFAULT 0, 
+    TypingSummary BOOLEAN DEFAULT 0, FeedbackForm BOOLEAN DEFAULT 0, ThankYou BOOLEAN DEFAULT 0, 
+    FOREIGN KEY (StudentId) REFERENCES students(student_id));`
     
     
     // List of valid exam stages
