@@ -28,15 +28,15 @@ exports.resetStudentProgress = async (req, res) => {
         ],
         audioShorthandB: [
             `UPDATE audiologs SET passageB = 0 WHERE student_id = ?;`,
-            `UPDATE exam_stages SET AudioPassageA = 0, ThankYou = 0 WHERE StudentId = ?;`
+            `UPDATE exam_stages SET AudioPassageB = 0, ThankYou = 0 WHERE StudentId = ?;`
         ],
         textShorthandB: [
             `UPDATE textlogs SET minb = 0, textb = NULL WHERE student_id = ?;`,
-            `UPDATE exam_stages SET TypingPassageA = 0, ThankYou = 0 WHERE StudentId = ?;`
+            `UPDATE exam_stages SET TypingPassageB = 0, ThankYou = 0 WHERE StudentId = ?;`
         ],
         finalShorthandPassageB: [
             `UPDATE finalPassageSubmit SET passageB = NULL WHERE student_id = ?;`,
-            `UPDATE exam_stages SET ShorthandSummary = 0, ThankYou = 0 WHERE StudentId = ?;`
+            `UPDATE exam_stages SET TypingPassageB = 0, ShorthandSummaryB = 0, ThankYou = 0 WHERE StudentId = ?;`
         ],
         trialPassageTyping: [
             `UPDATE typingpassagelogs SET trial_time = NULL, trial_passage = NULL WHERE student_id = ?;`,

@@ -154,3 +154,14 @@ exports.getBatchwiseControllerPassForCenter = async(req,res)=>{
         res.status(500).json({"Error":error});
     }
 }
+
+exports.generateControllerPass = async (req,res) => {
+
+    try {
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({"Error":error});
+    }
+    
+}
