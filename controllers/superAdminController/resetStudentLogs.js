@@ -3,10 +3,33 @@ const moment = require('moment-timezone');
 
 exports.resetStudentProgress = async (req, res) => {
     const { student_id, studentLogin, trialAudioShortHand, audioShorthandA, textShorthandA, audioShorthandB, textShorthandB, trialText, textTyping, finalShorthandPassageA, finalShorthandPassageB, finalTrialPassageTyping, finalTypingPassage } = req.body;
-    const {reset_id} = req.query;
+    const { reset_id } = req.query;
     console.log("Request body:", req.body);
-    
-    const commonQuery = `update resetrequests set approved = "Approved" AND reseted_by = "super-admin" where id = ? AND student_id = ?`
+    if (!reset_id || !student_id) {
+        return res.status(400).json({ "message": "Missing reset_id or student_id." });
+    }
+
+    const commonQuery = `
+    UPDATE resetrequests 
+    SET approved = "Approved", reseted_by = "super-admin" 
+    WHERE id = ? AND student_id = ?
+`;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const queries = {
         studentLogin: [
             `UPDATE students SET loggedin = 0, done = 0 WHERE student_id = ?;`,
@@ -98,14 +121,19 @@ exports.resetStudentProgress = async (req, res) => {
             }
         }
 
+        // console.log(response)
+        // if(response.affectedRows == 0) return res.status(403).json({"message":"error updating request status"});
+
         if (executedQueries.length === 0) {
-            res.status(400).json({ "message": "No valid reset options selected" });
+            return res.status(400).json({ "message": "No valid reset options selected" });
         } else {
-            const [response] = await connection.query(commonQuery,[reset_id,student_id]);
-            if(response.affectedRows == 0) return res.status(403).json({"message":"error updating request status"});
-            console.log("Executed queries:", executedQueries);
+            // console.log("Executed queries:", executedQueries);
+            if(reset_id) await connection.query(commonQuery, [reset_id, student_id]);
+            
             res.status(200).json({ "message": "Reset Successful!", "executedQueries": executedQueries });
         }
+
+
 
     } catch (err) {
         console.error("Error executing query:", err);
@@ -119,8 +147,8 @@ exports.getResetRequests = async (req, res) => {
     let filter = "";
     let parameter = [];
     if (centerId) {
-       filter = " AND center = ?"
-       parameter.push(centerId)
+        filter = " AND center = ?"
+        parameter.push(centerId)
     }
 
     try {
@@ -131,7 +159,7 @@ exports.getResetRequests = async (req, res) => {
             WHERE 1 = 1 ${filter} AND approved = "Pending"
             ORDER BY id DESC
         `;
-        
+
         const [resetRequests] = await connection.query(fetchResetRequestsQuery, parameter);
 
         if (resetRequests.length === 0) {
