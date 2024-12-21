@@ -94,7 +94,7 @@ LEFT JOIN (
     GROUP BY
         student_id
 ) sl ON s.student_id = sl.student_id
-WHERE s.departmentId = 3 AND s.center = ? `;
+WHERE s.departmentId = 0 AND s.center = ? `;
 
 
     if (batchNo) {

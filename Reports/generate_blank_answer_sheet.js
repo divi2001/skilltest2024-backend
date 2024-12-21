@@ -105,7 +105,7 @@ async function getData(center, batchNo) {
 async function generateBlankAnswerSheet(doc, center, batchNo) {
   try {
       const Data = await getData(center, batchNo);
-      // console.log(Data);
+      console.log(Data);
 
       const response = Data.response;
       if (!Array.isArray(response) || response.length === 0) {

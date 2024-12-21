@@ -6,21 +6,22 @@ exports.loginCenterAdmin= async (req, res) => {
     console.log("Trying center admin login");
     const { centerId, password } = req.body;
     // console.log("center: "+centerId+ " password: "+password);
-    // console.log(req.body);
+    console.log(req.body);
     const centerdbQuery = 'SELECT center, centerpass FROM examcenterdb WHERE center = ?';
   
     try {
         const [results] = await connection.query(centerdbQuery, [centerId]);
         if (results.length > 0) {
             const admin = results[0];
-            // console.log("data: "+admin);
-            // console.log(admin.centerpass);
+            console.log("data: "+admin);
+            console.log(admin.centerpass);
             let decryptedStoredPassword;
             try {
-                // console.log("entered:");
+                console.log("entered:");
                 decryptedStoredPassword = decrypt(admin.centerpass);
+                
             } catch (error) {
-                // console.log(decryptedStoredPassword + password )
+                console.log(decryptedStoredPassword + password )
                 console.error('Error decrypting provided password:', error);
                 res.status(500).send('invalid credentials 4');
                 return;
@@ -28,6 +29,7 @@ exports.loginCenterAdmin= async (req, res) => {
 
             // Ensure both passwords are treated as strings
             const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
+            console.log(decryptedStoredPasswordStr)
 
             try {
                 // console.log("admin pass: "+admin.centerpass + " provide pass: "+password);

@@ -1,10 +1,12 @@
 const connection = require("../../config/db1")
-
+const moment = require('moment-timezone');
 
 exports.resetStudentProgress = async (req, res) => {
     const { student_id, studentLogin, trialAudioShortHand, audioShorthandA, textShorthandA, audioShorthandB, textShorthandB, trialText, textTyping, finalShorthandPassageA, finalShorthandPassageB, finalTrialPassageTyping, finalTypingPassage } = req.body;
+    const {reset_id} = req.query;
     console.log("Request body:", req.body);
-
+    
+    const commonQuery = `update resetrequests set approved = "Approved" AND reseted_by = "super-admin" where id = ? AND student_id = ?`
     const queries = {
         studentLogin: [
             `UPDATE students SET loggedin = 0, done = 0 WHERE student_id = ?;`,
@@ -99,6 +101,8 @@ exports.resetStudentProgress = async (req, res) => {
         if (executedQueries.length === 0) {
             res.status(400).json({ "message": "No valid reset options selected" });
         } else {
+            const [response] = await connection.query(commonQuery,[reset_id,student_id]);
+            if(response.affectedRows == 0) return res.status(403).json({"message":"error updating request status"});
             console.log("Executed queries:", executedQueries);
             res.status(200).json({ "message": "Reset Successful!", "executedQueries": executedQueries });
         }
@@ -108,3 +112,41 @@ exports.resetStudentProgress = async (req, res) => {
         res.status(500).json({ "error": err.message });
     }
 }
+
+exports.getResetRequests = async (req, res) => {
+    const centerId = req.query.center;
+
+    let filter = "";
+    let parameter = [];
+    if (centerId) {
+       filter = " AND center = ?"
+       parameter.push(centerId)
+    }
+
+    try {
+        // Fetch reset requests for the center
+        const fetchResetRequestsQuery = `
+            SELECT * 
+            FROM resetrequests
+            WHERE 1 = 1 ${filter} AND approved = "Pending"
+            ORDER BY id DESC
+        `;
+        
+        const [resetRequests] = await connection.query(fetchResetRequestsQuery, parameter);
+
+        if (resetRequests.length === 0) {
+            return res.status(404).json({ message: "No reset requests found for this center" });
+        }
+
+        // Format the time for each request
+        const formattedRequests = resetRequests.map(request => ({
+            ...request,
+            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+        }));
+
+        res.json(formattedRequests);
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+};

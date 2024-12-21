@@ -17,6 +17,7 @@ router.put('/update-table/:table_name/:id', updateTableController.updateTable);
 router.post('/super-admin-student-track-dashboard', getAllStudentsTrack);
 router.get('/get-super-admin-student-count', getCurrentStudentDetailsDepartmentWise);
 router.post('/super-admin-reset-student-logs', resetStudentLogs.resetStudentProgress);
+router.get('/get-pending-requests',resetStudentLogs.getResetRequests);
 
 //Paper-checking related routes
 router.post('/populate-expert-review-log', populateExpertReviewLog);
@@ -28,6 +29,7 @@ router.post('/unassign-expert', unassignExpertFromStudents);
 router.post("/qset-to-modqset",copyQsetToModqset);
 router.post("/update-batch-status",updateBatchStatus);
 
+
 router.get('/get-expert-review-logs', getStudentsFromExpertReviewlog);
 router.get('/get-mod-review-logs', getStudentsFromModReviewlog);
 router.get("/get-experts", getAllExperts);
@@ -35,6 +37,7 @@ router.get('/get-student-count-expert', getStudentsforExperts);
 router.get('/get-student-summary-expert', assignedStudentsSummary);
 router.get("/checked-students",submmitedByExperts);
 router.get("/get-all-batches",getAllBatches)
+
 
 
 module.exports = router;

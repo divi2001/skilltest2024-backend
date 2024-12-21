@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 
 function createAttendanceReport(doc , data) {
     function addHeader() {
-        doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 50, { width: 60, height: 50 })
+        doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 })
 
         doc.fontSize(14).font('Helvetica-Bold')
             .text(data.departmentName, 110, 50, {
@@ -239,9 +239,9 @@ const getData = async(center , batchNo) => {
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
         // console.log(batchData[0].batchdate);
-        if(!checkDownloadAllowedStudentLoginPass(batchData[0].batchdate)) {
-            return res.status(403).json({ "message": "Download not allowed at this time" });
-        }
+        // if(!checkDownloadAllowedStudentLoginPass(batchData[0].batchdate)) {
+        //     return res.status(403).json({ "message": "Download not allowed at this time" });
+        // }
         
         return { 
             response: response[0], 

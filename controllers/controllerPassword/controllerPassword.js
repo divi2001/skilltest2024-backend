@@ -53,17 +53,27 @@ exports.getControllerPassForCenter = async (req, res) => {
     const centerCode = req.session.centerId;
     const { batchNo } = req.body;
 
-    // console.log("CenterCode: " + centerCode);
+    console.log("CenterCode: " + centerCode);
 
-    const query = `SELECT controllerdb.center, controllerdb.batchNo, controllerdb.controller_pass, 
-                    batchdb.Start_time, batchdb.End_Time, batchdb.batchstatus, batchdb.batchdate 
-                   FROM controllerdb 
-                   INNER JOIN batchdb ON controllerdb.batchNo = batchdb.batchNo 
-                   WHERE controllerdb.center = ?;`;
+    const query = ` SELECT 
+            c.center, 
+            c.batchNo, 
+            c.controller_pass, 
+            b.Start_time, 
+            b.End_Time, 
+            b.batchstatus, 
+            b.batchdate,
+            COUNT(s.batchNo) as studentCount
+        FROM controllerdb c
+        INNER JOIN batchdb b ON c.batchNo = b.batchNo 
+        LEFT JOIN students s ON b.batchNo = s.batchNo AND s.center = c.center
+        WHERE c.center = ? AND s.departmentId = 0
+        GROUP BY c.center, c.batchNo, c.controller_pass, b.Start_time, b.End_Time, b.batchstatus, b.batchdate
+        HAVING studentCount > 0;`;
 
     try {
         const [results] = await connection.query(query, [centerCode]);
-        // console.log(results);
+        console.log(results);
         if (results.length > 0) {
             // Filter results to include only those where start_time is within 30 minutes
             // const currentTime = moment();
@@ -84,7 +94,7 @@ exports.getControllerPassForCenter = async (req, res) => {
                     );
                 });
 
-                // console.log(controllerPassDto);
+                console.log(controllerPassDto);
                 res.status(200).json({controllerPassDto});
             } else {
                 res.status(404).send('No records found!');
@@ -155,13 +165,3 @@ exports.getBatchwiseControllerPassForCenter = async(req,res)=>{
     }
 }
 
-exports.generateControllerPass = async (req,res) => {
-
-    try {
-        
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({"Error":error});
-    }
-    
-}
