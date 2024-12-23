@@ -5,20 +5,21 @@ const moment = require('moment-timezone');
 const { stat } = require('fs/promises');
 exports.departementLogin = async (req, res) => {
 
-    console.log("Trying center admin login");
+    console.log("Trying Department admin login");
     const { departmentId, password } = req.body;
     // console.log("center: "+centerId+ " password: "+password);
-    // console.log(req.body);
+    console.log(req.body);
     const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
     
     try {
         const [results] = await connection.query(departmentdbQuery, [departmentId]);
+        console.log(results);
         if (results.length > 0) {
             const admin = results[0];
             // console.log("data: "+admin);
             // console.log(admin)
             let decryptedStoredPassword = await decrypt(admin.departmentPassword);
-            // console.log(decryptedStoredPassword);
+            console.log(decryptedStoredPassword);
             try {
 
                 // console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);

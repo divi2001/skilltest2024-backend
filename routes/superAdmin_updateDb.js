@@ -18,6 +18,7 @@ router.post('/super-admin-student-track-dashboard', getAllStudentsTrack);
 router.get('/get-super-admin-student-count', getCurrentStudentDetailsDepartmentWise);
 router.post('/super-admin-reset-student-logs', resetStudentLogs.resetStudentProgress);
 router.get('/get-pending-requests',resetStudentLogs.getResetRequests);
+router.get("/reset-centers",resetStudentLogs.getResetCenters);
 
 //Paper-checking related routes
 router.post('/populate-expert-review-log', populateExpertReviewLog);

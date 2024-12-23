@@ -5,30 +5,18 @@ exports.resetStudentProgress = async (req, res) => {
     const { student_id, studentLogin, trialAudioShortHand, audioShorthandA, textShorthandA, audioShorthandB, textShorthandB, trialText, textTyping, finalShorthandPassageA, finalShorthandPassageB, finalTrialPassageTyping, finalTypingPassage } = req.body;
     const { reset_id } = req.query;
     console.log("Request body:", req.body);
-    if (!reset_id || !student_id) {
-        return res.status(400).json({ "message": "Missing reset_id or student_id." });
+    // if (!reset_id || !student_id) {
+    //     return res.status(400).json({ "message": "Missing reset_id or student_id." });
+    // }
+    let commonQuery ="";
+    if(reset_id){
+        commonQuery = `
+        UPDATE resetrequests 
+        SET approved = "Approved", reseted_by = "super-admin" 
+        WHERE id = ? AND student_id = ?
+    `;
     }
-
-    const commonQuery = `
-    UPDATE resetrequests 
-    SET approved = "Approved", reseted_by = "super-admin" 
-    WHERE id = ? AND student_id = ?
-`;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
 
     const queries = {
         studentLogin: [
@@ -128,8 +116,8 @@ exports.resetStudentProgress = async (req, res) => {
             return res.status(400).json({ "message": "No valid reset options selected" });
         } else {
             // console.log("Executed queries:", executedQueries);
-            if(reset_id) await connection.query(commonQuery, [reset_id, student_id]);
-            
+            if (reset_id) await connection.query(commonQuery, [reset_id, student_id]);
+
             res.status(200).json({ "message": "Reset Successful!", "executedQueries": executedQueries });
         }
 
@@ -178,3 +166,23 @@ exports.getResetRequests = async (req, res) => {
         res.status(500).send('Internal server error');
     }
 };
+
+
+exports.getResetCenters = async (req, res) => {
+    try {
+        const query = `SELECT DISTINCT e.center, e.center_name
+                              FROM examcenterdb e
+                              JOIN resetrequests r ON e.center = r.center
+                              WHERE r.approved = "Pending";`
+        
+        const [result] = await connection.query(query);
+
+        if(result.length == 0){
+            return res.status(404).json({"message":"No centers Found!!"})
+        }
+        res.status(201).json({"message":"Centers Found!!!",result});
+    } catch (error) {
+        console.error('Database query error:', err);
+        res.status(500).send('Internal server error');
+    }
+}
