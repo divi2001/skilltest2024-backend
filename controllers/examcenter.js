@@ -1,13 +1,8 @@
-const connection = require('../config/db1');
-const xl = require('excel4node');
-const path = require('path');
-const fs = require('fs').promises;
-const Buffer = require('buffer').Buffer;
-const archiver = require('archiver');
+const connection = require('../config/db1')
 const moment = require('moment-timezone');
 
 const { encrypt, decrypt } = require('../config/encrypt');
-const { request } = require('http');
+
 exports.loginCenter = async (req, res) => {
     console.log("Trying center login");
     const { centerId, centerPass, ipAddress, diskIdentifier, macAddress } = req.body;
