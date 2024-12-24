@@ -4,7 +4,7 @@ const connection = require("../../config/db1")
 
 exports.getAllBatches = async (req, res) => {
     try {
-        const query = 'SELECT * FROM batchdb ORDER BY batchdate DESC, reporting_time ASC';
+        const query = 'SELECT * FROM batchdb ';
         const [batches] = await connection.execute(query);
         
         res.status(200).json({
