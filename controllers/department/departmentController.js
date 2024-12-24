@@ -10,7 +10,7 @@ exports.departementLogin = async (req, res) => {
     // console.log("center: "+centerId+ " password: "+password);
     console.log(req.body);
     const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
-    
+
     try {
         const [results] = await connection.query(departmentdbQuery, [departmentId]);
         console.log(results);
@@ -32,13 +32,14 @@ exports.departementLogin = async (req, res) => {
             if (admin.departmentPassword === password) {
                 // Set institute session
                 req.session.departmentId = admin.departmentId;
-                res.status(200).send({"message":'Logged in successfully as an department admin!'});
+                console.log("Logged in successfully as an department admin!")
+                res.status(200).send({ "message": 'Logged in successfully as an department admin!' });
 
             } else {
                 res.status(401).send('Invalid credentials for center admin');
             }
         } else {
-            res.status(404).send({"message":'department not found'});
+            res.status(404).send({ "message": 'department not found' });
         }
     } catch (err) {
         res.status(500).send(err.message);
@@ -50,30 +51,29 @@ function formatDate(dateString) {
 function convertDateFormat(dateString) {
     // Parse the original date string
     const [day, month, year] = dateString.split('-');
-  
+
     // Create a Date object in UTC
     // Set the time to 18:30:00 UTC of the previous day
     const date = new Date(Date.UTC(year, month - 1, day - 1, 18, 30, 0));
-    
+
     // Convert to ISO 8601 format
     return date
 }
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
     console.log('Starting getStudentsTrack function');
-    const departmentId = req.session.departmentId;
+    const departmentId = req.session.departmentId.toString();
     let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.query;
-    // console.log("Exam center code:", departmentId);
-    // console.log("Batch no:", batchNo);
-    // console.log("Subject:", subject_name);
-    // console.log("Login status:", loginStatus);
-    // console.log("exam type:", exam_type);
-    // console.log("Center no:", center);
-    // console.log("Original Batch date:", batchDate);
+    console.log("Exam departmentId", departmentId);
+    console.log("Batch no:", batchNo);
+    console.log("Subject:", subject_name);
+    console.log("Login status:", loginStatus);
+    console.log("exam type:", exam_type);
+    console.log("Center no:", center);
+    console.log("Original Batch date:", batchDate);
 
-    
+
 
     if (!departmentId) {
-        // console.log('department admin is not logged in');
         return res.status(404).json({ "message": "Center admin is not logged in" });
     }
 
@@ -136,6 +136,7 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     ) sl ON s.student_id = sl.student_id
     WHERE s.departmentId = ?`;
 
+
     if (batchNo) {
         query += ' AND s.batchNo = ?';
         queryParams.push(batchNo);
@@ -183,7 +184,7 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 
     try {
         const [results] = await connection.query(query, queryParams);
-        // console.log('Query result:', results);
+        console.log('Query result:', results);
 
         if (results.length > 0) {
             const studentTrackDTOs = results.map(result => {
@@ -231,6 +232,30 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     }
 }
 
+exports.getDepartmentDetails = async (req,res) => {
+
+    const department = req.session.departmentId.toString();
+    console.log(department);
+    if (!department) {
+        return res.status(400).json({ message: "Department admin not logged in" });
+    }
+
+    let query = 'select departmentName , logo from departmentdb where departmentId = ?';
+
+    try {
+        const [response] = await connection.query(query,[department]);
+        if (response.length === 0) {
+            return res.status(404).json({ message: "Department not found" });
+        }
+        // console.log(response);
+        res.status(201).json({"message":"Department details found",departmentDetails:response[0]});
+    } catch (error) {
+        console.error("Database query error:", err);
+        res.status(500).json({ message: err.message });
+    }
+    
+}
+
 exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
     try {
         const department = req.session.departmentId;
@@ -244,7 +269,7 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
             filter += ' AND s.batchNo = ?';
             queryParams.push(batchNo);
         }
-        if(center){
+        if (center) {
             filter += ' AND s.center = ?';
             queryParams.push(center);
         }
@@ -259,7 +284,7 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
             SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_completed
         `).join(', ');
 
-        const subjectNames = subjects.map(sub => 
+        const subjectNames = subjects.map(sub =>
             `'${sub.subject_name}' AS subject_${sub.subjectId}_name`
         ).join(', ');
 
@@ -316,19 +341,19 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
     }
 };
 
-exports.getDepartmentswithstudents = async(req,res)=>{
+exports.getDepartmentswithstudents = async (req, res) => {
 
     try {
-        let query =`select d.departmentId ,d.departmentName, d.departmentStatus from departmentdb d join students s on s.departmentId = d.departmentId group by d.departmentId;`;
+        let query = `select d.departmentId ,d.departmentName, d.departmentStatus from departmentdb d join students s on s.departmentId = d.departmentId group by d.departmentId;`;
 
         const [results] = await connection.query(query);
-        if(results.length === 0) return res.status(404).json({"message":"No deparments found"});
-        res.status(201).json(results); 
+        if (results.length === 0) return res.status(404).json({ "message": "No deparments found" });
+        res.status(201).json(results);
     } catch (error) {
         console.log(error);
         res.status(500).json({ "message": "Internal Server Error!!" });
     }
-} 
+}
 
 exports.updateDepartmentStatus = async (req, res) => {
     const { department, status } = req.body;
@@ -350,7 +375,7 @@ exports.updateDepartmentStatus = async (req, res) => {
             "message": "Department status updated successfully",
             "affectedRows": result.affectedRows
         });
-        
+
     } catch (error) {
         console.log("Error", error);
         res.status(500).json({ "message": "Internal server error" });

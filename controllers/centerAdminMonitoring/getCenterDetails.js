@@ -46,9 +46,10 @@ exports.getPcregistrationdetails = async (req, res) => {
     try {
         const query = `SELECT 
     e.center,
+    e.center_name,
     e.max_pc,
     e.pc_count,
-    COUNT(p.id) AS registered_pc_count
+    COUNT(p.id) AS registered_pc_count 
 FROM 
     examcenterdb e
 LEFT JOIN 
