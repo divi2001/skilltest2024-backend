@@ -42,6 +42,8 @@ build/Release
 node_modules/
 jspm_packages/
 
+typing_passage_logs/
+
 # CSV Database Files
 CSV Database Files/
 
