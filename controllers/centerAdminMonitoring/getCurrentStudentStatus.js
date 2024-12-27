@@ -34,17 +34,18 @@ exports.getCurrentStudentDetails = async (req, res) => {
             COUNT(DISTINCT s.student_id) AS total_students, 
             COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
             COUNT(DISTINCT CASE WHEN sl.feedback_time IS NOT NULL THEN s.student_id END) AS completed_student, 
-            s.start_time, 
+            b.start_time, 
             s.batchdate,
             ${subjectCounts},
             ${subjectNames}
         FROM 
             students s
+        LEFT JOIN batchdb b ON b.batchNo = s.batchNo
         LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
         WHERE 
             s.center = ? ${filter}
         GROUP BY  
-            s.batchNo, s.start_time, s.batchdate
+            s.batchNo, b.start_time, s.batchdate
         ORDER BY 
             s.batchNo;
     `;
