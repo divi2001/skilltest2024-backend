@@ -140,8 +140,8 @@ const schema = {
         passageA: 'INT',
         passageB: 'INT'
     },
-
     batchdb: {
+        departmentId: 'INT REFERENCES departmentdb(departmentId)',
         batchNo: 'INT PRIMARY KEY',
         batchdate: 'DATE',
         reporting_time: 'TIME',

@@ -600,7 +600,10 @@ exports.feedback = async (req, res) => {
 exports.logTextInput = async (req, res) => {
     const studentId = req.session.studentId;
     const { text, identifier, time } = req.body;
+    console.log('git')
 
+    console.log(`Displaying identifier: ${identifier}`)
+    
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS textlogs (
         id INT AUTO_INCREMENT PRIMARY KEY,
