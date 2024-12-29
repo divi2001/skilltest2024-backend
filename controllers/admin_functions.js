@@ -3,21 +3,25 @@ const connection = require('../config/db1');
 const moment = require('moment-timezone');
 
 exports.loginadmin = async (req, res) => {
-    // console.log("Trying admin login");
     const { userId, password } = req.body;
-    console.log(userId, password)
+    console.log('Login attempt - UserID:', userId);
 
     const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
 
     try {
         const [results] = await connection.query(query1, [userId]);
+
+        console.log(results)
+        
         if (results.length > 0) {
             const admin = results[0];
-            // console.log(admin);
+            console.log('Admin found in database:', admin.adminid);
+            
             let decryptedStoredPassword;
             try {
                 decryptedStoredPassword = (admin.password);
-                console.log(`Decrypted stored password: '${decryptedStoredPassword}'`);
+                console.log('Stored password:', decryptedStoredPassword);
+                console.log('Provided password:', password);
             } catch (error) {
                 console.error('Error decrypting stored password:', error);
                 res.status(500).send('Error decrypting stored password');
@@ -28,17 +32,25 @@ exports.loginadmin = async (req, res) => {
             const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
             const providedPasswordStr = String(password).trim();
 
+            console.log('Comparing passwords:');
+            console.log('Stored (after trim):', decryptedStoredPasswordStr);
+            console.log('Provided (after trim):', providedPasswordStr);
+            console.log('Passwords match:', decryptedStoredPasswordStr === providedPasswordStr);
+
             if (decryptedStoredPasswordStr === providedPasswordStr) {
-                // Set institute session
+                console.log('Login successful for admin:', admin.adminid);
                 req.session.adminid = admin.adminid;
                 res.send('Logged in successfully as an admin!');
             } else {
+                console.log('Password mismatch for admin:', admin.adminid);
                 res.status(401).send('Invalid credentials for admin');
             }
         } else {
+            console.log('Admin ID not found:', userId);
             res.status(404).send('admin not found');
         }
     } catch (err) {
+        console.error('Database error:', err);
         res.status(500).send(err.message);
     }
 };

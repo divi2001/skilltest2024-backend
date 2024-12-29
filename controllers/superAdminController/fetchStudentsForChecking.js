@@ -9,6 +9,7 @@ exports.getStudentsFromExpertReviewlog = async (req,res) => {
 
 
         const[results] =  await connection.query(query,[department]);
+        
         if (results.length === 0) {
             return res.status(404).json({ "message": "No expert review logs found for this department" });
         }

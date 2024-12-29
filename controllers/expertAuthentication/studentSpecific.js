@@ -6,6 +6,7 @@ exports.getAllSubjects = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    console.log("Get all subjects hit")
     const paper_check = req.session.paper_check;
     const paper_mod = req.session.paper_mod;
     const super_mod = req.session.super_mod;
@@ -939,6 +940,7 @@ exports.removeFromIgnoreList = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    console.log("remove from Ignore List called")
     const { subjectId, qset, activePassage, wordToRemove } = req.body;
     const expertId = req.session.expertId;
 
@@ -946,7 +948,7 @@ exports.removeFromIgnoreList = async (req, res) => {
     if (!subjectId || !qset || !activePassage || !wordToRemove) {
         return res.status(400).json({ error: 'Missing required parameters' });
     }
-
+ 
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
     const paper_mod = req.session.paper_mod;
