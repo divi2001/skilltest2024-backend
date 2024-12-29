@@ -186,3 +186,30 @@ exports.getResetCenters = async (req, res) => {
         res.status(500).send('Internal server error');
     }
 }
+
+exports.rejectResetRequest = async (req,res) => {
+
+    const {reset_id , student_id} = req.body;
+    
+    if(!reset_id || !student_id) return res.status(404).json({"message":"Please Provide Reset request id and student id"});
+
+    try {
+
+        query = `  UPDATE resetrequests 
+        SET approved = "Rejected"
+        WHERE id = ? AND student_id = ?`;
+
+        const [response] = await connection.query(query,[reset_id,student_id]);
+
+        if(response.affectedRows == 0){
+            return res.status(404).json({"message":"Request not found"});
+        }
+
+        res.status(201).json({"message":"Request rejected successfully"});
+
+    } catch (error) {
+        console.error("Error executing query:", error);
+        res.status(500).json({ "error": error.message });
+    }
+    
+}

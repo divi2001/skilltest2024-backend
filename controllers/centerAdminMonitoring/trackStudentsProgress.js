@@ -76,6 +76,8 @@ LEFT JOIN
     subjectsdb sub ON s.subjectsId = sub.subjectId
 LEFT JOIN
     audiologs a ON s.student_id = a.student_id
+LEFT JOIN 
+    departmentdb d ON d.departmentId = s.departmentId
 LEFT JOIN (
     SELECT
         student_id,
@@ -94,7 +96,7 @@ LEFT JOIN (
     GROUP BY
         student_id
 ) sl ON s.student_id = sl.student_id
-WHERE s.departmentId = 0 AND s.center = ? `;
+WHERE d.departmentStatus = 1 AND s.center = ? `;
 
 
     if (batchNo) {

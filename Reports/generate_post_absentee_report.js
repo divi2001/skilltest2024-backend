@@ -6,8 +6,9 @@ const moment = require('moment-timezone'); // Make sure to install and import mo
 async function getData(center, batchNo) {
     try {
         // console.log(center, batchNo);
-        const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
+        const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.loggedin = 0';
         const response = await connection.query(query, [batchNo, center]);
+        console.log(response);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
         console.log(response[0], batchData[0]);
@@ -187,7 +188,7 @@ function addSignatureLines(doc, y, gap = 40) {
 
 function createAttendanceReport(doc, data) {
     addHeader(doc, data);
-    doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
+    // doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
 
     createTable(doc, data.seatNumbers, data);
 }
@@ -197,7 +198,7 @@ function getDateFromISOString(isoString) {
     return date.toISOString().split('T')[0];
 }
 
-async function generateReport(doc, center, batchNo) {
+async function generatePostAbsenteeReport(doc, center, batchNo) {
     try {
         const Data = await getData(center, batchNo);
         // console.log(Data);
@@ -206,7 +207,7 @@ async function generateReport(doc, center, batchNo) {
         if (!Array.isArray(response) || response.length === 0) {
             throw new Error('No data returned from getData');
         }
-
+        
         if (!Array.isArray(Data.batchData) || Data.batchData.length === 0) {
             throw new Error('No batch data available');
         }
@@ -236,4 +237,4 @@ async function generateReport(doc, center, batchNo) {
     }
 }
 
-module.exports = { generateReport };
+module.exports = { generatePostAbsenteeReport };

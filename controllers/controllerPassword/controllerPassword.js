@@ -69,7 +69,8 @@ exports.getControllerPassForCenter = async (req, res) => {
         LEFT JOIN students s ON b.batchNo = s.batchNo AND s.center = c.center
         WHERE c.center = ? AND s.departmentId = 0
         GROUP BY c.center, c.batchNo, c.controller_pass, b.Start_time, b.End_Time, b.batchstatus, b.batchdate
-        HAVING studentCount > 0;`;
+        HAVING studentCount > 0
+        ORDER BY b.batchNo DESC;`;
 
     try {
         const [results] = await connection.query(query, [centerCode]);
