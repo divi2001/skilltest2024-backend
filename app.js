@@ -38,15 +38,6 @@ const corsOptions = {
   optionsSuccessStatus: 200
 }
 
-// Add Content-Security-Policy header
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; connect-src 'self' https://www.shorthandonlineexam.in http://103.226.207.244:5001 http://103.226.207.244:5001/compare; img-src 'self' data:; media-src 'self' https://shorthandexam2024.s3.ap-south-1.amazonaws.com; default-src 'self'; media-src https:"
-  );
-  next();
-});
-
 // Use CORS with the above options
 app.use(cors(corsOptions));
 
