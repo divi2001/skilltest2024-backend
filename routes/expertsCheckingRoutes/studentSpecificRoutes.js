@@ -9,6 +9,7 @@ router.get('/qsets/:subjectId', examExpertAdminStudentSpecificController.getQSet
 // Expert assignment and passage retrieval routes
 router.get('/expert-assigned-passages/:subjectId/:qset', examExpertAdminStudentSpecificController.getExpertAssignedPassages);
 router.get('/get-subject-qset-audio/:subjectId/:qset', examExpertAdminStudentSpecificController.modelAnswerAudio);
+router.get('/get-student-audio-id/:subjectId/:qset/:studentId', examExpertAdminStudentSpecificController.modelAnswerAudioById)
 router.post('/assignStudent/:subjectId/:qset', examExpertAdminStudentSpecificController.assignStudentForQSet);
 
 // Ignore list management routes
