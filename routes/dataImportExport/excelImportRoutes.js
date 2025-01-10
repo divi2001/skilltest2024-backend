@@ -11,7 +11,12 @@ const { appendExcel } = require('../../controllers/dataImportExport/AppendExcel'
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post('/import-excel', upload.any(), async (req, res) => {
-  try {
+  console.log('Files:', req.files);
+  console.log('Body:', req.body);
+  console.log('Headers:', req.headers);
+  
+
+  try { 
     if (!req.files || req.files.length === 0) {
       return res.status(400).send('No file uploaded.');
     }

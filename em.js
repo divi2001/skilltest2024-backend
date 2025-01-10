@@ -1,40 +1,104 @@
-exports.updatePassageFinalLogs = async (req, res) => {
-    const studentId = req.session.studentId;
-    const { question1, question2, question3 } = req.body;
+const mysql = require('mysql2/promise');
+require('dotenv').config();
 
-    console.log('Received request:', req.body);
-    console.log('Student ID from session:', studentId);
+const connection = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    waitForConnections: true,
+    connectionLimit: 100000,
+    queueLimit: 0
+});
 
-    if (!studentId) {
-        return res.status(400).send('Student ID is required');
-    }
-
-    const findLogQuery = `SELECT * FROM finalPassageSubmit WHERE student_id = ?`;
-    const updateLogQuery = `UPDATE finalPassageSubmit SET question1 = ?, question2 = ?, question3 = ? WHERE student_id = ?`;
-    const insertLogQuery = `INSERT INTO finalPassageSubmit (student_id, question1, question2, question3) VALUES (?, ?, ?, ?)`;
-
+async function resetBatchStudentProgress(batch_id) {
     try {
-        const [rows] = await connection.query(findLogQuery, [studentId]);
-
-        if (rows.length > 0) {
-            console.log('Existing log found, updating:', updateLogQuery, [question1, question2, question3, studentId]);
-            await connection.query(updateLogQuery, [question1, question2, question3, studentId]);
-        } else {
-            console.log('No log found, inserting new:', insertLogQuery, [studentId, question1, question2, question3]);
-            await connection.query(insertLogQuery, [studentId, question1, question2, question3]);
+        const conn = await connection;
+        
+        // First, get all student_ids from the specified batch
+        const getStudentsQuery = `SELECT student_id FROM students WHERE batchNo = ?`;
+        const [students] = await conn.query(getStudentsQuery, [batch_id]);
+        
+        if (students.length === 0) {
+            console.log("No students found in this batch");
+            return;
         }
 
-        const responseData = {
-            student_id: studentId,
-            question1: question1,
-            question2: question2,
-            question3: question3
-        };
-        console.log('Questions updated:', responseData);
+        let executedQueries = [];
 
-        res.send(responseData);
+        // Reset queries for each student
+        for (const student of students) {
+            const student_id = student.student_id;
+            
+            // Reset all tables for each student
+            const resetQueries = [
+                // Students table
+                `UPDATE students SET loggedin = 0, done = 0 WHERE student_id = ?`,  // Removed extra comma
+                
+                // Exam stages
+                `UPDATE exam_stages SET 
+                    StudentInfo = 0, 
+                    Instructions = 0, 
+                    InputChecker = 0, 
+                    HeadphoneTest = 0, 
+                    ControllerPassword = 0,
+                    TrialPassage = 0,
+                    AudioPassageA = 0,
+                    AudioPassageB = 0,
+                    TypingPassageA = 0,
+                    TypingPassageB = 0,
+                    ShorthandSummary = 0,
+                    ShorthandSummaryB = 0,
+                    TrialTypewriting = 0,
+                    Typewriting = 0,
+                    TypingSummary = 0,
+                    ThankYou = 0
+                WHERE StudentId = ?`,
+                
+                // Audio logs
+                `UPDATE audiologs SET trial = 0, passageA = 0, passageB = 0 WHERE student_id = ?`,
+                
+                // Text logs
+                `UPDATE textlogs SET mina = 0, minb = 0, texta = NULL, textb = NULL WHERE student_id = ?`,
+                
+                // Final passage submit
+                `UPDATE finalPassageSubmit SET passageA = NULL, passageB = NULL WHERE student_id = ?`,
+                
+                // Typing passage logs
+                `UPDATE typingpassagelogs SET trial_time = NULL, trial_passage = NULL, passage_time = NULL, passage = NULL WHERE student_id = ?`,
+                
+                // Typing passage
+                `UPDATE typingpassage SET trial_passage = NULL, passage = NULL, time = NULL WHERE student_id = ?`
+            ];
+
+            // Execute each reset query
+            for (const query of resetQueries) {
+                const [result] = await conn.query(query, [student_id]);
+                executedQueries.push({
+                    student_id: student_id,
+                    affectedRows: result.affectedRows
+                });
+            }
+        }
+
+        console.log({
+            "message": `Successfully reset progress for ${students.length} students in batch ${batch_id}`,
+            "totalStudents": students.length,
+            "executedQueries": executedQueries
+        });
+
     } catch (err) {
-        console.error('Failed to update passage final logs:', err);
-        res.status(500).send(err.message);
+        console.error("Error executing batch reset:", err);
     }
-};
+}
+
+// Execute the function for batch_id 100
+resetBatchStudentProgress(100)
+    .then(() => {
+        console.log("Process completed");
+        process.exit(0);
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        process.exit(1);
+    });

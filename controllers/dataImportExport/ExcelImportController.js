@@ -8,6 +8,7 @@ const {encrypt, decrypt} = require('./../../config/encrypt');
 
 const importExcel = async (filePath) => {
   try {
+    console.log('starting import')
     const workbook = xlsx.readFile(filePath);
     const sheetNames = workbook.SheetNames;
     const results = [];
@@ -179,9 +180,9 @@ const insertChunk = async (tableName, columns, chunk) => {
         }
       }
 
-      // if (column === 'loggedin' || column === 'done') {
-      //   return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
-      // }
+      if (column === 'loggedin' || column === 'done') {
+        return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
+      }
 
       if(column === 'centerpass' && tableName === 'examcenterdb'){
         return encrypt(value);
