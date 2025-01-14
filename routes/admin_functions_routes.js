@@ -6,7 +6,7 @@ const adminFunctionController = require('../controllers/admin_functions');
 const isAuthenticatedAdmin = require('../middleware/isAuthAdmin')
 
 
-router.post('/admin_login',adminFunctionController.loginadmin);
+router.post('/admin-login',adminFunctionController.loginadmin);
 
 router.delete('/deletetable/:tableName',  adminFunctionController.deleteTable);
 
