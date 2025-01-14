@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require("fs");
 const cors = require('cors');
 
 // routes 
@@ -59,7 +60,18 @@ app.use(session({
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+
+const uploadsDir = path.join(__dirname,'uploads');
+
+if(!fs.existsSync(uploadsDir)){
+  fs.mkdir(uploadsDir);
+}
+
 app.use('/uploads', express.static('uploads'));
+app.use(express.static(path.join(__dirname,'uploads')));
+
+
 
 app.use(studentRoutes)
 app.use(examcentereRoutes)

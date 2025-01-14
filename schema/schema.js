@@ -24,7 +24,7 @@ const schema = {
         day: 'INT',
         qset: 'INT',
         base64: 'LONGTEXT',
-        sign_base64:'LONGTEXT',
+        sign_base64: 'LONGTEXT',
         IsShorthand: 'BOOLEAN',
         IsTypewriting: 'BOOLEAN',
         departmentId: 'INT REFERENCES departmentdb(departmentId)',
@@ -38,8 +38,8 @@ const schema = {
         daily_timer: 'INT',
         passage_timer: 'INT',
         demo_timer: 'INT',
-        disability_passage_timer:'INT',
-        typing_timer:"INT",
+        disability_passage_timer: 'INT',
+        typing_timer: "INT",
         disability_typing_timer: 'INT'
     },
     departmentdb: {
@@ -218,10 +218,10 @@ const schema = {
         QPA: 'TEXT',
         QPB: 'TEXT',
         spelling: 'INT DEFAULT 0',
-        missed:'INT DEFAULT 0',
-        added:'INT DEFAULT 0',
-        grammar:'INT DEFAULT 0',
-        total_mistakes:'DECIMAL(5,2) DEFAULT 0.00',
+        missed: 'INT DEFAULT 0',
+        added: 'INT DEFAULT 0',
+        grammar: 'INT DEFAULT 0',
+        total_mistakes: 'DECIMAL(5,2) DEFAULT 0.00',
         total_marks: 'DECIMAL(5,2) DEFAULT 0.00'
 
     },
@@ -302,20 +302,33 @@ const schema = {
         image4: 'LONGTEXT',
         upload_date: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
     },
-    resetrequests:{
+
+   
+    attendance_reports: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        center: 'INT REFERENCES examcenterdb(center)',
+        batchNo: 'INT REFERENCES batchdb(batchNo)',
+        report_date: 'DATE',
+        present_count: 'INT',
+        absent_count: 'INT',
+        attendance_pdf: 'LONGTEXT',
+        upload_time: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+    },
+
+    resetrequests: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT',
-        reason : 'LONGTEXT',
-        reseted_by:'TEXT',
-        reset_type:'TEXT',
+        reason: 'LONGTEXT',
+        reseted_by: 'TEXT',
+        reset_type: 'TEXT',
         center: 'INT REFERENCES examcenterdb(center)',
-        approved:'TEXT',
-        time:"DATETIME"
+        approved: 'TEXT',
+        time: "DATETIME"
     },
-    features:{
-        id:'BIGINT PRIMARY KEY AUTO_INCREMENT',
-        feature:'TEXT',
-        status:'BOOLEAN'
+    features: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        feature: 'TEXT',
+        status: 'BOOLEAN'
     }
 };
 

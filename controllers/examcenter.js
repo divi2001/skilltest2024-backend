@@ -1,5 +1,7 @@
 const connection = require('../config/db1')
 const moment = require('moment-timezone');
+const path = require('path');
+const fs = require('fs');
 
 const { encrypt, decrypt } = require('../config/encrypt');
 
@@ -283,3 +285,99 @@ exports.getCenterData = async (req, res) => {
         res.status(500).send('Internal server error');
     }
 };
+
+exports.uploadAttendanceReport = async (req, res) => {
+    // req.session.centerId
+    const center =  req.session.centerId;
+    const { batchNo, present_count, absent_count } = req.body;
+    const newFileName = `${center}_batch_${batchNo}_attendance_report.pdf`
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+    const attendance_report = req.file;
+
+    try {
+        const checkQuery = 'SELECT * from attendance_reports where center = ? AND batchNo = ?;';
+        const [check] = await connection.query(checkQuery, [center, batchNo]);
+        if (check.length > 0) return res.status(403).json({ "message": "Already added the data please Check!!" });
+        
+        const currentDate = new Date().toISOString().split('T')[0];
+
+        const insertQuery = `INSERT INTO attendance_reports 
+        (center, batchNo, report_date, present_count, absent_count, attendance_pdf) 
+        VALUES (?, ?, ?, ?, ?, ?)`;
+
+        const oldPath = attendance_report.path;
+        const newPath = path.join(path.dirname(oldPath), newFileName);
+        fs.renameSync(oldPath, newPath);
+        const url = `/uploads/${newFileName}`;
+        const [result] = await connection.query(insertQuery, [
+            center,
+            batchNo,
+            currentDate,
+            present_count,
+            absent_count,
+            url 
+        ]);
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({ 
+                success: true, 
+                message: 'Attendance report uploaded successfully',
+                reportId: result.insertId
+            });
+        } else {
+            throw new Error('Failed to insert attendance report');
+        }
+
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ "message": error.message });
+    }
+}
+
+exports.deleteAttendanceReport = async (req,res)=>{
+    const {batchNo} = req.body;
+    const center =  req.session.centerId;
+    if(!batchNo){
+        return res.status(400).json({"message":"Please provide the batch no."})
+    }
+    if(!center){
+        return res.status(400).json({"message":"Center admin is not logged in"})
+    }
+    try {
+        const deleteQuery = `delete from attendance_reports where batchNo = ? and center = ?;`;
+        const [response] = await connection.query(deleteQuery,[batchNo,center]);
+        if(response.affectedRows === 0){
+            return res.status(500).json({"message":"Failed to deletr. Try Again!!"})
+        }
+
+        res.status(201).json({"message":"Attendance report deleted successfully!!"})
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ "message": error.message });
+    }
+}
+
+exports.getAllAttendanceReport = async (req,res) => {
+    const center = req.session.centerId;
+    
+    try {
+        const query = `SELECT * from attendance_reports WHERE center = ?;`;
+        
+        const [response] = await connection.query(query,[center]);
+
+        if(response.length === 0){
+            return res.status(404).json({"message":"Nothing Uploaded yet!!"})
+        }
+        console.log(response);
+        res.status(201).json({"message":"Recieved all data successfully!!","Reports":response});
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ "message": error.message });
+    }
+    
+}

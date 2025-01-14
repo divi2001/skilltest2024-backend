@@ -13,7 +13,7 @@ exports.getStudentsFromExpertReviewlog = async (req,res) => {
         if (results.length === 0) {
             return res.status(404).json({ "message": "No expert review logs found for this department" });
         }
-
+        console.log(results.length);
         res.status(201).json(results)
     } catch (error) {
         console.error('Error fetching expert review logs:', error);
