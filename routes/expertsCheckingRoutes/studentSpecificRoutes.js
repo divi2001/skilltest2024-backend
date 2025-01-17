@@ -24,6 +24,7 @@ router.post('/student-clear-ignore-list', examExpertAdminStudentSpecificControll
 
 // Passage review submission route
 router.post('/submit-passage-review/:subjectId/:qset', examExpertAdminStudentSpecificController.submitPassageReview);
+router.post('/hold-passage-review/:subjectId/:qset', examExpertAdminStudentSpecificController.holdPassageReview);
 
 
 module.exports = router;

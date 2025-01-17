@@ -50,9 +50,17 @@ exports.getAllSubjects = async (req, res) => {
                 s.passage_timer, 
                 s.demo_timer,
                 COUNT(DISTINCT CASE 
-                    WHEN m.subm_done IS NULL OR m.subm_done = 0 
+                    WHEN (m.subm_done = 0 OR m.subm_done IS NULL) AND (m.hold = 0 OR m.hold IS NULL)
                     THEN m.student_id 
                 END) AS incomplete_count,
+                COUNT(DISTINCT CASE 
+                    WHEN m.hold = 1 AND (m.subm_done = 0 OR m.subm_done IS NULL)
+                    THEN m.student_id 
+                END) AS held_incomplete_count,
+                COUNT(DISTINCT CASE 
+                    WHEN m.hold = 1
+                    THEN m.student_id 
+                END) AS total_held_count,
                 COUNT(DISTINCT m.student_id) AS total_count,
                 st.departmentId
             FROM 
@@ -75,7 +83,7 @@ exports.getAllSubjects = async (req, res) => {
                 st.departmentId, 
                 d.departmentName
             HAVING 
-                incomplete_count > 0;
+                incomplete_count > 0 OR held_incomplete_count > 0 OR total_held_count > 0;
         `;
     }
 
@@ -93,8 +101,12 @@ exports.getAllSubjects = async (req, res) => {
             if (paper_mod === 1) {
                 console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}`);
             } else {
-                console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}, Incomplete Count: ${subject.incomplete_count}, Total Count: ${subject.total_count}`);
-            }
+                console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}, 
+                    Incomplete Count: ${subject.incomplete_count}, 
+                    Held Incomplete Count: ${subject.held_incomplete_count}, 
+                    Total Held Count: ${subject.total_held_count}, 
+                    Total Count: ${subject.total_count}`); 
+           }
         });
 
         res.status(200).json(results);
@@ -155,7 +167,10 @@ exports.getQSetsForSubject = async (req, res) => {
             qsetQuery = `
                 SELECT 
                     qset, 
-                    COUNT(DISTINCT CASE WHEN subm_done IS NULL OR subm_done = 0 THEN student_id END) as incomplete_count,
+                    COUNT(DISTINCT CASE 
+                        WHEN (subm_done = 0 OR subm_done IS NULL) AND (hold = 0 OR hold IS NULL) 
+                        THEN student_id 
+                    END) as incomplete_count,
                     COUNT(DISTINCT student_id) as total_count
                 FROM ${tableName} 
                 WHERE subjectId = ?
@@ -306,7 +321,7 @@ exports.assignStudentForQSet = async (req, res) => {
             checkExistingAssignmentQuery = `
                 SELECT student_id, loggedin, status, subm_done, subm_time, QPA, QPB
                 FROM ${tableName} 
-                WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done IS NULL OR subm_done = 0)
+                WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done = 0 OR subm_done IS NULL) AND (hold = 0 OR hold IS NULL)
                 LIMIT 1
             `;
         }
@@ -324,11 +339,22 @@ exports.assignStudentForQSet = async (req, res) => {
             }
 
             // Update the existing assignment
-            const updateAssignmentQuery = `
-                UPDATE ${tableName}
-                SET loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL
-                WHERE student_id = ? AND subjectId = ? AND qset = ? AND expertId = ?
-            `;
+            let updateAssignmentQuery;
+
+            if (tableName === 'expertreviewlog') {
+                updateAssignmentQuery = `
+                    UPDATE ${tableName}
+                    SET loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL
+                    WHERE student_id = ? AND subjectId = ? AND qset = ? AND expertId = ?
+                `;
+            } else {
+                updateAssignmentQuery = `
+                    UPDATE ${tableName}
+                    SET loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL, hold = 0
+                    WHERE student_id = ? AND subjectId = ? AND qset = ? AND expertId = ?
+                `;
+            }
+
             await conn.query(updateAssignmentQuery, [student_id, subjectId, qset, expertId]);
             loggedin = new Date();
             status = 1;
@@ -337,12 +363,25 @@ exports.assignStudentForQSet = async (req, res) => {
         } else {
             console.log("No existing active assignment, assigning new student");
             // Assign a new student that is not already assigned to any expert
-            const assignNewStudentQuery = `
-                UPDATE ${tableName} 
-                SET expertId = ?, loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL
-                WHERE subjectId = ? AND qset = ? AND expertId IS NULL AND student_id IS NOT NULL
-                LIMIT 1
-            `;
+
+            let assignNewStudentQuery
+            
+            if (tableName === 'expertreviewlog'){                
+                assignNewStudentQuery = `
+                    UPDATE ${tableName} 
+                    SET expertId = ?, loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL
+                    WHERE subjectId = ? AND qset = ? AND expertId IS NULL AND student_id IS NOT NULL
+                    LIMIT 1
+                `;
+            }
+            else {
+                assignNewStudentQuery = `
+                    UPDATE ${tableName} 
+                    SET expertId = ?, loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL, hold = 0
+                    WHERE subjectId = ? AND qset = ? AND expertId IS NULL AND student_id IS NOT NULL
+                    LIMIT 1
+                `;
+            }
             const [assignResult] = await conn.query(assignNewStudentQuery, [expertId, subjectId, qset]);
 
             if (assignResult.affectedRows > 0) {
@@ -1455,7 +1494,7 @@ exports.submitPassageReview = async (req, res) => {
 
         const studentId = assignmentResult[0].student_id;
 
-        // Update the modreviewlog table for the specific student
+        // Update the table for the specific student
         const updateQuery = `
             UPDATE ${tableName} 
             SET subm_done = 1, subm_time = NOW()
@@ -1492,5 +1531,111 @@ exports.submitPassageReview = async (req, res) => {
     }
 };
 
+exports.holdPassageReview = async (req, res) => {
+    console.log("holdPassageReview called");
+    console.log("Request params:", req.params);
+    console.log("Request session:", req.session);
 
+    if (!req.session.expertId) {
+        console.log("Unauthorized: No expertId in session");
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { subjectId, qset } = req.params;
+    const expertId = req.session.expertId;
+    const super_mod = req.session.super_mod;
+    
+    console.log("Extracted data:", { subjectId, qset, expertId, super_mod });
+
+    let tableName;
+
+    if(super_mod === 1){
+        tableName = 'modreviewlog';
+    }
+    else{
+        console.log("Forbidden: super_mod is not 1");
+        return res.status(403).json({error: 'Stage parameter super_mod is inaccessible in holdPassageReview'});
+    }
+
+    console.log("Table name:", tableName);
+
+    let conn;
+
+    try {
+        conn = await connection.getConnection();
+        await conn.beginTransaction();
+
+        console.log("Database connection established");
+
+        // First, fetch the current assignment for this expert
+        const fetchAssignmentQuery = `
+            SELECT student_id
+            FROM ${tableName}
+            WHERE subjectId = ? AND qset = ? AND expertId = ? AND status = 1 AND subm_done = 0 AND hold = 0
+            ORDER BY loggedin DESC
+            LIMIT 1
+        `;
+        console.log("Fetch assignment query:", fetchAssignmentQuery);
+        console.log("Fetch assignment params:", [subjectId, qset, expertId]);
+
+        const [assignmentResult] = await conn.query(fetchAssignmentQuery, [subjectId, qset, expertId]);
+        console.log("Assignment result:", assignmentResult);
+
+        if (assignmentResult.length === 0) {
+            console.log("No active assignment found");
+            await conn.rollback();
+            return res.status(404).json({ error: 'No active assignment found for this expert' });
+        }
+
+        const studentId = assignmentResult[0].student_id;
+        console.log("Student ID:", studentId);
+
+        // Update the table for the specific student
+        const updateQuery = `
+            UPDATE ${tableName} 
+            SET hold = 1
+            WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ? AND status = 1
+        `;
+        console.log("Update query:", updateQuery);
+        console.log("Update params:", [subjectId, qset, expertId, studentId]);
+
+        const [updateResult] = await conn.query(updateQuery, [subjectId, qset, expertId, studentId]);
+        console.log("Update result:", updateResult);
+
+        if (updateResult.affectedRows === 0) {
+            console.log("No matching record found to update");
+            await conn.rollback();
+            return res.status(404).json({ error: 'No matching record found to update' });
+        }
+
+        // Fetch the updated record
+        const selectQuery = `
+            SELECT student_id, hold
+            FROM ${tableName}
+            WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ?
+        `;
+        console.log("Select query:", selectQuery);
+        console.log("Select params:", [subjectId, qset, expertId, studentId]);
+
+        const [results] = await conn.query(selectQuery, [subjectId, qset, expertId, studentId]);
+        console.log("Select results:", results);
+
+        if (results.length === 0) {
+            console.log("Updated record not found");
+            await conn.rollback();
+            return res.status(404).json({ error: 'Updated record not found' });
+        }
+
+        await conn.commit();
+        console.log("Transaction committed");
+        res.status(200).json(results[0]);
+    } catch (err) {
+        if (conn) await conn.rollback();
+        console.error("Error in holdPassageReview:", err);
+        res.status(500).json({ error: 'Error holding passage review' });
+    } finally {
+        if (conn) conn.release();
+        console.log("Connection released");
+    }
+};
 

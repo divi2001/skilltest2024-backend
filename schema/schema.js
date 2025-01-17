@@ -215,6 +215,7 @@ const schema = {
         status: 'BOOLEAN',
         subm_done: 'BOOLEAN DEFAULT 0',
         subm_time: 'DATETIME',
+        hold: 'BOOLEAN DEFAULT 0',
         QPA: 'TEXT',
         QPB: 'TEXT',
         spelling: 'INT DEFAULT 0',
