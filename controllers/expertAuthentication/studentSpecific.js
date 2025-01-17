@@ -122,6 +122,7 @@ exports.getQSetsForSubject = async (req, res) => {
     }
 
     const { subjectId } = req.params;
+    const { held } = req.query;  // Get the held parameter
     const expertId = req.session.expertId;
 
     const paper_check = req.session.paper_check;
@@ -164,26 +165,36 @@ exports.getQSetsForSubject = async (req, res) => {
 
             res.status(200).json(qsetResults);
         } else {
+            // Modify the WHERE clause based on held parameter
+            const holdCondition = held === 'true' 
+            ? 'AND hold = 1' 
+            : 'AND (hold = 0 OR hold IS NULL)';
+
             qsetQuery = `
                 SELECT 
                     qset, 
                     COUNT(DISTINCT CASE 
-                        WHEN (subm_done = 0 OR subm_done IS NULL) AND (hold = 0 OR hold IS NULL) 
+                        WHEN (subm_done = 0 OR subm_done IS NULL)
                         THEN student_id 
                     END) as incomplete_count,
                     COUNT(DISTINCT student_id) as total_count
                 FROM ${tableName} 
                 WHERE subjectId = ?
                 AND expertId = ?
+                ${holdCondition}
                 GROUP BY qset
                 HAVING incomplete_count > 0
                 ORDER BY qset
             `;
             const [qsetResults] = await connection.query(qsetQuery, [subjectId, expertId]);
 
-            console.log(`QSets for subject ${subjectId} and expert ${expertId} with student counts:`);
+            console.log(`QSets for subject ${subjectId} and expert ${expertId} with student counts (${held ? 'held' : 'regular'}):`);
             qsetResults.forEach(qset => {
-                console.log(`QSet: ${qset.qset}, Incomplete Count: ${qset.incomplete_count}, Total Count: ${qset.total_count}`);
+                console.log(
+                    `QSet: ${qset.qset}, ` +
+                    `Incomplete Count: ${qset.incomplete_count}, ` +
+                    `Total Count: ${qset.total_count}`
+                );
             });
 
             res.status(200).json(qsetResults);
