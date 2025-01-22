@@ -41,6 +41,30 @@ exports.getAllSubjects = async (req, res) => {
         `;
     } else {
         // Original query for paper_check and super_mod
+
+        const incompleteCountCondition = tableName === 'expertreviewlog' 
+            ? 'm.subm_done = 0 OR m.subm_done IS NULL'
+            : '(m.subm_done = 0 OR m.subm_done IS NULL) AND (m.hold = 0 OR m.hold IS NULL)';
+
+        const totalCountCondition = tableName === 'expertreviewlog'
+            ? 'm.subm_done = 0'
+            : 'm.subm_done = 0 OR m.hold = 0';
+        
+        const additionalCounts = tableName === 'expertreviewlog'
+            ? ''
+            : ` COUNT(DISTINCT CASE 
+                    WHEN m.hold = 1 AND (m.subm_done = 0 OR m.subm_done IS NULL)
+                    THEN m.student_id 
+                END) AS held_incomplete_count,
+                COUNT(DISTINCT CASE 
+                    WHEN m.hold = 1
+                    THEN m.student_id 
+                END) AS total_held_count,`;
+
+        const havingClause = tableName === 'expertreviewlog'
+            ? 'HAVING incomplete_count > 0'
+            : 'HAVING incomplete_count > 0 OR held_incomplete_count > 0 OR total_held_count > 0';
+                   
         subjectsQuery = `
             SELECT 
                 s.subjectId, 
@@ -50,18 +74,14 @@ exports.getAllSubjects = async (req, res) => {
                 s.passage_timer, 
                 s.demo_timer,
                 COUNT(DISTINCT CASE 
-                    WHEN (m.subm_done = 0 OR m.subm_done IS NULL) AND (m.hold = 0 OR m.hold IS NULL)
+                    WHEN ${incompleteCountCondition}
                     THEN m.student_id 
                 END) AS incomplete_count,
+                ${additionalCounts}
                 COUNT(DISTINCT CASE 
-                    WHEN m.hold = 1 AND (m.subm_done = 0 OR m.subm_done IS NULL)
+                    WHEN ${totalCountCondition}
                     THEN m.student_id 
-                END) AS held_incomplete_count,
-                COUNT(DISTINCT CASE 
-                    WHEN m.hold = 1
-                    THEN m.student_id 
-                END) AS total_held_count,
-                COUNT(DISTINCT m.student_id) AS total_count,
+                END) AS total_count,
                 st.departmentId
             FROM 
                 subjectsdb s
@@ -82,8 +102,7 @@ exports.getAllSubjects = async (req, res) => {
                 s.demo_timer, 
                 st.departmentId, 
                 d.departmentName
-            HAVING 
-                incomplete_count > 0 OR held_incomplete_count > 0 OR total_held_count > 0;
+            ${havingClause};
         `;
     }
 
@@ -128,6 +147,7 @@ exports.getQSetsForSubject = async (req, res) => {
     const paper_check = req.session.paper_check;
     const paper_mod = req.session.paper_mod;
     const super_mod = req.session.super_mod;
+
     let tableName;
     let qsetQuery;
 
@@ -166,10 +186,12 @@ exports.getQSetsForSubject = async (req, res) => {
             res.status(200).json(qsetResults);
         } else {
             // Modify the WHERE clause based on held parameter
-            const holdCondition = held === 'true' 
-            ? 'AND hold = 1' 
-            : 'AND (hold = 0 OR hold IS NULL)';
-
+            const holdCondition = tableName !== 'expertreviewlog'
+            ? (held === 'true' 
+                ? 'AND hold = 1' 
+                : 'AND (hold = 0 OR hold IS NULL)')
+            : ''
+            
             qsetQuery = `
                 SELECT 
                     qset, 
@@ -282,6 +304,8 @@ exports.assignStudentForQSet = async (req, res) => {
     }
 
     const { subjectId, qset } = req.params;
+    const { held } = req.query;  // Get the held parameter
+
     const expertId = req.session.expertId;
 
     console.log(`Parameters: subjectId=${subjectId}, qset=${qset}, expertId=${expertId}`);
@@ -319,6 +343,8 @@ exports.assignStudentForQSet = async (req, res) => {
         await conn.beginTransaction();
         console.log("Transaction begun");
 
+        const holdCondition = held === 'true' ? 'hold = 1' : '(hold = 0 OR hold IS NULL)';
+
         // Check if the expert already has an active assignment
         let checkExistingAssignmentQuery;
         if (tableName === 'expertreviewlog') {
@@ -332,7 +358,7 @@ exports.assignStudentForQSet = async (req, res) => {
             checkExistingAssignmentQuery = `
                 SELECT student_id, loggedin, status, subm_done, subm_time, QPA, QPB
                 FROM ${tableName} 
-                WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done = 0 OR subm_done IS NULL) AND (hold = 0 OR hold IS NULL)
+                WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done = 0 OR subm_done IS NULL) AND ${holdCondition}
                 LIMIT 1
             `;
         }
@@ -361,7 +387,8 @@ exports.assignStudentForQSet = async (req, res) => {
             } else {
                 updateAssignmentQuery = `
                     UPDATE ${tableName}
-                    SET loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL, hold = 0
+                    SET loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL, 
+                        hold = ${held === 'true' ? 1 : 0}
                     WHERE student_id = ? AND subjectId = ? AND qset = ? AND expertId = ?
                 `;
             }
@@ -377,19 +404,20 @@ exports.assignStudentForQSet = async (req, res) => {
 
             let assignNewStudentQuery
             
-            if (tableName === 'expertreviewlog'){                
+            if (tableName === 'expertreviewlog') {                
                 assignNewStudentQuery = `
                     UPDATE ${tableName} 
                     SET expertId = ?, loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL
                     WHERE subjectId = ? AND qset = ? AND expertId IS NULL AND student_id IS NOT NULL
                     LIMIT 1
                 `;
-            }
-            else {
+            } else {
                 assignNewStudentQuery = `
                     UPDATE ${tableName} 
-                    SET expertId = ?, loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL, hold = 0
+                    SET expertId = ?, loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL,
+                        hold = ${held === 'true' ? 1 : 0}
                     WHERE subjectId = ? AND qset = ? AND expertId IS NULL AND student_id IS NOT NULL
+                    AND ${holdCondition}
                     LIMIT 1
                 `;
             }
