@@ -87,5 +87,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://13.127.179.119:${PORT}/`);
+  console.log(`Server running on http://43.205.192.129:${PORT}/`);
 });
