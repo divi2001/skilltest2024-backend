@@ -87,5 +87,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://www.shorthandonlineexam.in`);
+  console.log(`Server running on http://13.127.179.119:${PORT}/`);
 });
