@@ -6,7 +6,7 @@ exports.getAllBatches = async (req, res) => {
     try {
         const query = 'SELECT * FROM batchdb ';
         const [batches] = await connection.execute(query);
-        
+        console.log(batches);
         res.status(200).json({
             success: true,
             data: batches

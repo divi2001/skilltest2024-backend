@@ -22,7 +22,7 @@ exports.loginCenterAdmin = async (req, res) => {
                 decryptedStoredPassword = decrypt(admin.centerpass);
 
             } catch (error) {
-                console.log(decryptedStoredPassword + password)
+                console.log(decryptedStoredPassword )
                 console.error('Error decrypting provided password:', error);
                 res.status(500).send('invalid credentials 4');
                 return;
@@ -33,7 +33,7 @@ exports.loginCenterAdmin = async (req, res) => {
             console.log(decryptedStoredPasswordStr)
 
             try {
-                // console.log("admin pass: "+admin.centerpass + " provide pass: "+password);
+                console.log("admin pass: "+admin.centerpass + " provide pass: "+password);
 
             } catch (error) {
                 return;
