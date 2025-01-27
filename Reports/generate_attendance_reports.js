@@ -12,7 +12,7 @@ function createAttendanceReport(doc , data) {
             });
 
         doc.fontSize(12).font('Helvetica')
-            .text('GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2024', 110, doc.y + 5, {
+            .text('GCC COMPUTER SHORTHAND EXAMINATION FEBRUARY 2025', 110, doc.y + 5, {
                 width: 450,
                 align: 'center'
             });
@@ -233,7 +233,7 @@ function createAttendanceReport(doc , data) {
 
 const getData = async(center , batchNo) => {
     try {
-        // console.log(center,batchNo)
+        console.log(center,batchNo)
         const query = 'SELECT s.fullname, s.student_id, s.base64 ,s.sign_base64, sub.subject_name_short, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
         const response = await connection.query(query,[center,batchNo]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
