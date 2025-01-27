@@ -52,6 +52,8 @@ async function createAnswerSheet(doc, data) {
 
     async function addPhoto(x, y, width, height, path, isQRCode = false, qrCodeUrl) {
         doc.rect(x, y-1, width, height+2).stroke();
+
+        
         try {
             if (isQRCode) {
                 const qrDataURL = await generateQRCode(qrCodeUrl);
@@ -61,13 +63,18 @@ async function createAnswerSheet(doc, data) {
                         align: 'center',
                         valign: 'center'
                     });
+                } else {
+                    throw new Error('QR code generation failed');
                 }
-            } else {
+            } else if (path) {
                 doc.image(path, x, y, {
                     fit: [width, height],
                     align: 'center',
                     valign: 'center'
                 });
+            } else {
+                console.log("Image path is null")
+                throw new Error('Image path is null');
             }
         } catch (error) {
             console.error('Error loading image:', error);
@@ -79,7 +86,7 @@ async function createAnswerSheet(doc, data) {
     }
     
     async function createPage(doc, student, isFirstPage, qrCodeUrl) {
-        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2024');
+        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION JANUARY 2025');
         
         let startY = headerHeight+15;
       
@@ -134,7 +141,7 @@ async function createAnswerSheet(doc, data) {
 
 const getData = async(center, batchNo,student_id) => {
     try {
-        // console.log(center, batchNo,student_id);
+        console.log(center, batchNo,student_id);
         let query , response , queryParams = [center,batchNo];
         if(student_id){
            query = "SELECT s.fullname, s.student_id,s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ?;";
@@ -226,7 +233,7 @@ const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
             seatNo: student.student_id.toString(),
             name: student.fullname,
             subject: getTextBeforePlus(student.subject_name),
-            photoBase64: student.base64,
+            photoBase64: student.base64 ?? " ",
             
         })),
         departmentName:response[0].departmentName,

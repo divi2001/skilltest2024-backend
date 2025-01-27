@@ -45,7 +45,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     console.log('Difference in Minutes:', differenceInMinutes);
 
     // Return true if startTime is between 0 and 30 minutes ahead of the current time
-    return  differenceInMinutes <= 10000;
+    return  differenceInMinutes <= 30;
 }
 
 
