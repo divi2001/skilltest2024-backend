@@ -41,7 +41,7 @@ function addHeader(doc, data) {
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('GCC COMPUTER SHORTHAND EXAMINATION JANUARY 2025', 110, doc.y + 5, {
+        .text('GCC COMPUTER SHORTHAND EXAMINATION FEBRUARY 2025', 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });

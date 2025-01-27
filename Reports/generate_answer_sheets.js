@@ -86,7 +86,7 @@ async function createAnswerSheet(doc, data) {
     }
     
     async function createPage(doc, student, isFirstPage, qrCodeUrl) {
-        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION JANUARY 2025');
+        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION FEBRUARY 2025');
         
         let startY = headerHeight+15;
       
