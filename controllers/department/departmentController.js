@@ -16,20 +16,20 @@ exports.departementLogin = async (req, res) => {
         console.log(results);
         if (results.length > 0) {
             const admin = results[0];
-            // console.log("data: "+admin);
-            // console.log(admin)
-            // let decryptedStoredPassword = await decrypt(admin.departmentPassword);
-            // console.log(decryptedStoredPassword);
-            // try {
+            console.log("data: "+admin);
+            console.log(admin)
+            let decryptedStoredPassword = await decrypt(admin.departmentPassword);
+            console.log(decryptedStoredPassword);
+            try {
 
-            //     // console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
+                // console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
 
-            // } catch (error) {
-            //     console.log(error);
-            // }
+            } catch (error) {
+                console.log(error);
+            }
 
 
-            if (admin.departmentPassword === password) {
+            if ( decryptedStoredPassword === password) {
                 // Set institute session
                 req.session.departmentId = admin.departmentId;
                 console.log("Logged in successfully as an department admin!")

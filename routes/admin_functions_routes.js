@@ -33,6 +33,6 @@ router.post('/reset-requests', adminFunctionController.createResetRequest);
 router.post('/admin/approve-reset-request', isAuthenticatedAdmin, adminFunctionController.approveResetRequest);
 router.get('/admin/center-request-data', adminFunctionController.getRequestData);
 router.post('/admin/student-data',adminFunctionController.getStudentData);
-
+router.get('/admin/attendance-reports',adminFunctionController.getAttendaceReports);
 
 module.exports = router;

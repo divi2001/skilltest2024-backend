@@ -12,11 +12,11 @@ exports.loginadmin = async (req, res) => {
         const [results] = await connection.query(query1, [userId]);
 
         console.log(results)
-        
+
         if (results.length > 0) {
             const admin = results[0];
             console.log('Admin found in database:', admin.adminid);
-            
+
             let decryptedStoredPassword;
             try {
                 decryptedStoredPassword = (admin.password);
@@ -746,8 +746,8 @@ exports.getRequestData = async (req, res) => {
     }
 
 };
-const formatDate = (date) =>{
-    if(!date) return null;
+const formatDate = (date) => {
+    if (!date) return null;
     return moment(date).tz('Asia/Kolkata').format('DD-MM-YYYY hh:mm:ss A')
 }
 exports.getStudentData = async (req, res) => {
@@ -773,9 +773,9 @@ exports.getStudentData = async (req, res) => {
         const [shorthandPassage] = await connection.query(shorthandPassageQuery, [student_id]);
         const [studentResults] = await connection.query(studentQuery, [student_id]);
         const [typingPassage] = await connection.query(typingPassageQuery, [student_id]);
-        const [audioLogs] = await connection.query(audioLogsQuery,[student_id]);
-        const [examStages] = await  connection.query(examStagesQuery,[student_id]);
-        const [studentLogs] = await connection.query(studentLogsQuery,[student_id]);
+        const [audioLogs] = await connection.query(audioLogsQuery, [student_id]);
+        const [examStages] = await connection.query(examStagesQuery, [student_id]);
+        const [studentLogs] = await connection.query(studentLogsQuery, [student_id]);
         // console.log(results);
         if (studentResults.length === 0) {
             return res.status(404).json({ "Message": "No Student Found for this id!!!" })
@@ -783,21 +783,50 @@ exports.getStudentData = async (req, res) => {
         console.log(studentLogs);
         studentLogs[0].loginTime = formatDate(studentLogs[0].loginTime);
         studentLogs[0].trial_time = formatDate(studentLogs[0].trial_time);
-        studentLogs[0].audio1_time= formatDate(studentLogs[0].audio1_time);
-        studentLogs[0].passage1_time= formatDate(studentLogs[0].passage1_time);
-        studentLogs[0].audio2_time= formatDate(studentLogs[0].audio2_time);
-        studentLogs[0].passage2_time= formatDate(studentLogs[0].passage2_time);
-        studentLogs[0].trial_passage_time= formatDate(studentLogs[0].trial_passage_time);
-        studentLogs[0].typing_passage_time= formatDate(studentLogs[0].typing_passage_time);
-        studentLogs[0].feedback_time= formatDate(studentLogs[0].feedback_time);
-        
+        studentLogs[0].audio1_time = formatDate(studentLogs[0].audio1_time);
+        studentLogs[0].passage1_time = formatDate(studentLogs[0].passage1_time);
+        studentLogs[0].audio2_time = formatDate(studentLogs[0].audio2_time);
+        studentLogs[0].passage2_time = formatDate(studentLogs[0].passage2_time);
+        studentLogs[0].trial_passage_time = formatDate(studentLogs[0].trial_passage_time);
+        studentLogs[0].typing_passage_time = formatDate(studentLogs[0].typing_passage_time);
+        studentLogs[0].feedback_time = formatDate(studentLogs[0].feedback_time);
+
 
         studentResults[0].batchdate = formatDate(studentResults[0].batchdate);
         typingPassage[0].time = formatDate(typingPassage[0].time);
-        res.status(201).json({ shorthandPassage, typingPassage, studentResults,audioLogs,examStages,studentLogs });
+        res.status(201).json({ shorthandPassage, typingPassage, studentResults, audioLogs, examStages, studentLogs });
     } catch (error) {
         console.error('Database query error:', error);
         res.status(500).send('Internal server error');
     }
 
+}
+
+exports.getAttendaceReports = async (req, res) => {
+    const { center, batch } = req.query;
+    try {
+        let queryParams = []
+        let filter = "";
+        if (center) {
+            filter += " AND center = ?";
+            queryParams.push(center);
+        }
+        if (batch) {
+            filter += " AND batchNo = ?"
+            queryParams.push(batch);
+        }
+        let query = `select * from attendance_reports where 1=1 ${filter}`
+        console.log(query);
+
+        const [reports] = await connection.query(query,queryParams);
+
+        if(reports.length === 0) {
+           return res.status(404).json({"message":"Attendance reports not uploaded yet!!"});
+        }
+        res.status(201).json({"message":"Attendance reports fetched successfully!!",attendance_reports:reports});
+        
+    } catch (error) {
+        console.error('Database query error:', error);
+        res.status(500).send('Internal server error');
+    }
 }
