@@ -415,12 +415,25 @@ exports.updatePassageFinalLogs = async (req, res) => {
         return res.status(400).send('MAC address is required');
     }
 
+    const createTrackRecordTableQuery = `
+        CREATE TABLE IF NOT EXISTS trackrecord (
+            student_id VARCHAR(50) PRIMARY KEY,
+            PA_datetime DATETIME,
+            PB_datetime DATETIME,
+            PA_filename VARCHAR(255),
+            PB_filename VARCHAR(255)
+        )
+    `;
+
     const findStudentQuery = `SELECT center, batchNo FROM students WHERE student_id = ?`;
     const findAudioLogQuery = `SELECT * FROM finalPassageSubmit WHERE student_id = ?`;
     const updateAudioLogQuery = `UPDATE finalPassageSubmit SET ${passage_type} = ? WHERE student_id = ?`;
     const insertAudioLogQuery = `INSERT INTO finalPassageSubmit (student_id, ${passage_type}) VALUES (?, ?)`;
 
     try {
+        // Create trackrecord table if not exists
+        await connection.query(createTrackRecordTableQuery);
+
         // Query the database to get examCenterCode and batchNo
         const [studentRows] = await connection.query(findStudentQuery, [studentId]);
 
@@ -461,10 +474,34 @@ exports.updatePassageFinalLogs = async (req, res) => {
             zlib: { level: 9 }
         });
 
-        output.on('close', function () {
+        output.on('close', async function () {
             // Clean up the text file after zipping
             try {
                 fs1.unlinkSync(txtFilePath);
+                
+                // Update trackrecord table
+                try {
+                    const currentDateTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+                    const dateTimeField = passage_type === 'passageA' ? 'PA_datetime' : 'PB_datetime';
+                    const filenameField = passage_type === 'passageA' ? 'PA_filename' : 'PB_filename';
+                    
+                    const updateTrackRecordQuery = `
+                        INSERT INTO trackrecord (student_id, ${dateTimeField}, ${filenameField})
+                        VALUES (?, ?, ?)
+                        ON DUPLICATE KEY UPDATE 
+                        ${dateTimeField} = VALUES(${dateTimeField}),
+                        ${filenameField} = VALUES(${filenameField})
+                    `;
+                    
+                    await connection.query(updateTrackRecordQuery, [
+                        studentId,
+                        currentDateTime,
+                        `${fileName}.zip`
+                    ]);
+                } catch (trackRecordErr) {
+                    console.error('Failed to update trackrecord:', trackRecordErr);
+                    // Continue with the response even if trackrecord update fails
+                }
             } catch (unlinkErr) {
                 console.error('Failed to delete temporary text file:', unlinkErr);
             }
