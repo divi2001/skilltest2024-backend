@@ -398,7 +398,6 @@ exports.getAudioLogs = async (req, res) => {
 };
 
 
-
 exports.updatePassageFinalLogs = async (req, res) => {
     const studentId = req.session.studentId;
     const { passage_type, text, mac } = req.body;
@@ -414,6 +413,18 @@ exports.updatePassageFinalLogs = async (req, res) => {
     if (!mac) {
         return res.status(400).send('MAC address is required');
     }
+
+    const createFailedZipsTableQuery = `
+        CREATE TABLE IF NOT EXISTS failed_zips (
+            student_id VARCHAR(50) PRIMARY KEY,
+            filename VARCHAR(255),
+            failure_time DATETIME,
+            passage_type VARCHAR(50),
+            last_error TEXT,
+            status VARCHAR(50) DEFAULT 'pending',
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `;
 
     const createTrackRecordTableQuery = `
         CREATE TABLE IF NOT EXISTS trackrecord (
@@ -431,7 +442,8 @@ exports.updatePassageFinalLogs = async (req, res) => {
     const insertAudioLogQuery = `INSERT INTO finalPassageSubmit (student_id, ${passage_type}) VALUES (?, ?)`;
 
     try {
-        // Create trackrecord table if not exists
+        // Create tables if not exist
+        await connection.query(createFailedZipsTableQuery);
         await connection.query(createTrackRecordTableQuery);
 
         // Query the database to get examCenterCode and batchNo
@@ -474,50 +486,78 @@ exports.updatePassageFinalLogs = async (req, res) => {
             zlib: { level: 9 }
         });
 
+        let zipCreationFailed = false;
+
         output.on('close', async function () {
-            // Clean up the text file after zipping
-            try {
-                fs1.unlinkSync(txtFilePath);
-                
-                // Update trackrecord table
+            if (!zipCreationFailed) {
                 try {
-                    const currentDateTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-                    const dateTimeField = passage_type === 'passageA' ? 'PA_datetime' : 'PB_datetime';
-                    const filenameField = passage_type === 'passageA' ? 'PA_filename' : 'PB_filename';
+                    fs1.unlinkSync(txtFilePath);
                     
-                    const updateTrackRecordQuery = `
-                        INSERT INTO trackrecord (student_id, ${dateTimeField}, ${filenameField})
-                        VALUES (?, ?, ?)
-                        ON DUPLICATE KEY UPDATE 
-                        ${dateTimeField} = VALUES(${dateTimeField}),
-                        ${filenameField} = VALUES(${filenameField})
-                    `;
-                    
-                    await connection.query(updateTrackRecordQuery, [
-                        studentId,
-                        currentDateTime,
-                        `${fileName}.zip`
-                    ]);
-                } catch (trackRecordErr) {
-                    console.error('Failed to update trackrecord:', trackRecordErr);
-                    // Continue with the response even if trackrecord update fails
+                    // Update trackrecord table
+                    try {
+                        const currentDateTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+                        const dateTimeField = passage_type === 'passageA' ? 'PA_datetime' : 'PB_datetime';
+                        const filenameField = passage_type === 'passageA' ? 'PA_filename' : 'PB_filename';
+                        
+                        const updateTrackRecordQuery = `
+                            INSERT INTO trackrecord (student_id, ${dateTimeField}, ${filenameField})
+                            VALUES (?, ?, ?)
+                            ON DUPLICATE KEY UPDATE 
+                            ${dateTimeField} = VALUES(${dateTimeField}),
+                            ${filenameField} = VALUES(${filenameField})
+                        `;
+                        
+                        await connection.query(updateTrackRecordQuery, [
+                            studentId,
+                            currentDateTime,
+                            `${fileName}.zip`
+                        ]);
+                    } catch (trackRecordErr) {
+                        console.error('Failed to update trackrecord:', trackRecordErr);
+                    }
+                } catch (unlinkErr) {
+                    console.error('Failed to delete temporary text file:', unlinkErr);
                 }
-            } catch (unlinkErr) {
-                console.error('Failed to delete temporary text file:', unlinkErr);
+
+                const responseData = {
+                    student_id: studentId,
+                    passage_type: passage_type,
+                    text: text
+                };
+
+                res.send(responseData);
             }
-
-            const responseData = {
-                student_id: studentId,
-                passage_type: passage_type,
-                text: text
-            };
-
-            res.send(responseData);
         });
 
-        archive.on('error', function (err) {
+        archive.on('error', async function (err) {
             console.error('Archiver error:', err);
-            // Don't throw the error, just log it
+            zipCreationFailed = true;
+
+            const currentDateTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+            const insertFailedZipQuery = `
+                INSERT INTO failed_zips (student_id, filename, failure_time, passage_type, last_error)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                filename = VALUES(filename),
+                failure_time = VALUES(failure_time),
+                passage_type = VALUES(passage_type),
+                last_error = VALUES(last_error),
+                status = 'pending'
+            `;
+
+            try {
+                await connection.query(insertFailedZipQuery, [
+                    studentId,
+                    `${fileName}.zip`,
+                    currentDateTime,
+                    passage_type,
+                    err.message || 'Unknown error'
+                ]);
+            } catch (dbError) {
+                console.error('Failed to log zip creation failure:', dbError);
+            }
+
+            res.status(500).send('Failed to create zip file');
         });
 
         archive.on('warning', function (err) {
@@ -537,7 +577,6 @@ exports.updatePassageFinalLogs = async (req, res) => {
         res.status(500).send('An error occurred while processing your request');
     }
 };
-
 exports.getPassageFinalLogs = async (req, res) => {
     const studentId = req.session.studentId;
     const { passage_type } = req.query;
