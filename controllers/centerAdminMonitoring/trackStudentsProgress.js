@@ -12,11 +12,9 @@ function convertDateFormat(dateString) {
     // Parse the original date string
     const [day, month, year] = dateString.split('-');
   
-    // Create a Date object in UTC
-    // Set the time to 18:30:00 UTC of the previous day
+    
     const date = new Date(Date.UTC(year, month - 1, day - 1, 18, 30, 0));
     
-    // Convert to ISO 8601 format
     return date
 }
 

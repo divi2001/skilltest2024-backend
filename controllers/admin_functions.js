@@ -815,7 +815,7 @@ exports.getAttendaceReports = async (req, res) => {
             filter += " AND batchNo = ?"
             queryParams.push(batch);
         }
-        let query = `select * from attendance_reports where 1=1 ${filter}`
+        let query = `select * from attendance_reports where 1=1 ${filter} ORDER BY center `
         console.log(query);
 
         const [reports] = await connection.query(query,queryParams);

@@ -301,7 +301,7 @@ exports.uploadAttendanceReport = async (req, res) => {
         const [check] = await connection.query(checkQuery, [center, batchNo]);
         if (check.length > 0) return res.status(403).json({ "message": "Already added the data please Check!!" });
         
-        const currentDate = new Date().toISOString().split('T')[0];
+        const currentDate = moment().tz("Asia/Kolkata").format('DD/MM/YYYY');
 
         const insertQuery = `INSERT INTO attendance_reports 
         (center, batchNo, report_date, present_count, absent_count, attendance_pdf) 

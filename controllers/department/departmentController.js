@@ -321,9 +321,9 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
             result.subjects = subjects.map(sub => ({
                 id: sub.subjectId,
                 name: result[`subject_${sub.subjectId}_name`],
-                count: result[`subject_${sub.subjectId}_count`],
-                loggedIn: result[`subject_${sub.subjectId}_logged_in`],
-                completed: result[`subject_${sub.subjectId}_completed`]
+                count: Number(result[`subject_${sub.subjectId}_count`]),
+                loggedIn: Number(result[`subject_${sub.subjectId}_logged_in`]),
+                completed: Number(result[`subject_${sub.subjectId}_completed`])
             }));
 
             // Remove individual subject fields
