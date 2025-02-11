@@ -60,12 +60,12 @@ app.use(session({
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads'));
-app.use((req, res, next) => {
-  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.header('Pragma', 'no-cache');
-  res.header('Expires', '0');
-  next();
-});
+// app.use((req, res, next) => {
+//   res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+//   res.header('Pragma', 'no-cache');
+//   res.header('Expires', '0');
+//   next();
+// });
 
 app.use(studentRoutes)
 app.use(examcentereRoutes)
