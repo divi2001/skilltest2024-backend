@@ -42,7 +42,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(cors({
-  origin: ['*', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'http://3.111.171.201:3000', 'http://65.0.124.197:5000','http://65.0.124.197:5000/api/compare'],
+  origin: ['*', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'http://3.111.171.201:3000', 'http://65.0.124.197:5000','http://3.111.171.201:5000/api/compare'],
   credentials: true
 }));
 
@@ -60,6 +60,12 @@ app.use(session({
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads'));
+app.use((req, res, next) => {
+  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
+  next();
+});
 
 app.use(studentRoutes)
 app.use(examcentereRoutes)
