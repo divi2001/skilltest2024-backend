@@ -1,181 +1,276 @@
 const connection = require("../config/db1");
-const QRCode = require('qrcode');
 const moment = require('moment-timezone');
 
-async function createAnswerSheet(doc, data) {
-    // Constants for layout
-    const headerHeight = 60;
-    const lineGap = 30;
-    const rightPhotoWidth = 50;
-    const leftPhotoWidth = 80;
-    const photoHeight = 60;
-    const margin = 40;
-    const availableWidth = doc.page.width - 2 * margin - rightPhotoWidth - leftPhotoWidth;
-    
-    function createHeader(doc, text1, text2) {
-        doc.fontSize(14)
-           .font('Helvetica-Bold')
-           .text(text1, { align: 'center' })
-           .fontSize(12)
-           .text(text2, { align: 'center' });
-    }
-    
-    function createField(doc, label, value = '', x, y, width) {
-        doc.fontSize(10)
-           .font('Helvetica-Bold')
-           .text(`${label}`, x, y, { continued: true, width: width })
-           .font('Helvetica')
-           .text(`: ${value}`);
-    }
-    
-    function drawLines(doc, startY, endY, gap) {
-        for (let y = startY; y <= endY; y += gap) {
-            doc.moveTo(margin, y)
-               .lineTo(doc.page.width - margin, y)
-               .stroke();
+function createAttendanceReport(doc, data) {
+    function addHeader() {
+        // Only try to display the logo if it exists and is not null
+        if (data.departmentLogo) {
+            try {
+                doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
+            } catch (error) {
+                console.error('Error loading department logo:', error);
+                // Continue without the logo
+            }
         }
-    }
-    
-    async function generateQRCode(text) {
-        try {
-            return await QRCode.toDataURL(text, {
-                errorCorrectionLevel: 'H',
-                type: 'image/jpeg',
-                quality: 0.92,
-                margin: 1
+
+        doc.fontSize(14).font('Helvetica-Bold')
+            .text(data.departmentName, 110, 50, {
+                width: 450,
+                align: 'center'
             });
-        } catch (err) {
-            console.error("Error generating QR code:", err);
-            return null;
-        }
+
+        doc.fontSize(12).font('Helvetica')
+            .text('Skill Test Computer Shorthand Examination April 2025', 110, doc.y + 5, {
+                width: 450,
+                align: 'center'
+            });
+
+        doc.fontSize(12).font('Helvetica')
+            .text('ATTENDENCE REPORT', 110, doc.y + 5, {
+                width: 450,
+                align: 'center'
+            });
+
+        doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
+
+        doc.moveDown();
+        const yPosition = doc.y-8;
+        const fontSize = 10;
+        const spacer = '\u00A0\u00A0';
+        doc.fontSize(fontSize).font('Helvetica');
+
+        doc.text(`CENTER CODE: ${data.centerCode}${spacer}`, 50, yPosition + 10);
+        doc.text(`BATCH: ${data.batch}${spacer}`, 200, yPosition + 10);
+        doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 300, yPosition + 10);
+        doc.text(`EXAM TIME: ${data.examTime}`, 440, yPosition + 10);
+
+        return doc.y + 20; // Return the Y position after the header
     }
 
-    async function addPhoto(x, y, width, height, path, isQRCode = false, qrCodeUrl) {
-        doc.rect(x, y-1, width, height+2).stroke();
+    function addSignatureLines(y) {
+        const lineLength = 200;
+        const textOffset = 10;
+        const pageWidth = doc.page.width;
+        const leftMargin = 50;
+        const rightMargin = 50;
 
-        
-        try {
-            if (isQRCode) {
-                const qrDataURL = await generateQRCode(qrCodeUrl);
-                if (qrDataURL) {
-                    doc.image(qrDataURL, x, y, {
-                        fit: [width, height],
+        const leftLineX = leftMargin;
+        const rightLineX = pageWidth - rightMargin - lineLength;
+
+        doc.moveTo(leftLineX, y).lineTo(leftLineX + lineLength, y).stroke();
+        doc.fontSize(10).font('Helvetica');
+        doc.text('Signature of Supervisor', leftLineX+50, y + textOffset, { align: 'left' });
+
+        doc.moveTo(rightLineX, y).lineTo(rightLineX + lineLength, y).stroke();
+        doc.text('Signature of Center Head', rightLineX+50, y + textOffset, { align: 'left' });
+
+        return y + textOffset + 20;
+    }
+
+    const tableTop = 150;
+    const tableLeft = 50;
+    const rowHeight = 40;
+    const headerRowHeight = 30;
+    const pageBreakThreshold = 700;
+
+    // Define table headers and their widths
+    const tableWidth = 520;  // Total width of the table
+    const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE'];
+    
+    // Allocate column widths - Give SEAT NO 120px to ensure it fits 11-12 digit numbers
+    const columnWidths = [40, 120, 120, 60, 60, 60, 60];
+
+    function drawTableHeaders(yPosition) {
+        let xPosition = tableLeft;
+        headers.forEach((header, index) => {
+            doc.rect(xPosition, yPosition, columnWidths[index], headerRowHeight).stroke();
+            doc.fontSize(8).text(header, xPosition + 2, yPosition + 10, {
+                width: columnWidths[index],
+                align: 'center'
+            });
+            xPosition += columnWidths[index];
+        });
+        return yPosition + headerRowHeight;
+    }
+
+    function createTable(students) {
+        let yPosition = tableTop;
+        let currentPage = 1;
+        let studentsOnCurrentPage = 0;
+        const maxStudentsPerPage = 12;
+        const signatureGap = 40;
+
+        yPosition = drawTableHeaders(yPosition);
+
+        students.forEach((student, index) => {
+            if (studentsOnCurrentPage >= maxStudentsPerPage || yPosition + rowHeight > pageBreakThreshold - signatureGap) {
+                yPosition = addSignatureLines(yPosition + signatureGap);
+                doc.addPage();
+                yPosition = addHeader();
+                yPosition = drawTableHeaders(yPosition);
+                currentPage++;
+                studentsOnCurrentPage = 0;
+            }
+
+            let xPosition = tableLeft;
+
+            // Sr. No.
+            doc.rect(xPosition, yPosition, columnWidths[0], rowHeight).stroke();
+            doc.fontSize(9).text(index + 1, xPosition + 2, yPosition + rowHeight / 2 - 5, { width: columnWidths[0], align: 'center' });
+            xPosition += columnWidths[0];
+
+            // SEAT NO - Using a larger font size (10) and ensuring proper centering
+            doc.rect(xPosition, yPosition, columnWidths[1], rowHeight).stroke();
+            doc.fontSize(10).text(student.seatNo, xPosition + 5, yPosition + rowHeight / 2 - 5, { 
+                width: columnWidths[1] - 10,  // Padding on both sides
+                align: 'center' 
+            });
+            xPosition += columnWidths[1];
+
+            // NAME OF STUDENT
+            doc.rect(xPosition, yPosition, columnWidths[2], rowHeight).stroke();
+            doc.fontSize(8).text(student.name, xPosition + 5, yPosition + rowHeight / 2 - 5, {
+                width: columnWidths[2] - 10,
+                align: 'center',
+                valign: 'center'
+            });
+            xPosition += columnWidths[2];
+
+            // SUBJECT
+            doc.rect(xPosition, yPosition, columnWidths[3], rowHeight).stroke();
+            doc.fontSize(9).text(student.subject, xPosition + 2, yPosition + rowHeight / 2 - 5, { 
+                width: columnWidths[3] - 4, 
+                align: 'center' 
+            });
+            xPosition += columnWidths[3];
+
+            // PHOTO
+            doc.rect(xPosition, yPosition, columnWidths[4], rowHeight).stroke();
+            if (student.photoBase64) {
+                try {
+                    doc.image(Buffer.from(student.photoBase64, 'base64'), xPosition + 2, yPosition + 2, {
+                        fit: [columnWidths[4] - 4, rowHeight - 4],
                         align: 'center',
                         valign: 'center'
                     });
-                } else {
-                    throw new Error('QR code generation failed');
+                } catch (error) {
+                    console.error(`Error loading image for student ${student.seatNo}:`, error);
+                    doc.text('No Photo', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                        width: columnWidths[4] - 4,
+                        align: 'center'
+                    });
                 }
-            } else if (path) {
-                doc.image(path, x, y, {
-                    fit: [width, height],
-                    align: 'center',
-                    valign: 'center'
-                });
             } else {
-                console.log("Image path is null")
-                throw new Error('Image path is null');
+                doc.text('No Photo', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                    width: columnWidths[4] - 4,
+                    align: 'center'
+                });
             }
-        } catch (error) {
-            console.error('Error loading image:', error);
-            doc.fontSize(8).text('Image Not Available', x, y + height / 2, {
-                width: width,
-                align: 'center'
-            });
-        }
-    }
-    
-    async function createPage(doc, student, isFirstPage, qrCodeUrl) {
-        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION FEBRUARY 2025');
-        
-        let startY = headerHeight+15;
-      
-        if (isFirstPage) {
-            const rightPhotoX = doc.page.width - margin - rightPhotoWidth;
-            const leftPhotoX = margin;
-            const photoY = startY;
-      
-            doc.moveTo(margin, startY)
-           .lineTo(doc.page.width - margin, startY)
-           .stroke();
-      
-            await addPhoto(leftPhotoX, photoY+7, leftPhotoWidth, photoHeight, null, true, qrCodeUrl);
-            await addPhoto(rightPhotoX, photoY+7, rightPhotoWidth, photoHeight, Buffer.from(student.photoBase64, 'base64'));
-      
-            const fieldStartX = margin + leftPhotoWidth + 10;
-            const fieldWidth = (availableWidth - 10) / 2;
-            const fieldHeight = 20;
-      
-            function addField(label, value, x, y, width, height) {
-                createField(doc, label, value, x + 5, y + 5, width - 10);
+            xPosition += columnWidths[4];
+
+            // SIGN(uploaded)
+            doc.rect(xPosition, yPosition, columnWidths[5], rowHeight).stroke();
+            if (student.signBase64) {
+                try {
+                    doc.image(Buffer.from(student.signBase64, 'base64'), xPosition + 2, yPosition + 2, {
+                        fit: [columnWidths[5] - 4, rowHeight - 4],
+                        align: 'center',
+                        valign: 'center'
+                    });
+                } catch (error) {
+                    console.error(`Error loading sign image for student ${student.seatNo}:`, error);
+                    doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                        width: columnWidths[5] - 4,
+                        align: 'center'
+                    });
+                }
+            } else {
+                doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                    width: columnWidths[5] - 4,
+                    align: 'center'
+                });
             }
-      
-            addField('Seat No', student.seatNo, fieldStartX, startY + 5, fieldWidth, fieldHeight);
-            addField('Name', student.name, fieldStartX + fieldWidth - 10, startY + 5, fieldWidth, fieldHeight);
-    
-            // Second row
-            addField('Subject', student.subject, fieldStartX, startY + fieldHeight + 10, fieldWidth, fieldHeight);
-            addField('Batch', data.batch, fieldStartX + fieldWidth - 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
-    
-            // Third row (new)
-            addField('Date', data.examDate, fieldStartX, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
-            addField('Time', data.start_time, fieldStartX + fieldWidth - 10, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
-      
-            startY += 2 * fieldHeight + 20;
-        } else {
-            startY += 10;
-        }
-      
-        drawLines(doc, startY+20, doc.page.height - margin, lineGap);
+            xPosition += columnWidths[5];
+
+            // SIGNATURE
+            doc.rect(xPosition, yPosition, columnWidths[6], rowHeight).stroke();
+
+            yPosition += rowHeight;
+            studentsOnCurrentPage++;
+
+            if (index === students.length - 1) {
+                yPosition = addSignatureLines(yPosition + signatureGap);
+            }
+        });
+
+        return yPosition;
     }
-    
-    for (const student of data.students) {
-        await createPage(doc, student, true, `https://www.shorthandonlineexam.in/student_info/${student.seatNo}`);
-        doc.addPage();
-        await createPage(doc, student, false);
-        if (student !== data.students[data.students.length - 1]) {
+
+    function addCenteredSummaryTable(startY, totalStudents) {
+        if (startY > 700) {
             doc.addPage();
+            startY = addHeader();
+        } else {
+            startY += 30;
         }
+
+        const summaryTableWidth = 250;
+        const summaryTableLeft = (doc.page.width - summaryTableWidth) / 2;
+        const summaryRowHeight = 18;
+
+        doc.rect(summaryTableLeft, startY, summaryTableWidth, summaryRowHeight * 3).stroke();
+
+        doc.fontSize(10).font('Helvetica-Bold');
+        doc.text('PRESENT', summaryTableLeft, startY + 5, { width: summaryTableWidth / 3, align: 'center' });
+        doc.text('ABSENT', summaryTableLeft + summaryTableWidth / 3, startY + 5, { width: summaryTableWidth / 3, align: 'center' });
+        doc.text('TOTAL', summaryTableLeft + (summaryTableWidth / 3) * 2, startY + 5, { width: summaryTableWidth / 3, align: 'center' });
+
+        doc.moveTo(summaryTableLeft + summaryTableWidth / 3, startY)
+            .lineTo(summaryTableLeft + summaryTableWidth / 3, startY + summaryRowHeight * 3)
+            .stroke();
+        doc.moveTo(summaryTableLeft + (summaryTableWidth / 3) * 2, startY)
+            .lineTo(summaryTableLeft + (summaryTableWidth / 3) * 2, startY + summaryRowHeight * 3)
+            .stroke();
+
+        doc.moveTo(summaryTableLeft, startY + summaryRowHeight)
+            .lineTo(summaryTableLeft + summaryTableWidth, startY + summaryRowHeight)
+            .stroke();
+
+        doc.fontSize(10).font('Helvetica');
+        doc.text('', summaryTableLeft, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
+        doc.text('', summaryTableLeft + summaryTableWidth / 3, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
+        doc.text(totalStudents.toString(), summaryTableLeft + (summaryTableWidth / 3) * 2, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
+        
+        return startY + summaryRowHeight * 3 + 30;
     }
+
+    const initialY = addHeader();
+    const finalYPosition = createTable(data.students);
+    const afterSummaryY = addCenteredSummaryTable(finalYPosition, data.students.length);
 }
 
-const getData = async(center, batchNo,student_id) => {
+const getData = async(center, batchNo) => {
     try {
-        console.log(center, batchNo,student_id);
-        let query , response , queryParams = [center,batchNo];
-        if(student_id){
-           query = "SELECT s.fullname, s.student_id,s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ?;";
-           queryParams.push(student_id);
-        }else{
-         query = 'SELECT s.fullname, s.student_id,s.base64, sub.subject_name ,d.departmentName,d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
-        }
-        response = await connection.query(query, queryParams);
+        console.log(center, batchNo);
+        const query = 'SELECT s.fullname, s.student_id, s.base64, s.sign_base64, sub.subject_name_short, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
+        const response = await connection.query(query, [center, batchNo]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
-        // console.log(response[0], batchData[0]);
-
-       
+        // console.log(batchData[0].batchdate);
+        // if(!checkDownloadAllowedStudentLoginPass(batchData[0].batchdate)) {
+        //     return res.status(403).json({ "message": "Download not allowed at this time" });
+        // }
         
-        // if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
         return { 
             response: response[0], 
-            batchData: batchData[0], 
-            // isDownloadAllowed 
+            batchData: batchData[0]
         };
-        
     } catch (error) {
         console.error('Error in getData:', error);
         throw error;
     }
 }
-function checkDownloadAllowed(batchDate) {
-    const today = moment().startOf('day');
-    const batchMoment = moment(batchDate).startOf('day');
-    const differenceInDays = batchMoment.diff(today, 'days');
-    console.log(differenceInDays);
-    // Allow download if it's the day of the batch or one day before
-    return differenceInDays <= 1 && differenceInDays >= 0;
-}
+
 function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Set the timezone to Kolkata
     const kolkataZone = 'Asia/Kolkata';
@@ -198,50 +293,52 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     return nowKolkata.isSameOrAfter(oneDayBefore);
 }
 
-function getTextBeforePlus(inputText) {
-    const plusIndex = inputText.indexOf('+');
-    if (plusIndex !== -1) {
-        return inputText.substring(0, plusIndex).trim();
+const AttendanceReport = async(doc, center, batchNo) => {
+    try {
+        const Data = await getData(center, batchNo);
+        
+        if (!Data) {
+            throw new Error('No data returned from getData');
+        }
+        
+        const response = Data.response;
+        if (!Array.isArray(response) || response.length === 0) {
+            throw new Error('No data returned from getData');
+        }
+
+        if (!Array.isArray(Data.batchData) || Data.batchData.length === 0) {
+            throw new Error('No batch data available');
+        }
+
+        const batchInfo = Data.batchData[0];
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
+        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+            throw new Error("Download not allowed at this time");
+        }
+
+        const data = {
+            centerCode: center,
+            batch: batchNo,
+            examDate: examDate,
+            examTime: batchInfo.start_time,
+            students: response.map(student => {
+                return {
+                    seatNo: student.student_id.toString(),
+                    name: student.fullname,
+                    subject: student.subject_name_short,
+                    photoBase64: student.base64,
+                    signBase64: student.sign_base64,  // Using the same path for both photo and sign
+                }
+            }),
+            departmentName: response[0]?.departmentName || 'GCC Examination',
+            departmentLogo: response[0]?.logo || null
+        };
+        
+        createAttendanceReport(doc, data);
+    } catch (error) {
+        console.error("Error generating report:", error);
+        throw error;
     }
-    return inputText; // Return original text if '+' not found
 }
 
-const generateAnswerSheets = async(doc, center, batchNo , student_id) => {
-    const Data = await getData(center, batchNo , student_id);
-    // console.log(Data);
-
-    const response = Data.response;
-    if (!Array.isArray(response) || response.length === 0) {
-        throw new Error('No data returned from getData');
-    }
-
-    if (!Array.isArray(Data.batchData) || Data.batchData.length === 0) {
-        throw new Error('No batch data available');
-    }
-
-    const batchInfo = Data.batchData[0];
-    const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-    if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-        throw new Error("Download not allowed at this time");
-    }
-    const data = {
-        centerCode: center,
-        batch: batchNo,
-        examDate:examDate,
-        start_time:batchInfo.start_time,
-        students: response.map(student => ({
-            seatNo: student.student_id.toString(),
-            name: student.fullname,
-            subject: getTextBeforePlus(student.subject_name),
-            photoBase64: student.base64 ?? " ",
-            
-        })),
-        departmentName:response[0].departmentName,
-        departmentLogo : response[0].logo
-    };
-
-    await createAnswerSheet(doc, data);
-    console.log('Answer sheets generated successfully!');
-};
-
-module.exports = { generateAnswerSheets };
+module.exports = { AttendanceReport };

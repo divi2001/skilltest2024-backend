@@ -20,7 +20,7 @@ function createAttendanceReport(doc, data) {
             });
 
         doc.fontSize(12).font('Helvetica')
-            .text('GCC COMPUTER SHORTHAND EXAMINATION FEBRUARY 2025', 110, doc.y + 5, {
+            .text('Skill Test Computer Shorthand Examination April 2025', 110, doc.y + 5, {
                 width: 450,
                 align: 'center'
             });
@@ -74,7 +74,7 @@ function createAttendanceReport(doc, data) {
     const pageBreakThreshold = 700;
 
     const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE'];
-    const columnWidths = [40, 60, 170, 60, 60, 60, 70];
+    const columnWidths = [40, 70, 160, 60, 60, 60, 70];
 
     function drawTableHeaders(yPosition) {
         let xPosition = tableLeft;
