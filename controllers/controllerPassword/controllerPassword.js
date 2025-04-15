@@ -136,16 +136,18 @@ exports.getBatchwiseControllerPassForCenter = async(req,res)=>{
     try {
         const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const [batchData] = await connection.query(batchQuery,[batchNo]);
+        console.log(batchData);
 
         if (!batchData || batchData.length === 0) {
             return res.status(404).json({ "message": "Batch not found" });
         }
         
         const today = moment().startOf('day');
-        const batchDate = moment(batchData.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        // console.log(today,batchData);
+        // Fix: Access the first element of the array and parse the date correctly
+        const batchMoment = moment(batchData[0].batchdate).tz('Asia/Kolkata').startOf('day');
         
-        if (!today.isSame(batchDate)) {
+        // Compare the moment objects directly, not strings
+        if (!today.isSame(batchMoment)) {
             return res.status(403).json({ "message": "Download is only allowed on the day of the batch" });
         }
 
@@ -155,8 +157,8 @@ exports.getBatchwiseControllerPassForCenter = async(req,res)=>{
         }
 
         // If download is allowed, proceed with getting student data
-        const query = 'SELECT controller_pass  FROM controllerdb WHERE center = 1051 AND batchNo = 100';
-        const [results] = await connection.query(query); //[center, batchNo ,batchData[0].batchdate]
+        const query = 'SELECT controller_pass FROM controllerdb WHERE center = ? AND batchNo = ?';
+        const [results] = await connection.query(query, [center, batchNo]);
 
         // console.log(results[0]);
         res.status(200).json({results});
