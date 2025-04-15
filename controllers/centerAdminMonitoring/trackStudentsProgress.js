@@ -19,128 +19,234 @@ function convertDateFormat(dateString) {
 }
 
 exports.getStudentsTrack = async (req, res) => {
-    // console.log('Starting getStudentsTrack function');
+    console.log('Starting getStudentsTrack function');
     const { batchNo } = req.params;
     const examCenterCode = req.session.centerId;
-    let { subject_name, loginStatus, batchDate ,exam_type } = req.query;
+    let { subject_name, loginStatus, batchDate, exam_type } = req.query;
 
-    // console.log("Exam center code:", examCenterCode);
-    // console.log("Batch no:", batchNo);
-    // console.log("Subject:", subject_name);
-    // console.log("Login status:", loginStatus);
-    // console.log("exam type:" . exam_type);
-    // console.log("Original Batch date:", batchDate);
+    console.log("Exam center code:", examCenterCode);
+    console.log("Batch no:", batchNo);
+    console.log("Subject:", subject_name);
+    console.log("Login status:", loginStatus);
+    console.log("Exam type:", exam_type);
+    console.log("Original Batch date:", batchDate);
 
-   
     if (!examCenterCode) {
         console.log('Center admin is not logged in');
         return res.status(404).json({"message":"Center admin is not logged in"});
     }
 
-    const queryParams = [examCenterCode];
-    let query = `SELECT 
-    s.student_id,
-    s.center,
-    s.fullname, 
-    s.subjectsId,
-    sub.subject_name,
-    sub.subject_name_short,
-    s.courseId,
-    s.loggedin,
-    s.batchNo,
-    s.batchdate,
-    s.done,
-    s.Reporting_Time,
-    s.start_time,
-    s.end_time,
-    s.batchdate,
-    s.departmentId,
-    a.trial,
-    a.passageA,
-    a.passageB,
-    sl.loginTime,
-    sl.login,
-    sl.trial_time,
-    sl.audio1_time,
-    sl.passage1_time,
-    sl.audio2_time,
-    sl.passage2_time,
-    sl.trial_passage_time,
-    sl.typing_passage_time,
-    sl.feedback_time
-FROM
-    students s
-LEFT JOIN
-    subjectsdb sub ON s.subjectsId = sub.subjectId
-LEFT JOIN
-    audiologs a ON s.student_id = a.student_id
-LEFT JOIN 
-    departmentdb d ON d.departmentId = s.departmentId
-LEFT JOIN (
-    SELECT
-        student_id,
-        MAX(loginTime) as loginTime,
-        MAX(login) as login,
-        MAX(trial_time) as trial_time,
-        MAX(audio1_time) as audio1_time,
-        MAX(passage1_time) as passage1_time,
-        MAX(audio2_time) as audio2_time,
-        MAX(passage2_time) as passage2_time,
-        MAX(trial_passage_time) as trial_passage_time,
-        MAX(typing_passage_time) as typing_passage_time,
-        MAX(feedback_time) as feedback_time
-    FROM
-        studentlogs
-    GROUP BY
-        student_id
-) sl ON s.student_id = sl.student_id
-WHERE d.departmentStatus = 1 AND s.center = ? `;
-
-
-    if (batchNo) {
-        query += ' AND s.batchNo = ?';
-        queryParams.push(batchNo);
-    } 
-
-    if (subject_name) {
-        query += ' AND sub.subject_name = ?';
-        queryParams.push(subject_name);
-    }
-
-    if (loginStatus) {
-        if (loginStatus === 'loggedin') {
-            query += ' AND s.loggedin = 1';
-        } else if (loginStatus === 'loggedout') {
-            query += ' AND s.loggedin = 0';
-        }
-    }
-
-    if(exam_type){
-        if(exam_type ==='shorthand'){
-            query+= ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0'
-        }
-        else if (exam_type === 'typewriting'){
-            query+=' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
-        }
-        else if(exam_type === 'both'){
-            query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
-        }
-    }
-    if (batchDate) {
-        batchDate = convertDateFormat(batchDate);
-        console.log("Formatted Batch date:", batchDate);
-        query += ' AND s.batchdate = ?';
-        queryParams.push(batchDate);
-    }
-
-    // console.log('Final query:', query);
-    // console.log('Query parameters:', queryParams);
-     
     try {
-        const [results] = await connection.query(query, queryParams);
-        // console.log('Query result:', results);
+        // Step 1: First check if there are any students for this center
+        const studentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ?`;
+        const [studentsResult] = await connection.query(studentsQuery, [examCenterCode]);
+        console.log(`Students count for center ${examCenterCode}:`, studentsResult[0].count);
+        
+        if (studentsResult[0].count === 0) {
+            console.log(`No students found for center: ${examCenterCode}`);
+            return res.status(404).json({message: 'No students found for this center'});
+        }
+
+        // Step 2: Check students with departmentId = 2
+        const deptStudentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND departmentId = 2`;
+        const [deptStudentsResult] = await connection.query(deptStudentsQuery, [examCenterCode]);
+        console.log(`Students with departmentId=0 for center ${examCenterCode}:`, deptStudentsResult[0].count);
+        
+        if (deptStudentsResult[0].count === 0) {
+            console.log(`No students with departmentId=0 found for center: ${examCenterCode}`);
+            return res.status(404).json({message: 'No students with departmentId=0 found for this center'});
+        }
+        
+        // Step 3: Check if batch number exists (if provided)
+        if (batchNo) {
+            const batchQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND batchNo = ?`;
+            const [batchResult] = await connection.query(batchQuery, [examCenterCode, batchNo]);
+            console.log(`Students with batch ${batchNo} for center ${examCenterCode}:`, batchResult[0].count);
+            
+            if (batchResult[0].count === 0) {
+                console.log(`No students found for batch: ${batchNo} in center: ${examCenterCode}`);
+                return res.status(404).json({message: `No students found for batch: ${batchNo}`});
+            }
+        }
+        
+        // Step 4: Check if subject exists (if provided)
+        if (subject_name) {
+            const subjectQuery = `
+                SELECT COUNT(*) as count 
+                FROM students s
+                JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
+                WHERE s.center = ? AND sub.subject_name = ?`;
+            const [subjectResult] = await connection.query(subjectQuery, [examCenterCode, subject_name]);
+            console.log(`Students with subject ${subject_name} for center ${examCenterCode}:`, subjectResult[0].count);
+            
+            if (subjectResult[0].count === 0) {
+                console.log(`No students found for subject: ${subject_name} in center: ${examCenterCode}`);
+                return res.status(404).json({message: `No students found for subject: ${subject_name}`});
+            }
+        }
+        
+        // Step 5: Check combined conditions for students table
+        let studentsConditionQuery = `
+            SELECT COUNT(*) as count 
+            FROM students s
+            WHERE s.center = ? AND s.departmentId = 2`;
+        
+        let queryParams = [examCenterCode];
+        
+        if (batchNo) {
+            studentsConditionQuery += ` AND s.batchNo = ?`;
+            queryParams.push(batchNo);
+        }
+        
+        if (loginStatus) {
+            if (loginStatus === 'loggedin') {
+                studentsConditionQuery += ` AND s.loggedin = 1`;
+            } else if (loginStatus === 'loggedout') {
+                studentsConditionQuery += ` AND s.loggedin = 0`;
+            }
+        }
+        
+        if (exam_type) {
+            if (exam_type === 'shorthand') {
+                studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 0`;
+            } else if (exam_type === 'typewriting') {
+                studentsConditionQuery += ` AND s.IsTypewriting = 1 AND s.IsShorthand = 0`;
+            } else if (exam_type === 'both') {
+                studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 1`;
+            }
+        }
+        
+        if (batchDate) {
+            const formattedDate = convertDateFormat(batchDate);
+            studentsConditionQuery += ` AND s.batchdate = ?`;
+            queryParams.push(formattedDate);
+            console.log("Using formatted batch date:", formattedDate);
+        }
+        
+        console.log("Students condition query:", studentsConditionQuery);
+        console.log("Students condition params:", queryParams);
+        
+        const [studentsConditionResult] = await connection.query(studentsConditionQuery, queryParams);
+        console.log("Students matching all conditions:", studentsConditionResult[0].count);
+        
+        if (studentsConditionResult[0].count === 0) {
+            console.log("No students match all the specified conditions");
+            return res.status(404).json({message: 'No students match the specified criteria'});
+        }
+        
+        // Step 6: Now fetch actual student data with join checks
+        console.log("Checking each join separately...");
+        
+        // Check subjectsdb join
+        const subjectsJoinQuery = `
+            SELECT COUNT(*) as count 
+            FROM students s
+            LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
+            WHERE s.center = ? AND s.departmentId = 2`;
+        const [subjectsJoinResult] = await connection.query(subjectsJoinQuery, [examCenterCode]);
+        console.log("Results after subjectsdb join:", subjectsJoinResult[0].count);
+        
+        // Check audiologs join
+        const audioJoinQuery = `
+            SELECT COUNT(*) as count 
+            FROM students s
+            LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
+            LEFT JOIN audiologs a ON s.student_id = a.student_id
+            WHERE s.center = ? AND s.departmentId = 2`;
+        const [audioJoinResult] = await connection.query(audioJoinQuery, [examCenterCode]);
+        console.log("Results after audiologs join:", audioJoinResult[0].count);
+        
+        // Check studentlogs join
+        const logsJoinQuery = `
+            SELECT COUNT(*) as count 
+            FROM students s
+            LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
+            LEFT JOIN audiologs a ON s.student_id = a.student_id
+            LEFT JOIN (
+                SELECT
+                    student_id,
+                    MAX(loginTime) as loginTime
+                FROM
+                    studentlogs
+                GROUP BY
+                    student_id
+            ) sl ON s.student_id = sl.student_id
+            WHERE s.center = ? AND s.departmentId = 2`;
+        const [logsJoinResult] = await connection.query(logsJoinQuery, [examCenterCode]);
+        console.log("Results after studentlogs join:", logsJoinResult[0].count);
+        
+        // Step 7: Final full query with all conditions (using parameters from step 5)
+        const finalQuery = `SELECT 
+            s.student_id,
+            s.center,
+            s.fullname, 
+            s.subjectsId,
+            sub.subject_name,
+            sub.subject_name_short,
+            s.courseId,
+            s.loggedin,
+            s.batchNo,
+            s.batchdate,
+            s.done,
+            s.Reporting_Time,
+            s.start_time,
+            s.end_time,
+            s.departmentId,
+            a.trial,
+            a.passageA,
+            a.passageB,
+            sl.loginTime,
+            sl.login,
+            sl.trial_time,
+            sl.audio1_time,
+            sl.passage1_time,
+            sl.audio2_time,
+            sl.passage2_time,
+            sl.trial_passage_time,
+            sl.typing_passage_time,
+            sl.feedback_time
+        FROM
+            students s
+        LEFT JOIN
+            subjectsdb sub ON s.subjectsId = sub.subjectId
+        LEFT JOIN
+            audiologs a ON s.student_id = a.student_id
+        LEFT JOIN (
+            SELECT
+                student_id,
+                MAX(loginTime) as loginTime,
+                MAX(login) as login,
+                MAX(trial_time) as trial_time,
+                MAX(audio1_time) as audio1_time,
+                MAX(passage1_time) as passage1_time,
+                MAX(audio2_time) as audio2_time,
+                MAX(passage2_time) as passage2_time,
+                MAX(trial_passage_time) as trial_passage_time,
+                MAX(typing_passage_time) as typing_passage_time,
+                MAX(feedback_time) as feedback_time
+            FROM
+                studentlogs
+            GROUP BY
+                student_id
+        ) sl ON s.student_id = sl.student_id
+        WHERE s.departmentId = 2 AND s.center = ?` + 
+            (batchNo ? ' AND s.batchNo = ?' : '') +
+            (subject_name ? ' AND sub.subject_name = ?' : '') +
+            (loginStatus === 'loggedin' ? ' AND s.loggedin = 1' : 
+             loginStatus === 'loggedout' ? ' AND s.loggedin = 0' : '') +
+            (exam_type === 'shorthand' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0' :
+             exam_type === 'typewriting' ? ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0' :
+             exam_type === 'both' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1' : '') +
+            (batchDate ? ' AND s.batchdate = ?' : '');
+            
+        console.log("Final query:", finalQuery);
+        console.log("Final query params:", queryParams);
+        
+        const [results] = await connection.query(finalQuery, queryParams);
+        console.log('Final query executed. Number of results:', results.length);
 
         if (results.length > 0) {
+            console.log("Processing student records...");
             const studentTrackDTOs = results.map(result => {
                 
                 const studentTrack = new StudentTrackDTO(
@@ -177,8 +283,10 @@ WHERE d.departmentStatus = 1 AND s.center = ? `;
                 return studentTrack;
             });
 
+            console.log("Sending response with student data");
             res.status(200).json(studentTrackDTOs);
         } else {
+            console.log("No matching student records found in final query");
             res.status(404).json({message: 'No records found!'});
         }
     } catch (err) {
@@ -186,7 +294,6 @@ WHERE d.departmentStatus = 1 AND s.center = ? `;
         res.status(500).json({message: err.message});
     }
 };
-
 
 exports.getStoredStages = async (req, res) => {
     const studentId = req.session.studentId;
