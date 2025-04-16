@@ -600,10 +600,11 @@ exports.feedback = async (req, res) => {
 exports.logTextInput = async (req, res) => {
     const studentId = req.session.studentId;
     const { text, identifier, time } = req.body;
-    console.log('git')
+    console.log('git');
 
-    console.log(`Displaying identifier: ${identifier}`)
+    console.log(`Displaying identifier: ${identifier}`);
     
+    // Original table - keeps the most recent submissions
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS textlogs (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -614,6 +615,19 @@ exports.logTextInput = async (req, res) => {
         textb TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY (student_id)
+      )
+    `;
+    
+    // New history table - keeps all submissions
+    const createHistoryTableQuery = `
+      CREATE TABLE IF NOT EXISTS textlogs_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        passage_identifier VARCHAR(20) NOT NULL,
+        text_content TEXT,
+        time_taken FLOAT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX (student_id)
       )
     `;
 
@@ -629,9 +643,11 @@ exports.logTextInput = async (req, res) => {
     const safeText = text == null ? '' : text.trim();
 
     try {
-        // Create the textlogs table if it doesn't exist
+        // Create both tables if they don't exist
         await connection.query(createTableQuery);
+        await connection.query(createHistoryTableQuery);
 
+        // Original functionality: Update the current record
         const insertQuery = `
             INSERT INTO textlogs (student_id, min${identifier === 'passageA' ? 'a' : 'b'}, text${identifier === 'passageA' ? 'a' : 'b'})
             VALUES (?, ?, ?)
@@ -640,7 +656,17 @@ exports.logTextInput = async (req, res) => {
             text${identifier === 'passageA' ? 'a' : 'b'} = VALUES(text${identifier === 'passageA' ? 'a' : 'b'})
         `;
 
-        await connection.query(insertQuery, [studentId, time, safeText]);
+        // New functionality: Also insert into history table
+        const historyInsertQuery = `
+            INSERT INTO textlogs_history (student_id, passage_identifier, text_content, time_taken)
+            VALUES (?, ?, ?, ?)
+        `;
+
+        // Execute both queries
+        await Promise.all([
+            connection.query(insertQuery, [studentId, time, safeText]),
+            connection.query(historyInsertQuery, [studentId, identifier, safeText, time])
+        ]);
         
         console.log('Response logged successfully');
         res.sendStatus(200);
