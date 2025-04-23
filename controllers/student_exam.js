@@ -143,7 +143,7 @@ exports.getStudentDetails = async (req, res) => {
         }
         const student = students[0];
         
-        // console.log('Student data retrieved');
+        console.log(student);
 
         const batchDate1 = student.batchdate
         console.log(batchDate1)
@@ -398,6 +398,7 @@ exports.getAudioLogs = async (req, res) => {
 };
 
 
+
 exports.updatePassageFinalLogs = async (req, res) => {
     const studentId = req.session.studentId;
     const { passage_type, text, mac } = req.body;
@@ -414,38 +415,12 @@ exports.updatePassageFinalLogs = async (req, res) => {
         return res.status(400).send('MAC address is required');
     }
 
-    const createFailedZipsTableQuery = `
-        CREATE TABLE IF NOT EXISTS failed_zips (
-            student_id VARCHAR(50) PRIMARY KEY,
-            filename VARCHAR(255),
-            failure_time DATETIME,
-            passage_type VARCHAR(50),
-            last_error TEXT,
-            status VARCHAR(50) DEFAULT 'pending',
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )
-    `;
-
-    const createTrackRecordTableQuery = `
-        CREATE TABLE IF NOT EXISTS trackrecord (
-            student_id VARCHAR(50) PRIMARY KEY,
-            PA_datetime DATETIME,
-            PB_datetime DATETIME,
-            PA_filename VARCHAR(255),
-            PB_filename VARCHAR(255)
-        )
-    `;
-
     const findStudentQuery = `SELECT center, batchNo FROM students WHERE student_id = ?`;
     const findAudioLogQuery = `SELECT * FROM finalPassageSubmit WHERE student_id = ?`;
     const updateAudioLogQuery = `UPDATE finalPassageSubmit SET ${passage_type} = ? WHERE student_id = ?`;
     const insertAudioLogQuery = `INSERT INTO finalPassageSubmit (student_id, ${passage_type}) VALUES (?, ?)`;
 
     try {
-        // Create tables if not exist
-        await connection.query(createFailedZipsTableQuery);
-        await connection.query(createTrackRecordTableQuery);
-
         // Query the database to get examCenterCode and batchNo
         const [studentRows] = await connection.query(findStudentQuery, [studentId]);
 
@@ -486,78 +461,26 @@ exports.updatePassageFinalLogs = async (req, res) => {
             zlib: { level: 9 }
         });
 
-        let zipCreationFailed = false;
-
-        output.on('close', async function () {
-            if (!zipCreationFailed) {
-                try {
-                    fs1.unlinkSync(txtFilePath);
-                    
-                    // Update trackrecord table
-                    try {
-                        const currentDateTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-                        const dateTimeField = passage_type === 'passageA' ? 'PA_datetime' : 'PB_datetime';
-                        const filenameField = passage_type === 'passageA' ? 'PA_filename' : 'PB_filename';
-                        
-                        const updateTrackRecordQuery = `
-                            INSERT INTO trackrecord (student_id, ${dateTimeField}, ${filenameField})
-                            VALUES (?, ?, ?)
-                            ON DUPLICATE KEY UPDATE 
-                            ${dateTimeField} = VALUES(${dateTimeField}),
-                            ${filenameField} = VALUES(${filenameField})
-                        `;
-                        
-                        await connection.query(updateTrackRecordQuery, [
-                            studentId,
-                            currentDateTime,
-                            `${fileName}.zip`
-                        ]);
-                    } catch (trackRecordErr) {
-                        console.error('Failed to update trackrecord:', trackRecordErr);
-                    }
-                } catch (unlinkErr) {
-                    console.error('Failed to delete temporary text file:', unlinkErr);
-                }
-
-                const responseData = {
-                    student_id: studentId,
-                    passage_type: passage_type,
-                    text: text
-                };
-
-                res.send(responseData);
+        output.on('close', function () {
+            // Clean up the text file after zipping
+            try {
+                fs1.unlinkSync(txtFilePath);
+            } catch (unlinkErr) {
+                console.error('Failed to delete temporary text file:', unlinkErr);
             }
+
+            const responseData = {
+                student_id: studentId,
+                passage_type: passage_type,
+                text: text
+            };
+
+            res.send(responseData);
         });
 
-        archive.on('error', async function (err) {
+        archive.on('error', function (err) {
             console.error('Archiver error:', err);
-            zipCreationFailed = true;
-
-            const currentDateTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-            const insertFailedZipQuery = `
-                INSERT INTO failed_zips (student_id, filename, failure_time, passage_type, last_error)
-                VALUES (?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                filename = VALUES(filename),
-                failure_time = VALUES(failure_time),
-                passage_type = VALUES(passage_type),
-                last_error = VALUES(last_error),
-                status = 'pending'
-            `;
-
-            try {
-                await connection.query(insertFailedZipQuery, [
-                    studentId,
-                    `${fileName}.zip`,
-                    currentDateTime,
-                    passage_type,
-                    err.message || 'Unknown error'
-                ]);
-            } catch (dbError) {
-                console.error('Failed to log zip creation failure:', dbError);
-            }
-
-            res.status(500).send('Failed to create zip file');
+            // Don't throw the error, just log it
         });
 
         archive.on('warning', function (err) {
@@ -577,6 +500,7 @@ exports.updatePassageFinalLogs = async (req, res) => {
         res.status(500).send('An error occurred while processing your request');
     }
 };
+
 exports.getPassageFinalLogs = async (req, res) => {
     const studentId = req.session.studentId;
     const { passage_type } = req.query;
@@ -676,10 +600,11 @@ exports.feedback = async (req, res) => {
 exports.logTextInput = async (req, res) => {
     const studentId = req.session.studentId;
     const { text, identifier, time } = req.body;
-    console.log('git')
+    console.log('git');
 
-    console.log(`Displaying identifier: ${identifier}`)
+    console.log(`Displaying identifier: ${identifier}`);
     
+    // Original table - keeps the most recent submissions
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS textlogs (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -690,6 +615,19 @@ exports.logTextInput = async (req, res) => {
         textb TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY (student_id)
+      )
+    `;
+    
+    // New history table - keeps all submissions
+    const createHistoryTableQuery = `
+      CREATE TABLE IF NOT EXISTS textlogs_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        student_id INT NOT NULL,
+        passage_identifier VARCHAR(20) NOT NULL,
+        text_content TEXT,
+        time_taken FLOAT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX (student_id)
       )
     `;
 
@@ -705,9 +643,11 @@ exports.logTextInput = async (req, res) => {
     const safeText = text == null ? '' : text.trim();
 
     try {
-        // Create the textlogs table if it doesn't exist
+        // Create both tables if they don't exist
         await connection.query(createTableQuery);
+        await connection.query(createHistoryTableQuery);
 
+        // Original functionality: Update the current record
         const insertQuery = `
             INSERT INTO textlogs (student_id, min${identifier === 'passageA' ? 'a' : 'b'}, text${identifier === 'passageA' ? 'a' : 'b'})
             VALUES (?, ?, ?)
@@ -716,7 +656,17 @@ exports.logTextInput = async (req, res) => {
             text${identifier === 'passageA' ? 'a' : 'b'} = VALUES(text${identifier === 'passageA' ? 'a' : 'b'})
         `;
 
-        await connection.query(insertQuery, [studentId, time, safeText]);
+        // New functionality: Also insert into history table
+        const historyInsertQuery = `
+            INSERT INTO textlogs_history (student_id, passage_identifier, text_content, time_taken)
+            VALUES (?, ?, ?, ?)
+        `;
+
+        // Execute both queries
+        await Promise.all([
+            connection.query(insertQuery, [studentId, time, safeText]),
+            connection.query(historyInsertQuery, [studentId, identifier, safeText, time])
+        ]);
         
         console.log('Response logged successfully');
         res.sendStatus(200);

@@ -1,9 +1,17 @@
-const connection =  require("../config/db1");
+const connection = require("../config/db1");
 const moment = require('moment-timezone');
 
-function createAttendanceReport(doc , data) {
+function createAttendanceReport(doc, data) {
     function addHeader() {
-        doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 })
+        // Only try to display the logo if it exists and is not null
+        if (data.departmentLogo) {
+            try {
+                doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
+            } catch (error) {
+                console.error('Error loading department logo:', error);
+                // Continue without the logo
+            }
+        }
 
         doc.fontSize(14).font('Helvetica-Bold')
             .text(data.departmentName, 110, 50, {
@@ -12,7 +20,7 @@ function createAttendanceReport(doc , data) {
             });
 
         doc.fontSize(12).font('Helvetica')
-            .text('GCC COMPUTER SHORTHAND EXAMINATION FEBRUARY 2025', 110, doc.y + 5, {
+            .text('Skill Test Computer Shorthand Examination April 2025', 110, doc.y + 5, {
                 width: 450,
                 align: 'center'
             });
@@ -66,7 +74,7 @@ function createAttendanceReport(doc , data) {
     const pageBreakThreshold = 700;
 
     const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE'];
-    const columnWidths = [40, 60, 170, 60, 60, 60, 70];
+    const columnWidths = [40, 70, 160, 60, 60, 60, 70];
 
     function drawTableHeaders(yPosition) {
         let xPosition = tableLeft;
@@ -231,11 +239,11 @@ function createAttendanceReport(doc , data) {
     const afterSummaryY = addCenteredSummaryTable(finalYPosition, data.students.length);
 }
 
-const getData = async(center , batchNo) => {
+const getData = async(center, batchNo) => {
     try {
-        console.log(center,batchNo)
-        const query = 'SELECT s.fullname, s.student_id, s.base64 ,s.sign_base64, sub.subject_name_short, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
-        const response = await connection.query(query,[center,batchNo]);
+        console.log(center, batchNo);
+        const query = 'SELECT s.fullname, s.student_id, s.base64, s.sign_base64, sub.subject_name_short, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
+        const response = await connection.query(query, [center, batchNo]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
         // console.log(batchData[0].batchdate);
@@ -245,14 +253,14 @@ const getData = async(center , batchNo) => {
         
         return { 
             response: response[0], 
-            batchData: batchData[0], 
-            //  
+            batchData: batchData[0]
         };
     } catch (error) {
         console.error('Error in getData:', error);
         throw error;
     }
 }
+
 function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Set the timezone to Kolkata
     const kolkataZone = 'Asia/Kolkata';
@@ -275,43 +283,52 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     return nowKolkata.isSameOrAfter(oneDayBefore);
 }
 
-const AttendanceReport = async(doc,center,batchNo) => {
-    const Data = await getData(center, batchNo);
-    // console.log(Data);
+const AttendanceReport = async(doc, center, batchNo) => {
+    try {
+        const Data = await getData(center, batchNo);
+        
+        if (!Data) {
+            throw new Error('No data returned from getData');
+        }
+        
+        const response = Data.response;
+        if (!Array.isArray(response) || response.length === 0) {
+            throw new Error('No data returned from getData');
+        }
 
-    const response = Data.response;
-    if (!Array.isArray(response) || response.length === 0) {
-        throw new Error('No data returned from getData');
-    }
+        if (!Array.isArray(Data.batchData) || Data.batchData.length === 0) {
+            throw new Error('No batch data available');
+        }
 
-    if (!Array.isArray(Data.batchData) || Data.batchData.length === 0) {
-        throw new Error('No batch data available');
-    }
+        const batchInfo = Data.batchData[0];
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
+        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+            throw new Error("Download not allowed at this time");
+        }
 
-    const batchInfo = Data.batchData[0];
-    const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
-    if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-        throw new Error("Download not allowed at this time");
+        const data = {
+            centerCode: center,
+            batch: batchNo,
+            examDate: examDate,
+            examTime: batchInfo.start_time,
+            students: response.map(student => {
+                return {
+                    seatNo: student.student_id.toString(),
+                    name: student.fullname,
+                    subject: student.subject_name_short,
+                    photoBase64: student.base64,
+                    signBase64: student.sign_base64,  // Using the same path for both photo and sign
+                }
+            }),
+            departmentName: response[0]?.departmentName || 'GCC Examination',
+            departmentLogo: response[0]?.logo || null
+        };
+        
+        createAttendanceReport(doc, data);
+    } catch (error) {
+        console.error("Error generating report:", error);
+        throw error;
     }
-
-    const data = {
-        centerCode: center,
-        batch: batchNo,
-        examDate: examDate,
-        examTime: batchInfo.start_time,
-        students: response.map(student => {
-            return {
-                seatNo: student.student_id.toString(),
-                name: student.fullname,
-                subject: student.subject_name_short,
-                photoBase64: student.base64,
-                signBase64:student.sign_base64,  // Using the same path for both photo and sign
-            }
-        }),
-        departmentName:response[0].departmentName,
-        departmentLogo:response[0].logo
-    }
-    createAttendanceReport(doc,data);
 }
 
-module.exports = {AttendanceReport};
+module.exports = { AttendanceReport };
