@@ -123,11 +123,11 @@ function addHeader(doc, data) {
             align: 'center'
         });
 
-    doc.fontSize(12).font('Helvetica')
-        .text('GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2024', 110, doc.y + 5, {
-            width: 450,
-            align: 'center'
-        });
+    // doc.fontSize(12).font('Helvetica')
+    //     .text('GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2024', 110, doc.y + 5, {
+    //         width: 450,
+    //         align: 'center'
+    //     });
 
     doc.fontSize(12).font('Helvetica')
         .text('ATTENDENCE REPORT', 110, doc.y + 5, {
