@@ -67,7 +67,7 @@ exports.getControllerPassForCenter = async (req, res) => {
         FROM controllerdb c
         INNER JOIN batchdb b ON c.batchNo = b.batchNo 
         LEFT JOIN students s ON b.batchNo = s.batchNo AND s.center = c.center
-        WHERE c.center = ? AND s.departmentId = 5
+        WHERE c.center = ? AND s.departmentId = 2
         GROUP BY c.center, c.batchNo, c.controller_pass, b.Start_time, b.End_Time, b.batchstatus, b.batchdate
         HAVING studentCount > 0
         ORDER BY b.batchNo DESC;`;
