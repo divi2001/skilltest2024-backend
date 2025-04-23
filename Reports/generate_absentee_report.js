@@ -21,7 +21,7 @@ async function getData(center, batchNo) {
         console.log(`Department ID breakdown for batch ${batchNo} at center ${center}:`, deptBreakdown);
         
         // Specifically check for departmentId=2
-        const deptCheckQuery = 'SELECT COUNT(*) as count FROM students WHERE batchNo = ? AND center = ? AND departmentId = 2';
+        const deptCheckQuery = 'SELECT COUNT(*) as count FROM students WHERE batchNo = ? AND center = ? AND departmentId = 5';
         const [deptCheckResult] = await connection.query(deptCheckQuery, [batchNo, center]);
         console.log(`Students with departmentId=2 for batch ${batchNo} at center ${center}: ${deptCheckResult[0].count}`);
         

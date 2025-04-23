@@ -47,8 +47,8 @@ exports.getStudentsTrack = async (req, res) => {
             return res.status(404).json({message: 'No students found for this center'});
         }
 
-        // Step 2: Check students with departmentId = 2
-        const deptStudentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND departmentId = 2`;
+        // Step 2: Check students with departmentId = 5
+        const deptStudentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND departmentId = 5`;
         const [deptStudentsResult] = await connection.query(deptStudentsQuery, [examCenterCode]);
         console.log(`Students with departmentId=0 for center ${examCenterCode}:`, deptStudentsResult[0].count);
         
@@ -89,7 +89,7 @@ exports.getStudentsTrack = async (req, res) => {
         let studentsConditionQuery = `
             SELECT COUNT(*) as count 
             FROM students s
-            WHERE s.center = ? AND s.departmentId = 2`;
+            WHERE s.center = ? AND s.departmentId = 5`;
         
         let queryParams = [examCenterCode];
         
@@ -142,7 +142,7 @@ exports.getStudentsTrack = async (req, res) => {
             SELECT COUNT(*) as count 
             FROM students s
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
-            WHERE s.center = ? AND s.departmentId = 2`;
+            WHERE s.center = ? AND s.departmentId = 5`;
         const [subjectsJoinResult] = await connection.query(subjectsJoinQuery, [examCenterCode]);
         console.log("Results after subjectsdb join:", subjectsJoinResult[0].count);
         
@@ -152,7 +152,7 @@ exports.getStudentsTrack = async (req, res) => {
             FROM students s
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
             LEFT JOIN audiologs a ON s.student_id = a.student_id
-            WHERE s.center = ? AND s.departmentId = 2`;
+            WHERE s.center = ? AND s.departmentId = 5`;
         const [audioJoinResult] = await connection.query(audioJoinQuery, [examCenterCode]);
         console.log("Results after audiologs join:", audioJoinResult[0].count);
         
@@ -171,7 +171,7 @@ exports.getStudentsTrack = async (req, res) => {
                 GROUP BY
                     student_id
             ) sl ON s.student_id = sl.student_id
-            WHERE s.center = ? AND s.departmentId = 2`;
+            WHERE s.center = ? AND s.departmentId = 5`;
         const [logsJoinResult] = await connection.query(logsJoinQuery, [examCenterCode]);
         console.log("Results after studentlogs join:", logsJoinResult[0].count);
         
@@ -229,7 +229,7 @@ exports.getStudentsTrack = async (req, res) => {
             GROUP BY
                 student_id
         ) sl ON s.student_id = sl.student_id
-        WHERE s.departmentId = 2 AND s.center = ?` + 
+        WHERE s.departmentId = 5 AND s.center = ?` + 
             (batchNo ? ' AND s.batchNo = ?' : '') +
             (subject_name ? ' AND sub.subject_name = ?' : '') +
             (loginStatus === 'loggedin' ? ' AND s.loggedin = 1' : 
