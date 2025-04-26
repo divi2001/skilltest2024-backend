@@ -288,9 +288,10 @@ exports.getCenterData = async (req, res) => {
 
 exports.uploadAttendanceReport = async (req, res) => {
     // req.session.centerId
-    const center =  req.session.centerId;
-    const { batchNo, present_count, absent_count } = req.body;
-    const newFileName = `${center}_batch_${batchNo}_attendance_report.pdf`
+    const center = req.session.centerId;
+    const { batchNo, present_count, absent_count, report_date } = req.body;
+    const newFileName = `${center}_batch_${batchNo}_attendance_report.pdf`;
+    
     if (!req.file) {
         return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
@@ -301,7 +302,26 @@ exports.uploadAttendanceReport = async (req, res) => {
         const [check] = await connection.query(checkQuery, [center, batchNo]);
         if (check.length > 0) return res.status(403).json({ "message": "Already added the data please Check!!" });
         
-        const currentDate = moment().tz("Asia/Kolkata").format('DD/MM/YYYY');
+        // Date handling - parse in any format but store in MySQL format (YYYY-MM-DD)
+        let formattedDate;
+        
+        if (report_date) {
+            // Parse the provided date regardless of format
+            const parsedDate = moment(report_date, [
+                'YYYY/MM/DD', 'DD/MM/YYYY', 'MM/DD/YYYY', 
+                'YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'
+            ]);
+            
+            if (!parsedDate.isValid()) {
+                return res.status(400).json({ success: false, message: 'Invalid date format' });
+            }
+            
+            // Format for MySQL DATE type (YYYY-MM-DD)
+            formattedDate = parsedDate.format('YYYY-MM-DD');
+        } else {
+            // Use current date if none provided
+            formattedDate = moment().tz("Asia/Kolkata").format('YYYY-MM-DD');
+        }
 
         const insertQuery = `INSERT INTO attendance_reports 
         (center, batchNo, report_date, present_count, absent_count, attendance_pdf) 
@@ -311,10 +331,11 @@ exports.uploadAttendanceReport = async (req, res) => {
         const newPath = path.join(path.dirname(oldPath), newFileName);
         fs.renameSync(oldPath, newPath);
         const url = `/uploads/${newFileName}`;
+        
         const [result] = await connection.query(insertQuery, [
             center,
             batchNo,
-            currentDate,
+            formattedDate,  // Now using MySQL-compatible format
             present_count,
             absent_count,
             url 
@@ -329,8 +350,6 @@ exports.uploadAttendanceReport = async (req, res) => {
         } else {
             throw new Error('Failed to insert attendance report');
         }
-
-
 
     } catch (error) {
         console.log(error);
