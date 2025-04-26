@@ -108,9 +108,9 @@ exports.getStudentsTrack = async (req, res) => {
         
         if (exam_type) {
             if (exam_type === 'shorthand') {
-                studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 0`;
+                studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 1`;
             } else if (exam_type === 'typewriting') {
-                studentsConditionQuery += ` AND s.IsTypewriting = 1 AND s.IsShorthand = 0`;
+                studentsConditionQuery += ` AND s.IsTypewriting = 1 AND s.IsShorthand = 1`;
             } else if (exam_type === 'both') {
                 studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 1`;
             }
@@ -234,8 +234,8 @@ exports.getStudentsTrack = async (req, res) => {
             (subject_name ? ' AND sub.subject_name = ?' : '') +
             (loginStatus === 'loggedin' ? ' AND s.loggedin = 1' : 
              loginStatus === 'loggedout' ? ' AND s.loggedin = 0' : '') +
-            (exam_type === 'shorthand' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0' :
-             exam_type === 'typewriting' ? ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0' :
+            (exam_type === 'shorthand' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1' :
+             exam_type === 'typewriting' ? ' AND s.IsTypewriting = 1 AND s.IsShorthand = 1' :
              exam_type === 'both' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1' : '') +
             (batchDate ? ' AND s.batchdate = ?' : '');
             
