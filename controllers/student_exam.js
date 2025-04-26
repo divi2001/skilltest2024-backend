@@ -596,13 +596,20 @@ exports.feedback = async (req, res) => {
     }
 };
 
-
 exports.logTextInput = async (req, res) => {
     const studentId = req.session.studentId;
     const { text, identifier, time } = req.body;
     console.log('git');
 
     console.log(`Displaying identifier: ${identifier}`);
+    
+    // Get current time in Kolkata timezone
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
+    // Validate the currentTime format
+    if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
+        return res.status(400).send('Invalid time format');
+    }
     
     // Original table - keeps the most recent submissions
     const createTableQuery = `
@@ -662,10 +669,18 @@ exports.logTextInput = async (req, res) => {
             VALUES (?, ?, ?, ?)
         `;
 
-        // Execute both queries
+        // Update passage time in studentlogs table with Kolkata time
+        const updatePassageTimeQuery = `
+            UPDATE studentlogs 
+            SET ${identifier === 'passageA' ? 'passage1_time' : 'passage2_time'} = ?
+            WHERE student_id = ?
+        `;
+
+        // Execute all queries
         await Promise.all([
             connection.query(insertQuery, [studentId, time, safeText]),
-            connection.query(historyInsertQuery, [studentId, identifier, safeText, time])
+            connection.query(historyInsertQuery, [studentId, identifier, safeText, time]),
+            connection.query(updatePassageTimeQuery, [currentTime, studentId])
         ]);
         
         console.log('Response logged successfully');
