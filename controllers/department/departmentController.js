@@ -60,8 +60,9 @@ function convertDateFormat(dateString) {
     return date
 }
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
-    console.log('Starting getStudentsTrack function');
+    
     const departmentId = req.session.departmentId.toString();
+    console.log('Starting getStudentsTrack function',departmentId);
     let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.query;
     console.log("Exam departmentId", departmentId);
     console.log("Batch no:", batchNo);
