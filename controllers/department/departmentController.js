@@ -4,47 +4,35 @@ const { decrypt } = require("../../config/encrypt");
 const moment = require('moment-timezone');
 const { stat } = require('fs/promises');
 exports.departementLogin = async (req, res) => {
-
-    console.log("Trying Department admin login");
-    const { departmentId, password } = req.body;
-    // console.log("center: "+centerId+ " password: "+password);
-    console.log(req.body);
-    const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
-
     try {
+        console.log("Trying Department admin login");
+        const { departmentId, password } = req.body;
+        
         const [results] = await connection.query(departmentdbQuery, [departmentId]);
-        console.log(results);
+        
         if (results.length > 0) {
             const admin = results[0];
-            console.log("data: "+admin);
-            console.log(admin)
             let decryptedStoredPassword = await decrypt(admin.departmentPassword);
-            console.log(decryptedStoredPassword);
-            try {
-
-                // console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
-
-            } catch (error) {
-                console.log(error);
-            }
-
-
-            if ( decryptedStoredPassword === password) {
-                // Set institute session
+            
+            if (decryptedStoredPassword === password) {
+                // Set session and wait for it to save
                 req.session.departmentId = admin.departmentId;
-                console.log("Logged in successfully as an department admin!")
-                res.status(200).send({ "message": 'Logged in successfully as an department admin!' });
-
+                await new Promise((resolve) => req.session.save(resolve));
+                
+                console.log("Session after login:", req.session);
+                res.status(200).json({ "message": 'Logged in successfully as a department admin!' });
             } else {
-                res.status(401).send('Invalid credentials for center admin');
+                res.status(401).json({ "message": 'Invalid credentials for department admin' });
             }
         } else {
-            res.status(404).send({ "message": 'department not found' });
+            res.status(404).json({ "message": 'Department not found' });
         }
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error("Login error:", err);
+        res.status(500).json({ "message": err.message });
     }
-}
+};
+
 function formatDate(dateString) {
     return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }
@@ -61,6 +49,7 @@ function convertDateFormat(dateString) {
 }
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
     console.log('Starting getStudentsTrack function');
+    console.log('Session:', req.session);
     const departmentId = req.session.departmentId.toString();
     let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.query;
     console.log("Exam departmentId", departmentId);
@@ -226,9 +215,9 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
         } else {
             res.status(404).json({ message: 'No records found!' });
         }
-    } catch (err) {
-        console.error("Database query error:", err);
-        res.status(500).json({ message: err.message });
+    } catch (error) {
+        console.error("Error in getStudentsTrack:", error);
+        res.status(500).json({ "message": "Internal server error" });
     }
 }
 

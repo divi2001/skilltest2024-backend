@@ -32,31 +32,35 @@ app.use(bodyParser.json());
 
 // CORS configuration
 const corsOptions = {
-  origin: ['*', 'http://localhost:3001', 'http://192.168.1.102:3001/'],// Your frontend URL
+  origin: ['http://localhost:3001', 'http://45.119.47.81:3001', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'https://www.shorthandonlineexam.in', 'http://65.0.124.197:5000', '*'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
-}
+};
 
-// Use CORS with the above options
 app.use(cors(corsOptions));
-
-app.use(cors({
-  origin: ['*', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'https://www.shorthandonlineexam.in', 'http://65.0.124.197:5000','http://65.0.124.197:5000/api/compare'],
-  credentials: true
-}));
 
 app.use(session({
   secret: 'divis@GeYT',
-  resave: false,
-  saveUninitialized: true,
+  resave: true,
+  saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    // secure: process.env.NODE_ENV === "production", // Ensure cookies are sent over HTTPS in production
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
+
+app.use((req, res, next) => {
+  console.log('Session DEBUG:', {
+      id: req.sessionID,
+      session: req.session,
+      departmentId: req.session?.departmentId
+  });
+  next();
+});
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
