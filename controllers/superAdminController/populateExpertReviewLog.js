@@ -26,6 +26,7 @@ WHERE
         tl.texta IS NOT NULL OR 
         tl.textb IS NOT NULL
     )
+    AND LENGTH(CAST(s.student_id AS CHAR)) >= 10
 ORDER BY s.student_id`;
 
         const [results] = await connection.query(query, [department]);
@@ -36,6 +37,12 @@ ORDER BY s.student_id`;
         let updated = 0;
 
         for (const row of results) {
+            // Skip if student_id doesn't meet length requirement (extra safety check)
+            if (String(row.student_id).length < 10) {
+                console.log(`Skipping student_id ${row.student_id} - less than 10 digits`);
+                continue;
+            }
+            
             const passageAWordCount = row.passageA.split(/\s+/).filter(Boolean).length;
             const passageBWordCount = row.passageB.split(/\s+/).filter(Boolean).length;
 
