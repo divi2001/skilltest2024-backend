@@ -17,20 +17,32 @@ FROM
 LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
 LEFT JOIN textlogs tl ON s.student_id = tl.student_id
 LEFT JOIN audiodb ad ON s.subjectsId = ad.subjectId AND s.qset = ad.qset
-INNER JOIN studentlogs sl ON s.student_id = sl.student_id
+LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
 WHERE 
     s.departmentId = ?
-    AND sl.feedback_time IS NOT NULL
-    AND sl.login = true
+    AND (
+        fps.passageA IS NOT NULL OR 
+        fps.passageB IS NOT NULL OR 
+        tl.texta IS NOT NULL OR 
+        tl.textb IS NOT NULL
+    )
+    AND LENGTH(CAST(s.student_id AS CHAR)) >= 10
 ORDER BY s.student_id`;
 
         const [results] = await connection.query(query, [department]);
         if (results.length === 0) return res.status(201).json({ "message": "No students Available " })
 
+        console.log(`Found ${results.length} students with passage data for processing`);
         let inserted = 0;
         let updated = 0;
 
         for (const row of results) {
+            // Skip if student_id doesn't meet length requirement (extra safety check)
+            if (String(row.student_id).length < 10) {
+                console.log(`Skipping student_id ${row.student_id} - less than 10 digits`);
+                continue;
+            }
+            
             const passageAWordCount = row.passageA.split(/\s+/).filter(Boolean).length;
             const passageBWordCount = row.passageB.split(/\s+/).filter(Boolean).length;
 
