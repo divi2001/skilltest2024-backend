@@ -1,5 +1,9 @@
 // schema.js
 const schema = {
+    admindb: {
+        adminid: 'BIGINT PRIMARY KEY',
+        password: 'LONGTEXT'
+    },
     students: {
         student_id: 'BIGINT PRIMARY KEY',
         password: 'LONGTEXT',
@@ -7,7 +11,7 @@ const schema = {
         batchNo: 'INT REFERENCES batchdb(batchNo)',
         batchdate: 'DATE',
         fullname: 'VARCHAR(100)',
-        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        subjectsId: 'INT REFERENCES subjectsdb(subjectId)',
         courseId: 'INT',
         batch_year: 'VARCHAR(100)',
         loggedin: 'BOOLEAN',
@@ -19,6 +23,12 @@ const schema = {
         end_time: 'TIME',
         day: 'INT',
         qset: 'INT',
+        base64: 'LONGTEXT',
+        sign_base64: 'LONGTEXT',
+        IsShorthand: 'BOOLEAN',
+        IsTypewriting: 'BOOLEAN',
+        departmentId: 'INT REFERENCES departmentdb(departmentId)',
+        disability: 'BOOLEAN'
     },
     subjectsdb: {
         subjectId: 'INT PRIMARY KEY',
@@ -27,28 +37,41 @@ const schema = {
         subject_name_short: 'VARCHAR(50)',
         daily_timer: 'INT',
         passage_timer: 'INT',
-        demo_timer: 'INT'
+        demo_timer: 'INT',
+        disability_passage_timer: 'INT',
+        typing_timer: "INT",
+        disability_typing_timer: 'INT'
+    },
+    departmentdb: {
+        departmentId: 'INT PRIMARY KEY',
+        departmentName: 'VARCHAR(255)',
+        departmentPassword: 'LONGTEXT',
+        logo: 'LONGTEXT',
+        departmentStatus: 'BOOLEAN'
     },
     studentlogs: {
-        id: 'BIGINT PRIMARY KEY',
-        student_id: 'BIGINT REFERENCES students(student_id)',
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT',
         center: 'INT REFERENCES examcenterdb(center)',
-        loginTime: 'TIMESTAMP',
+        loginTime: 'TIMESTAMP NULL',
         login: 'BOOLEAN',
-        trial_time: 'TIMESTAMP',
-        audio1_time: 'TIMESTAMP',
-        passage1_time: 'TIMESTAMP',
-        audio2_time: 'TIMESTAMP',
-        passage2_time: 'TIMESTAMP',
-        feedback_time: 'TIMESTAMP'
+        trial_time: 'TIMESTAMP NULL',
+        audio1_time: 'TIMESTAMP NULL',
+        passage1_time: 'TIMESTAMP NULL',
+        audio2_time: 'TIMESTAMP NULL',
+        passage2_time: 'TIMESTAMP NULL',
+        trial_passage_time: 'TIMESTAMP NULL',
+        typing_passage_time: 'TIMESTAMP NULL',
+        feedback_time: 'TIMESTAMP NULL',
+        UNIQUE: '(student_id)'
     },
     loginlogs: {
-        id: 'BIGINT PRIMARY KEY',
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         login_time: 'TIMESTAMP',
-        ip_address: 'VARCHAR(50)',
-        disk_id: 'VARCHAR(100)',
-        mac_address: 'VARCHAR(50)'
+        ip_address: 'LONGTEXT REFERENCES pcregistration(ip_address)',
+        disk_id: 'LONGTEXT',
+        mac_address: 'LONGTEXT'
     },
     examcenterdb: {
         center: 'INT PRIMARY KEY',
@@ -82,19 +105,43 @@ const schema = {
     audiodb: {
         id: 'INT PRIMARY KEY',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        qset: 'INT',
+        code_a: 'VARCHAR(10)',
+        code_b: 'VARCHAR(10)',
+        code_t: 'VARCHAR(10)',
         audio1: 'VARCHAR(255)',
         passage1: 'LONGTEXT',
         audio2: 'VARCHAR(255)',
         passage2: 'LONGTEXT',
-        testaudio: 'VARCHAR(255)'
+        testaudio: 'VARCHAR(255)',
+        textPassageA: 'LONGTEXT',
+        textPassageB: 'LONGTEXT'
     },
+    computerTyping: {
+        id: 'INT PRIMARY KEY',
+        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        qset: 'INT',
+        trial_passage: 'LONGTEXT',
+        passage_name: 'VARCHAR(10)',
+        passage_text: 'LONGTEXT'
+    },
+
+    login_requests: {
+        id: 'INT AUTO_INCREMENT PRIMARY KEY',
+        ip_address: 'VARCHAR(255) NOT NULL',
+        request_time: 'DATETIME NOT NULL',
+        INDEX: '(ip_address, request_time)'
+    },
+
     audiologs: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES studentlogs(student_id)',
+        id: 'INT AUTO_INCREMENT PRIMARY KEY',
+        student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         trial: 'INT',
         passageA: 'INT',
         passageB: 'INT'
     },
     batchdb: {
+        departmentId: 'INT REFERENCES departmentdb(departmentId)',
         batchNo: 'INT PRIMARY KEY',
         batchdate: 'DATE',
         reporting_time: 'TIME',
@@ -103,7 +150,8 @@ const schema = {
         batchstatus: 'BOOLEAN'
     },
     feedbackdb: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES students(student_id), REFERENCES studentlogs(student_id)',
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',  // Add this line
+        student_id: 'BIGINT',
         question1: 'LONGTEXT',
         question2: 'LONGTEXT',
         question3: 'LONGTEXT',
@@ -116,7 +164,8 @@ const schema = {
         question10: 'LONGTEXT'
     },
     textlogs: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES studentlogs(student_id)',
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT REFERENCES studentlogs(student_id)',
         mina: 'DECIMAL',
         texta: 'LONGTEXT',
         minb: 'DECIMAL',
@@ -124,9 +173,14 @@ const schema = {
         created_at: 'TIMESTAMP'
     },
     finalPassageSubmit: {
-        student_id: 'BIGINT PRIMARY KEY REFERENCES students(student_id), REFERENCES studentlogs(student_id)',
+        student_id: 'BIGINT',
         passageA: 'LONGTEXT',
         passageB: 'LONGTEXT',
+    },
+    requestLogs: {
+        id: 'INT PRIMARY KEY',
+        ip_address: 'LONGTEXT',
+        request_time: 'DATETIME'
     },
     expertreviewlog: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
@@ -142,8 +196,52 @@ const schema = {
         expertId: 'INT REFERENCES expertdb(expertId)',
         loggedin: 'DATETIME',
         status: 'BOOLEAN',
-        submitted: 'DATETIME'
+        subm_done: 'BOOLEAN DEFAULT 0',
+        subm_time: 'DATETIME'
     },
+    modreviewlog: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT',
+        passageA: 'TEXT',
+        passageB: 'TEXT',
+        passageA_word_count: 'INT',
+        passageB_word_count: 'INT',
+        ansPassageA: 'TEXT',
+        ansPassageB: 'TEXT',
+        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        qset: 'INT',
+        expertId: 'INT REFERENCES expertdb(expertId)',
+        loggedin: 'DATETIME',
+        status: 'BOOLEAN',
+        subm_done: 'BOOLEAN DEFAULT 0',
+        subm_time: 'DATETIME',
+        QPA: 'TEXT',
+        QPB: 'TEXT',
+        spelling: 'INT DEFAULT 0',
+        missed: 'INT DEFAULT 0',
+        added: 'INT DEFAULT 0',
+        grammar: 'INT DEFAULT 0',
+        total_mistakes: 'DECIMAL(5,2) DEFAULT 0.00',
+        total_marks: 'DECIMAL(5,2) DEFAULT 0.00'
+
+    },
+    typingpassagelogs: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT',
+        trial_time: 'INT',
+        trial_passage: 'LONGTEXT',
+        passage_time: 'INT',
+        passage: 'LONGTEXT',
+        time: 'DATETIME'
+    },
+    typingpassage: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT',
+        trial_passage: 'LONGTEXT',
+        passage: 'LONGTEXT',
+        time: 'DATETIME'
+    },
+
     expertdb: {
         expertId: 'INT PRIMARY KEY',
         password: 'VARCHAR(255)',
@@ -172,8 +270,8 @@ const schema = {
     },
     qsetdb: {
         id: 'INT PRIMARY KEY AUTO_INCREMENT',
-        subject_id: 'INT REFERENCES subjectdb(subjectId)',
-        Q1PA: 'TEXT*',
+        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        Q1PA: 'TEXT',
         Q1PB: 'TEXT',
         Q2PA: 'TEXT',
         Q2PB: 'TEXT',
@@ -181,6 +279,56 @@ const schema = {
         Q3PB: 'TEXT',
         Q4PA: 'TEXT',
         Q4PB: 'TEXT'
+    },
+    modqsetdb: {
+        id: 'INT PRIMARY KEY AUTO_INCREMENT',
+        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        Q1PA: 'TEXT',
+        Q1PB: 'TEXT',
+        Q2PA: 'TEXT',
+        Q2PB: 'TEXT',
+        Q3PA: 'TEXT',
+        Q3PB: 'TEXT',
+        Q4PA: 'TEXT',
+        Q4PB: 'TEXT'
+    },
+
+    answersheet: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT',
+        image1: 'LONGTEXT',
+        image2: 'LONGTEXT',
+        image3: 'LONGTEXT',
+        image4: 'LONGTEXT',
+        upload_date: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+    },
+
+   
+    attendance_reports: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        center: 'INT REFERENCES examcenterdb(center)',
+        batchNo: 'INT REFERENCES batchdb(batchNo)',
+        report_date: 'DATE',
+        present_count: 'INT',
+        absent_count: 'INT',
+        attendance_pdf: 'LONGTEXT',
+        upload_time: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+    },
+
+    resetrequests: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT',
+        reason: 'LONGTEXT',
+        reseted_by: 'TEXT',
+        reset_type: 'TEXT',
+        center: 'INT REFERENCES examcenterdb(center)',
+        approved: 'TEXT',
+        time: "DATETIME"
+    },
+    features: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        feature: 'TEXT',
+        status: 'BOOLEAN'
     }
 };
 

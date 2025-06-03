@@ -3,6 +3,7 @@ const fastCsv = require('fast-csv');
 const pool = require("../config/db1");
 const schema = require('../schema/schema');
 const moment = require('moment');
+const {encrypt, decrypt} = require('./../config/encrypt');
 
 exports.importCSV = async (req, res) => {
   if (!req.file) {
@@ -131,7 +132,7 @@ async function insertChunk(tableName, columns, chunk) {
       }
 
       // Process courseId and subjectId columns
-      if (column === 'courseId' || column === 'subjectId') {
+      if (column === 'courseId' || column === 'subjectId' || column == 'subjectsId') {
         if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
           value = parseInt(value.replace(/[\[\]\s]/g, ''), 10);
         }
@@ -140,6 +141,22 @@ async function insertChunk(tableName, columns, chunk) {
       // Process loggedin and done columns
       if (column === 'loggedin' || column === 'done') {
         return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
+      }
+
+      if(column === 'centerpass' && tableName === 'examcenterdb'){
+        return encrypt(value);
+      }
+
+      if(column === 'departmentPassword' && tableName === 'departmentdb'){
+        return encrypt(value);
+      }
+
+      if(column === 'password' && tableName === 'students'){
+        return encrypt(value);
+      }
+
+      if(column === 'password' && tableName === 'admindb'){
+        return encrypt(value);
       }
 
       // Process time columns

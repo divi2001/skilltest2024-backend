@@ -137,7 +137,7 @@ def compare_texts(text1, text2, ignore_list):
         'grammar': grammar
     }
 
-@app.route('/compare', methods=['POST'])
+@app.route('/api/compare', methods=['POST'])
 def compare():
     data = request.json
     text1 = data.get('text1')

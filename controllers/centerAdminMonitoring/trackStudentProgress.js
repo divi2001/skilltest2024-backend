@@ -11,7 +11,7 @@ exports.getAudioLogs = async (req, res) => {
     try{
         const [results] = await connection.query(query, [studentId]);
         
-        console.log("result: "+results);
+        // console.log("result: "+results);
         if (results.length > 0) {
             results.forEach(entry => {
                 console.log("entry:", JSON.stringify(entry, null, 2));
