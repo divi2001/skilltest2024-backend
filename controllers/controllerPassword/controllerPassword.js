@@ -28,8 +28,8 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
 
     // Combine the Kolkata date with the provided startTime
     const startDateTime = moment.tz(
-        `${batchDateKolkata.format('DD/MM/YYYY')} ${startTime}`,
-        'DD/MM/YYYY hh:mm A',
+        `${batchDateKolkata.format('DD-MM-YYYY')} ${startTime}`,
+        'DD-MM-YYYY hh:mm A',
         kolkataZone
     );
     
@@ -39,7 +39,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
     
     console.log('Batch Date (UTC):', batchDate);
-    console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD/MM/YYYY'));
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD-MM-YYYY'));
     console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD HH:mm:ss'));
     console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD HH:mm:ss'));
     console.log('Difference in Minutes:', differenceInMinutes);

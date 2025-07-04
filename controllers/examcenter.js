@@ -229,7 +229,7 @@ exports.getCenterResetRequests = async (req, res) => {
                 
                 // Format the time for the new request
                 if (newRequest && newRequest[0] && newRequest[0].time) {
-                    newRequest[0].time = moment(newRequest[0].time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+                    newRequest[0].time = moment(newRequest[0].time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
                 }
 
                 return res.status(201).json(newRequest[0]);
@@ -242,7 +242,7 @@ exports.getCenterResetRequests = async (req, res) => {
         if (requests && requests.length > 0) {
             requests.forEach(request => {
                 if (request.time) {
-                    request.time = moment(request.time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+                    request.time = moment(request.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
                 }
             });
         }
@@ -251,6 +251,56 @@ exports.getCenterResetRequests = async (req, res) => {
     } catch (err) {
         console.error('Database query error:', err);
         res.status(500).send('Internal server error');
+    }
+};
+
+exports.getCenterBatchNumbers = async (req, res) => {
+    console.log("Fetching center batch numbers");
+    const centerId = req.session.centerId;
+
+    if (!centerId) {
+        return res.status(401).json({ message: 'Unauthorized: No center ID in session' });
+    }
+
+    try {
+        const query = `
+            SELECT DISTINCT 
+                b.batchNo, 
+                b.batchdate, 
+                b.start_time, 
+                b.end_time,
+                COUNT(s.student_id) as student_count
+            FROM batchdb b
+            LEFT JOIN students s ON b.batchNo = s.batchNo AND s.center = ?
+            GROUP BY b.batchNo, b.batchdate, b.start_time, b.end_time
+            ORDER BY b.batchNo`;
+
+        const [batches] = await connection.query(query, [centerId]);
+
+        // Format dates and times if needed
+        const formattedBatches = batches.map(batch => ({
+            ...batch,
+            batchdate: moment(batch.batchdate).format('DD-MM-YYYY'),
+            start_time: moment(batch.start_time, 'HH:mm:ss').format('HH:mm:ss'),
+            end_time: moment(batch.end_time, 'HH:mm:ss').format('HH:mm:ss')
+        }));
+        
+        console.log("Formatted batches:", formattedBatches);
+
+        if (formattedBatches.length === 0) {
+            return res.status(404).json({ 
+                message: "No batches found for this center",
+                centerId: centerId
+            });
+        }
+
+        res.json(formattedBatches);
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            error: err.message 
+        });
     }
 };
 
@@ -278,7 +328,7 @@ exports.getCenterData = async (req, res) => {
         // Format the time for each request
         const formattedRequests = resetRequests.map(request => ({
             ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss')
+            time: moment(request.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss')
         }));
 
         res.json(formattedRequests);
@@ -310,8 +360,8 @@ exports.uploadAttendanceReport = async (req, res) => {
         if (report_date) {
             // Parse the provided date regardless of format
             const parsedDate = moment(report_date, [
-                'YYYY/MM/DD', 'DD/MM/YYYY', 'MM/DD/YYYY', 
-                'YYYY-MM-DD', 'DD/MM/YYYY', 'MM-DD-YYYY'
+                'YYYY/MM/DD', 'DD-MM-YYYY', 'MM/DD/YYYY', 
+                'YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'
             ]);
             
             if (!parsedDate.isValid()) {
@@ -319,10 +369,10 @@ exports.uploadAttendanceReport = async (req, res) => {
             }
             
             // Format for MySQL DATE type (YYYY-MM-DD)
-            formattedDate = parsedDate.format('DD/MM/YYYY');
+            formattedDate = parsedDate.format('DD-MM-YYYY');
         } else {
             // Use current date if none provided
-            formattedDate = moment().tz("Asia/Kolkata").format('DD/MM/YYYY');
+            formattedDate = moment().tz("Asia/Kolkata").format('DD-MM-YYYY');
         }
 
         const insertQuery = `INSERT INTO attendance_reports 

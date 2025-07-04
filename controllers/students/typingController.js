@@ -126,7 +126,7 @@ exports.updateStudentLog = async (req, res) => {
         const [result] = await connection.query(query, params);
         
         if (result && result.time) {
-            result.time = moment(result.time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+            result.time = moment(result.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
         }
 
         res.status(200).json({

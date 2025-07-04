@@ -3,11 +3,11 @@ const moment = require('moment-timezone'); // Make sure to install and import mo
 
 // Helper functions for formatting
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('DD/MM/YYYY');
+    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY');
 }
 
 function formatDateTime(dateTimeString) {
-    return moment(dateTimeString).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+    return moment(dateTimeString).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
 }
 
 function formatTime(timeString) {
@@ -56,8 +56,8 @@ async function getData(center, batchNo) {
 function checkDownloadAllowed(batchDate) {
     const today = moment().tz('Asia/Kolkata').startOf('day');
     const batchMoment = moment(batchDate).tz('Asia/Kolkata').startOf('day');
-    console.log('Today (Kolkata):', today.format('DD/MM/YYYY'));
-    console.log('Batch Date (Kolkata):', batchMoment.format('DD/MM/YYYY'));
+    console.log('Today (Kolkata):', today.format('DD-MM-YYYY'));
+    console.log('Batch Date (Kolkata):', batchMoment.format('DD-MM-YYYY'));
     const differenceInDays = batchMoment.diff(today, 'days');
     console.log('Difference in days:', differenceInDays);
     // Allow download if it's the day of the batch or one day before
@@ -78,9 +78,9 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
 
     console.log('Batch Date (UTC):', batchDate);
-    console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD/MM/YYYY'));
-    console.log('Current Date (Kolkata):', nowKolkata.format('DD/MM/YYYY'));
-    console.log('One Day Before (Kolkata):', oneDayBefore.format('DD/MM/YYYY'));
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD-MM-YYYY'));
+    console.log('Current Date (Kolkata):', nowKolkata.format('DD-MM-YYYY'));
+    console.log('One Day Before (Kolkata):', oneDayBefore.format('DD-MM-YYYY'));
 
     // Check if current date is after or equal to 1 day before the batch date
     return nowKolkata.isSameOrAfter(oneDayBefore);
@@ -218,8 +218,8 @@ function createAttendanceReport(doc, data) {
 }
 
 function getDateFromISOString(isoString) {
-    // Updated to return DD/MM/YYYY format in Kolkata timezone
-    return moment(isoString).tz('Asia/Kolkata').format('DD/MM/YYYY');
+    // Updated to return DD-MM-YYYY format in Kolkata timezone
+    return moment(isoString).tz('Asia/Kolkata').format('DD-MM-YYYY');
 }
 
 async function generatePostAbsenteeReport(doc, center, batchNo) {

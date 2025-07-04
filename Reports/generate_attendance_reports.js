@@ -275,9 +275,9 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
 
     // console.log('Batch Date (UTC):', batchDate);
-    // console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD/MM/YYYY'));
-    // console.log('Current Date (Kolkata):', nowKolkata.format('DD/MM/YYYY'));
-    // console.log('One Day Before (Kolkata):', oneDayBefore.format('DD/MM/YYYY'));
+    // console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD-MM-YYYY'));
+    // console.log('Current Date (Kolkata):', nowKolkata.format('DD-MM-YYYY'));
+    // console.log('One Day Before (Kolkata):', oneDayBefore.format('DD-MM-YYYY'));
 
     // Check if current date is after or equal to 1 day before the batch date
     return nowKolkata.isSameOrAfter(oneDayBefore);
@@ -301,7 +301,7 @@ const AttendanceReport = async(doc, center, batchNo) => {
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY');
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
         if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
             throw new Error("Download not allowed at this time");
         }

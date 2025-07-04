@@ -292,7 +292,7 @@ exports.updateStudentMarks = async(req, res) => {
 
             if (results && results[0]) {
                 if (results[0].updated_at) {
-                    results[0].updated_at = moment(results[0].updated_at).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+                    results[0].updated_at = moment(results[0].updated_at).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
                 }
             }
 

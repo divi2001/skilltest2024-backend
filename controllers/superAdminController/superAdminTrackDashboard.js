@@ -3,12 +3,12 @@ const StudentTrackDTO = require("../../dto/studentProgress");
 const moment = require('moment-timezone');
 
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('DD/MM/YYYY')
+    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }
 function convertDateFormat(dateString) {
-    // Expects DD/MM/YYYY
+    // Expects DD-MM-YYYY
     const [day, month, year] = dateString.split('/');
-    return moment.tz(`${day}/${month}/${year}`, 'DD/MM/YYYY', 'Asia/Kolkata').toDate();
+    return moment.tz(`${day}/${month}/${year}`, 'DD-MM-YYYY', 'Asia/Kolkata').toDate();
 }
 exports.getAllStudentsTrack = async (req,res) => {
     // console.log('Starting getStudentsTrack function');
@@ -181,7 +181,7 @@ WHERE 1=1`;
 
             results.forEach(result => {
                 if (result.batchdate) {
-                    result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY');
+                    result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
                 }
             });
 
@@ -260,7 +260,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         // Convert date and time to Kolkata timezone
         results.forEach(result => {
             if (result.batchdate) {
-                result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY');
+                result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
             }
 
             // Restructure subject data for easier consumption

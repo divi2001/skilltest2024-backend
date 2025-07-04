@@ -88,6 +88,7 @@ const schema = {
     controllerdb: {
         center: 'INT REFERENCES examcenterdb(center)',
         batchNo: 'INT REFERENCES batchdb(batchNo)',
+        departmentId: 'INT',
         controller_code: 'INT',
         controller_name: 'VARCHAR(100)',
         controller_contact: 'BIGINT',
@@ -142,7 +143,7 @@ const schema = {
     },
     batchdb: {
         departmentId: 'INT REFERENCES departmentdb(departmentId)',
-        batchNo: 'INT PRIMARY KEY',
+        batchNo: 'INT',
         batchdate: 'DATE',
         reporting_time: 'TIME',
         start_time: 'TIME',
@@ -308,6 +309,7 @@ const schema = {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         center: 'INT REFERENCES examcenterdb(center)',
         batchNo: 'INT REFERENCES batchdb(batchNo)',
+        departmentId: 'INT',
         report_date: 'DATE',
         present_count: 'INT',
         absent_count: 'INT',

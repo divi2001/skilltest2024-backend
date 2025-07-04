@@ -187,7 +187,7 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY')
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
         if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time,batchInfo.batchdate)) {
             throw new Error("Download not allowed at this time");
         }

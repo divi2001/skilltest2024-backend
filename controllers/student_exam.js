@@ -18,7 +18,7 @@ exports.updateStudentBatchDates = async (req, res) => {
         const [result] = await connection.query(updateQuery);
 
         if (result && result.batchdate) {
-            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY');
+            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
         }
 
         res.send('Successfully updated batch dates for all students');
