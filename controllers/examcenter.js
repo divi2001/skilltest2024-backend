@@ -228,24 +228,26 @@ exports.getCenterResetRequests = async (req, res) => {
                 const [newRequest] = await connection.query('SELECT * FROM resetrequests WHERE id = ?', [result.insertId]);
                 
                 // Format the time for the new request
-                const formattedRequest = {
-                    ...newRequest[0],
-                    time: moment(newRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
-                };
+                if (newRequest && newRequest[0] && newRequest[0].time) {
+                    newRequest[0].time = moment(newRequest[0].time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+                }
 
-                return res.status(201).json(formattedRequest);
+                return res.status(201).json(newRequest[0]);
             } else {
                 return res.status(500).json({ message: "Failed to create new request" });
             }
         }
 
         // Format the time for each request
-        const formattedRequests = requests.map(request => ({
-            ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
-        }));
+        if (requests && requests.length > 0) {
+            requests.forEach(request => {
+                if (request.time) {
+                    request.time = moment(request.time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+                }
+            });
+        }
 
-        res.json(formattedRequests);
+        res.json(requests);
     } catch (err) {
         console.error('Database query error:', err);
         res.status(500).send('Internal server error');
@@ -276,7 +278,7 @@ exports.getCenterData = async (req, res) => {
         // Format the time for each request
         const formattedRequests = resetRequests.map(request => ({
             ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+            time: moment(request.time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss')
         }));
 
         res.json(formattedRequests);
@@ -309,7 +311,7 @@ exports.uploadAttendanceReport = async (req, res) => {
             // Parse the provided date regardless of format
             const parsedDate = moment(report_date, [
                 'YYYY/MM/DD', 'DD/MM/YYYY', 'MM/DD/YYYY', 
-                'YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'
+                'YYYY-MM-DD', 'DD/MM/YYYY', 'MM-DD-YYYY'
             ]);
             
             if (!parsedDate.isValid()) {
@@ -317,10 +319,10 @@ exports.uploadAttendanceReport = async (req, res) => {
             }
             
             // Format for MySQL DATE type (YYYY-MM-DD)
-            formattedDate = parsedDate.format('YYYY-MM-DD');
+            formattedDate = parsedDate.format('DD/MM/YYYY');
         } else {
             // Use current date if none provided
-            formattedDate = moment().tz("Asia/Kolkata").format('YYYY-MM-DD');
+            formattedDate = moment().tz("Asia/Kolkata").format('DD/MM/YYYY');
         }
 
         const insertQuery = `INSERT INTO attendance_reports 

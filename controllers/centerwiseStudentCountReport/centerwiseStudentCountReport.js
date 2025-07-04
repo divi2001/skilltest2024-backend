@@ -33,7 +33,7 @@ exports.getStudentsTrack = async (req, res) => {
             .audio2_time,
             studentlogs.passage2_time,
             studentlogs.feedback_time,
-            studentlogs.logout_t
+            studentlogs.logout_time
         FROM 
             students 
         INNER JOIN 

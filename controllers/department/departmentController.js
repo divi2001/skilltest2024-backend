@@ -3,6 +3,7 @@ const StudentTrackDTO = require("../../dto/studentProgress");
 const { decrypt } = require("../../config/encrypt");
 const moment = require('moment-timezone');
 const { stat } = require('fs/promises');
+
 exports.departementLogin = async (req, res) => {
 
     console.log("Trying Department admin login");
@@ -45,20 +46,25 @@ exports.departementLogin = async (req, res) => {
         res.status(500).send(err.message);
     }
 }
+
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
+    return moment(dateString).tz('Asia/Kolkata').format('DD/MM/YYYY')
 }
+
+function formatDateTime(dateTimeString) {
+    return moment(dateTimeString).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss')
+}
+
+function formatTime(timeString) {
+    return moment(timeString).tz('Asia/Kolkata').format('HH:mm:ss')
+}
+
 function convertDateFormat(dateString) {
-    // Parse the original date string
-    const [day, month, year] = dateString.split('-');
-
-    // Create a Date object in UTC
-    // Set the time to 18:30:00 UTC of the previous day
-    const date = new Date(Date.UTC(year, month - 1, day - 1, 18, 30, 0));
-
-    // Convert to ISO 8601 format
-    return date
+    // Expects DD/MM/YYYY
+    const [day, month, year] = dateString.split('/');
+    return moment.tz(`${day}/${month}/${year}`, 'DD/MM/YYYY', 'Asia/Kolkata').toDate();
 }
+
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
     
     const departmentId = req.session.departmentId.toString();
@@ -71,8 +77,6 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     console.log("exam type:", exam_type);
     console.log("Center no:", center);
     console.log("Original Batch date:", batchDate);
-
-
 
     if (!departmentId) {
         return res.status(404).json({ "message": "Center admin is not logged in" });
@@ -137,7 +141,6 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     ) sl ON s.student_id = sl.student_id
     WHERE s.departmentId = ?`;
 
-
     if (batchNo) {
         query += ' AND s.batchNo = ?';
         queryParams.push(batchNo);
@@ -180,45 +183,60 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
         queryParams.push(batchDate);
     }
 
-    // console.log('Final query:', query);
-    // console.log('Query parameters:', queryParams);
-
     try {
         const [results] = await connection.query(query, queryParams);
         console.log('Query result:', results);
 
         if (results.length > 0) {
             const studentTrackDTOs = results.map(result => {
+                // Format all date and time fields
+                const formattedResult = {
+                    ...result,
+                    batchdate: result.batchdate ? formatDate(result.batchdate) : null,
+                    Reporting_Time: result.Reporting_Time ? formatTime(result.Reporting_Time) : null,
+                    start_time: result.start_time ? formatTime(result.start_time) : null,
+                    end_time: result.end_time ? formatTime(result.end_time) : null,
+                    loginTime: result.loginTime ? formatDateTime(result.loginTime) : null,
+                    trial_time: result.trial_time ? formatDateTime(result.trial_time) : null,
+                    audio1_time: result.audio1_time ? formatDateTime(result.audio1_time) : null,
+                    passage1_time: result.passage1_time ? formatDateTime(result.passage1_time) : null,
+                    audio2_time: result.audio2_time ? formatDateTime(result.audio2_time) : null,
+                    passage2_time: result.passage2_time ? formatDateTime(result.passage2_time) : null,
+                    trial_passage_time: result.trial_passage_time ? formatDateTime(result.trial_passage_time) : null,
+                    typing_passage_time: result.typing_passage_time ? formatDateTime(result.typing_passage_time) : null,
+                    feedback_time: result.feedback_time ? formatDateTime(result.feedback_time) : null
+                };
+
                 const studentTrack = new StudentTrackDTO(
-                    result.student_id,
-                    result.center,
-                    result.fullname,
-                    result.batchNo,
-                    result.loginTime,
-                    result.login,
-                    result.done,
-                    result.Reporting_Time,
-                    result.start_time,
-                    result.end_time,
-                    result.trial,
-                    result.passageA,
-                    result.passageB,
-                    result.trial_time,
-                    result.audio1_time,
-                    result.passage1_time,
-                    result.audio2_time,
-                    result.passage2_time,
-                    result.feedback_time,
-                    result.subject_name,
-                    result.subject_name_short,
-                    formatDate(result.batchdate),
-                    result.departmentId,
-                    result.trial_passage_time,
-                    result.typing_passage_time
+                    formattedResult.student_id,
+                    formattedResult.center,
+                    formattedResult.fullname,
+                    formattedResult.batchNo,
+                    formattedResult.loginTime,
+                    formattedResult.login,
+                    formattedResult.done,
+                    formattedResult.Reporting_Time,
+                    formattedResult.start_time,
+                    formattedResult.end_time,
+                    formattedResult.trial,
+                    formattedResult.passageA,
+                    formattedResult.passageB,
+                    formattedResult.trial_time,
+                    formattedResult.audio1_time,
+                    formattedResult.passage1_time,
+                    formattedResult.audio2_time,
+                    formattedResult.passage2_time,
+                    formattedResult.feedback_time,
+                    formattedResult.subject_name,
+                    formattedResult.subject_name_short,
+                    formattedResult.batchdate,
+                    formattedResult.departmentId,
+                    formattedResult.trial_passage_time,
+                    formattedResult.typing_passage_time
                 );
 
                 if (typeof studentTrack.fullname === 'string') {
-                    studentTrack.fullname = encryptionInterface.decrypt(studentTrack.fullname);
+                    studentTrack.fullname = decrypt(studentTrack.fullname);
                 }
                 return studentTrack;
             });
@@ -248,13 +266,11 @@ exports.getDepartmentDetails = async (req,res) => {
         if (response.length === 0) {
             return res.status(404).json({ message: "Department not found" });
         }
-        // console.log(response);
         res.status(201).json({"message":"Department details found",departmentDetails:response[0]});
     } catch (error) {
-        console.error("Database query error:", err);
-        res.status(500).json({ message: err.message });
+        console.error("Database query error:", error);
+        res.status(500).json({ message: error.message });
     }
-    
 }
 
 exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
@@ -314,9 +330,14 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
 
         const [results] = await connection.query(query, queryParams);
 
-        // Convert date and time to Kolkata timezone
+        // Convert date and time to Kolkata timezone with proper formatting
         results.forEach(result => {
-            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+            if (result.batchdate) {
+                result.batchdate = formatDate(result.batchdate);
+            }
+            if (result.start_time) {
+                result.start_time = formatTime(result.start_time);
+            }
 
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({

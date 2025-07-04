@@ -1,5 +1,6 @@
 // expertAuthentication.js
 const connection = require('../../config/db1');
+const moment = require('moment-timezone');
 
 // Authentication functions
 exports.loginExpertAdmin = async (req, res) => {
@@ -287,6 +288,12 @@ exports.updateStudentMarks = async(req, res) => {
             if (results.length === 0){
                 await conn.rollback();
                 return res.status(404).json({error: 'Updated record not found!'});
+            }
+
+            if (results && results[0]) {
+                if (results[0].updated_at) {
+                    results[0].updated_at = moment(results[0].updated_at).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+                }
             }
 
             await conn.commit();

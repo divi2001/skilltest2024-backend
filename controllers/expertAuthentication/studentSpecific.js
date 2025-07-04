@@ -1,5 +1,6 @@
 // StudentSpecific.js
 const connection = require('../../config/db1');
+const moment = require('moment-timezone');
 
 exports.getAllSubjects = async (req, res) => {
     if (!req.session.expertId) {
@@ -363,6 +364,12 @@ exports.assignStudentForQSet = async (req, res) => {
         if (paper_check === 1){
             console.log("paper_check is 1, returning assignment details");
             await conn.commit();
+            if (loggedin) {
+                loggedin = moment(loggedin).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+            }
+            if (subm_time) {
+                subm_time = moment(subm_time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+            }
             return res.status(200).json({ qset, student_id, loggedin, status, subm_done, subm_time });
         }
         else if(super_mod === 1){
@@ -396,6 +403,12 @@ exports.assignStudentForQSet = async (req, res) => {
     
             await conn.commit();
             console.log("Transaction committed");
+            if (loggedin) {
+                loggedin = moment(loggedin).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+            }
+            if (subm_time) {
+                subm_time = moment(subm_time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+            }
             console.log("Sending response:", { qset, student_id, loggedin, status, subm_done, subm_time, QPA, QPB });
             res.status(200).json({ qset, student_id, loggedin, status, subm_done, subm_time, QPA, QPB });            
         }
@@ -1482,6 +1495,9 @@ exports.submitPassageReview = async (req, res) => {
         }
 
         await conn.commit();
+        if (results[0].subm_time) {
+            results[0].subm_time = moment(results[0].subm_time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss');
+        }
         res.status(200).json(results[0]);
     } catch (err) {
         if (conn) await conn.rollback();

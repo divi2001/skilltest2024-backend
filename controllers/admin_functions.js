@@ -1,4 +1,3 @@
-
 const connection = require('../config/db1');
 const moment = require('moment-timezone');
 
@@ -688,7 +687,7 @@ exports.approveResetRequest = async (req, res) => {
             // Format the time for the updated request
             const formattedRequest = {
                 ...updatedRequest[0],
-                time: moment(updatedRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+                time: updatedRequest[0].time ? moment(updatedRequest[0].time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss') : null
             };
 
             return res.status(200).json({
@@ -736,7 +735,7 @@ exports.getRequestData = async (req, res) => {
         // Format the time for each request
         const formattedRequests = resetRequests.map(request => ({
             ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+            time: request.time ? moment(request.time).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm:ss') : null
         }));
 
         res.json(formattedRequests);
@@ -748,7 +747,7 @@ exports.getRequestData = async (req, res) => {
 };
 const formatDate = (date) => {
     if (!date) return null;
-    return moment(date).tz('Asia/Kolkata').format('DD-MM-YYYY hh:mm:ss A')
+    return moment(date).tz('Asia/Kolkata').format('DD/MM/YYYY hh:mm:ss A')
 }
 exports.getStudentData = async (req, res) => {
 

@@ -54,7 +54,9 @@ exports.getCurrentStudentDetails = async (req, res) => {
 
         // Convert date and time to Kolkata timezone
         results.forEach(result => {
-            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+            if (result.batchdate) {
+                result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY');
+            }
 
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({

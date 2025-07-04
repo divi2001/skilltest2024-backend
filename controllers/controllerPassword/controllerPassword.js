@@ -28,8 +28,8 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
 
     // Combine the Kolkata date with the provided startTime
     const startDateTime = moment.tz(
-        `${batchDateKolkata.format('YYYY-MM-DD')} ${startTime}`,
-        'YYYY-MM-DD hh:mm A',
+        `${batchDateKolkata.format('DD/MM/YYYY')} ${startTime}`,
+        'DD/MM/YYYY hh:mm A',
         kolkataZone
     );
     
@@ -39,9 +39,9 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
     
     console.log('Batch Date (UTC):', batchDate);
-    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
-    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD hh:mm A'));
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD/MM/YYYY'));
+    console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD HH:mm:ss'));
+    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD HH:mm:ss'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
     // Return true if startTime is between 0 and 30 minutes ahead of the current time
@@ -120,11 +120,6 @@ function checkIfIsInTimeLimit(startTime) {
     }
 
     const differenceInMinutes = now.diff(startMoment, 'minutes');
-    
-    console.log('Current Time:', now.format('hh:mm:ss A'));
-    console.log('Start Time:', startMoment.format('YYYY-MM-DD hh:mm:ss A'));
-    console.log('Difference in Minutes:', differenceInMinutes);
-
     return differenceInMinutes <= 15;
 }
 

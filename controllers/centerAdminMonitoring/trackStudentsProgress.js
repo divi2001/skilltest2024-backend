@@ -6,16 +6,12 @@ const moment = require('moment-timezone');
 
 // Helper function to format date to YYYY-MM-DD
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
+    return moment(dateString).tz('Asia/Kolkata').format('DD/MM/YYYY')
 }
 function convertDateFormat(dateString) {
-    // Parse the original date string
-    const [day, month, year] = dateString.split('-');
-  
-    
-    const date = new Date(Date.UTC(year, month - 1, day - 1, 18, 30, 0));
-    
-    return date
+    // Expects DD/MM/YYYY
+    const [day, month, year] = dateString.split('/');
+    return moment.tz(`${day}/${month}/${year}`, 'DD/MM/YYYY', 'Asia/Kolkata').toDate();
 }
 
 exports.getStudentsTrack = async (req, res) => {
@@ -281,6 +277,13 @@ exports.getStudentsTrack = async (req, res) => {
                     studentTrack.fullname = encryptionInterface.decrypt(studentTrack.fullname);
                 }
                 return studentTrack;
+            });
+
+            // Format batchdate
+            studentTrackDTOs.forEach(studentTrack => {
+                if (studentTrack.batchdate) {
+                    studentTrack.batchdate = moment(studentTrack.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY');
+                }
             });
 
             console.log("Sending response with student data");

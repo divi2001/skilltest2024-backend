@@ -3,18 +3,12 @@ const StudentTrackDTO = require("../../dto/studentProgress");
 const moment = require('moment-timezone');
 
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
+    return moment(dateString).tz('Asia/Kolkata').format('DD/MM/YYYY')
 }
 function convertDateFormat(dateString) {
-    // Parse the original date string
-    const [day, month, year] = dateString.split('-');
-  
-    // Create a Date object in UTC
-    // Set the time to 18:30:00 UTC of the previous day
-    const date = new Date(Date.UTC(year, month - 1, day - 1, 18, 30, 0));
-    
-    // Convert to ISO 8601 format
-    return date
+    // Expects DD/MM/YYYY
+    const [day, month, year] = dateString.split('/');
+    return moment.tz(`${day}/${month}/${year}`, 'DD/MM/YYYY', 'Asia/Kolkata').toDate();
 }
 exports.getAllStudentsTrack = async (req,res) => {
     // console.log('Starting getStudentsTrack function');
@@ -185,6 +179,12 @@ WHERE 1=1`;
                 return studentTrack;
             });
 
+            results.forEach(result => {
+                if (result.batchdate) {
+                    result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY');
+                }
+            });
+
             res.status(200).json(studentTrackDTOs);
         } else {
             res.status(404).json({message: 'No records found!'});
@@ -259,7 +259,9 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         console.log(results);
         // Convert date and time to Kolkata timezone
         results.forEach(result => {
-            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+            if (result.batchdate) {
+                result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY');
+            }
 
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({

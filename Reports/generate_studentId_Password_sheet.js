@@ -191,7 +191,7 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD/MM/YYYY')
         
         // Uncomment the following lines if you want to check download allowance
         if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time,batchInfo.batchdate)) {
