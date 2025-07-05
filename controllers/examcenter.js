@@ -265,15 +265,17 @@ exports.getCenterBatchNumbers = async (req, res) => {
     try {
         const query = `
             SELECT DISTINCT 
-                b.batchNo, 
-                b.batchdate, 
+                s.batchNo, 
+                s.batchdate, 
                 b.start_time, 
                 b.end_time,
                 COUNT(s.student_id) as student_count
-            FROM batchdb b
-            LEFT JOIN students s ON b.batchNo = s.batchNo AND s.center = ?
-            GROUP BY b.batchNo, b.batchdate, b.start_time, b.end_time
-            ORDER BY b.batchNo`;
+            FROM students s
+            LEFT JOIN batchdb b ON s.batchNo = b.batchNo
+            WHERE s.center = ?
+            GROUP BY s.batchNo, s.batchdate, b.start_time, b.end_time
+            HAVING COUNT(s.student_id) > 0
+            ORDER BY s.batchNo`;
 
         const [batches] = await connection.query(query, [centerId]);
 

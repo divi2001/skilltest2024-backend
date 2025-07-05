@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 
 exports.getCurrentStudentDetails = async (req, res) => {
     try {
-        const center = req.session.centerId
+        const center = req.session.centerId;
         const batchNo = req.query.batchNo;
 
         let filter = '';
@@ -29,26 +29,29 @@ exports.getCurrentStudentDetails = async (req, res) => {
         ).join(', ');
 
         let query = `
-        SELECT 
-            s.batchNo, 
-            COUNT(DISTINCT s.student_id) AS total_students, 
-            COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
-            COUNT(DISTINCT CASE WHEN sl.feedback_time IS NOT NULL THEN s.student_id END) AS completed_student, 
-            b.start_time, 
-            s.batchdate,
-            ${subjectCounts},
-            ${subjectNames}
-        FROM 
-            students s
-        LEFT JOIN batchdb b ON b.batchNo = s.batchNo
-        LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
-        WHERE 
-            s.center = ? ${filter}
-        GROUP BY  
-            s.batchNo, b.start_time, s.batchdate
-        ORDER BY 
-            s.batchNo;
-    `;
+            SELECT 
+                s.batchNo,
+                COUNT(DISTINCT s.student_id) AS total_students, 
+                COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
+                COUNT(DISTINCT CASE WHEN sl.feedback_time IS NOT NULL THEN s.student_id END) AS completed_student, 
+                b.start_time, 
+                s.batchdate,
+                ${subjectCounts},
+                ${subjectNames}
+            FROM 
+                students s
+            LEFT JOIN batchdb b ON b.batchNo = s.batchNo
+            LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
+            WHERE 
+                s.center = ? ${filter}
+            GROUP BY  
+                s.batchNo, b.start_time, s.batchdate
+            ORDER BY 
+                s.batchNo;
+        `;
+
+        console.log('Query:', query);
+        console.log('Query Params:', queryParams);
 
         const [results] = await connection.query(query, queryParams);
 
@@ -62,9 +65,9 @@ exports.getCurrentStudentDetails = async (req, res) => {
             result.subjects = subjects.map(sub => ({
                 id: sub.subjectId,
                 name: result[`subject_${sub.subjectId}_name`],
-                count: result[`subject_${sub.subjectId}_count`],
-                loggedIn: result[`subject_${sub.subjectId}_logged_in`],
-                completed: result[`subject_${sub.subjectId}_completed`]
+                count: result[`subject_${sub.subjectId}_count`] || 0,
+                loggedIn: result[`subject_${sub.subjectId}_logged_in`] || 0,
+                completed: result[`subject_${sub.subjectId}_completed`] || 0
             }));
 
             // Remove individual subject fields
@@ -78,7 +81,7 @@ exports.getCurrentStudentDetails = async (req, res) => {
 
         res.status(200).json({ results });
     } catch (error) {
-        console.log(error);
+        console.log('Error details:', error);
         res.status(500).json({ "message": "Internal Server Error!!" });
     }
 };
