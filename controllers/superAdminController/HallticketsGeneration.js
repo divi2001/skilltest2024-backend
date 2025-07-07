@@ -6,9 +6,17 @@ const fs = require('fs');
 const archiver = require('archiver');
 
 function wrapText(text, maxWidth, pdfDoc) {
-  let words = text.split(' ');
+  // Handle undefined/null/empty text
+  if (!text) {
+    return [''];
+  }
+
+  // Convert to string in case it's a number or other type
+  const textStr = String(text);
+  
+  let words = textStr.split(' ');
   let lines = [];
-  let currentLine = words[0];
+  let currentLine = words[0] || '';
 
   for (let i = 1; i < words.length; i++) {
     let word = words[i];
@@ -78,7 +86,7 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     })
     .fontSize(11)
-    .text("GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2024", centerX, 50, {
+    .text("GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2025", centerX, 50, {
       width: textWidth,
       align: "center",
     })
@@ -154,18 +162,20 @@ async function generateStudentHallTicket(doc, studentData, assets) {
   // Exam center details
   const maxWidth = 330;
   doc.text("NAME / ADDRESS OF EXAM CENTER :", rightStart, 310);
-  
+
   let yPosition = 330;
-  const wrappedCenterName = wrapText(studentData.examCenter, maxWidth, doc);
-  
+  const examCenterText = studentData.examCenter || 'Exam center not specified';
+  const wrappedCenterName = wrapText(examCenterText, maxWidth, doc);
+
   wrappedCenterName.forEach(line => {
       doc.text(line, rightStart, yPosition);
       yPosition += 15;
   });
-  
+
   yPosition += 5;
-  
-  const wrappedAddress = wrapText(studentData.centerAddress, maxWidth, doc);
+
+  const addressText = studentData.centerAddress || 'Address not specified';
+  const wrappedAddress = wrapText(addressText, maxWidth, doc);
   wrappedAddress.forEach(line => {
       doc.text(line, rightStart, yPosition);
       yPosition += 15;
@@ -410,7 +420,7 @@ async function loadStudentData() {
   const excelData = XLSX.utils.sheet_to_json(worksheet);
 
   return excelData.map(row => ({
-    seatNo: row['student_id']?.toString(),
+    seatNo: row['student_id']?.toString() || 'N/A',
     instituteId: row['InstituteId']?.toString(),
     candidateName: row['fullname'],
     motherName: row['mothername'],
@@ -424,25 +434,32 @@ async function loadStudentData() {
     instituteCode: row['InstituteId']?.toString(),
     subject: row['SUBNAME'],
     reportingTime: row['reporting_time'],
-    examCenter: row['center_name'],
-    centerAddress: row['center_address'],
-    image: row["base64"]
+    examCenter: row['center_name'] || 'Exam center not specified',
+    centerAddress: row['center_address'] || 'Address not specified',
+    image: row["base64"] || null
   }));
 }
 
-async function downloadHallTicketForStudent(req, res){
+async function downloadHallTicketForStudent(req, res) {
     try {
         const { seatNo } = req.params;
+        console.log(`[INFO] Request received to download hall ticket for seatNo: ${seatNo}`);
+
         const students = await loadStudentData();
+        console.log(`[INFO] Loaded ${students.length} students`);
+
         const assets = await loadAssets();
+        console.log(`[INFO] Assets loaded:`, assets);
 
         const student = students.find(student => student.seatNo === seatNo);
-
         if (!student) {
+            console.warn(`[WARN] No student found with seatNo: ${seatNo}`);
             return res.status(404).json({
                 error: `No student found with seat number: ${seatNo}`
             });
         }
+
+        console.log(`[INFO] Generating PDF for student: ${student.fullname} (Seat No: ${seatNo})`);
 
         const doc = new PDFDocument({
             size: "A4",
@@ -462,18 +479,20 @@ async function downloadHallTicketForStudent(req, res){
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=student_${seatNo}_hall_ticket.pdf`);
+        console.log('[INFO] PDF headers set');
 
-        // Handle errors during piping
         doc.on('error', (err) => {
-            console.error('PDF stream error:', err);
+            console.error('[ERROR] PDF stream error:', err);
             if (!res.headersSent) {
                 res.status(500).json({ error: "PDF generation failed" });
             }
         });
 
         doc.pipe(res);
+        console.log('[INFO] PDF stream piped to response');
 
         const { regularFont, boldFont } = await registerFonts(doc, assets.regularFontPath, assets.boldFontPath);
+        console.log('[INFO] Fonts registered successfully');
 
         await generateStudentHallTicket(doc, student, {
             ...assets,
@@ -481,17 +500,21 @@ async function downloadHallTicketForStudent(req, res){
             boldFont
         });
 
+        console.log('[INFO] Hall ticket content generated');
+
         doc.end();
+        console.log('[INFO] PDF generation completed and stream ended');
 
     } catch (error) {
-        console.error("PDF generation error:", error);
+        console.error('[ERROR] PDF generation exception:', error);
         if (!res.headersSent) {
             res.status(500).json({
                 error: "Failed to generate PDF: " + error.message
-            })
+            });
         }
     }
 }
+
 
 async function downloadHallTicketsForInstitute(req, res) {
   try {
