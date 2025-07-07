@@ -228,27 +228,81 @@ exports.getCenterResetRequests = async (req, res) => {
                 const [newRequest] = await connection.query('SELECT * FROM resetrequests WHERE id = ?', [result.insertId]);
                 
                 // Format the time for the new request
-                const formattedRequest = {
-                    ...newRequest[0],
-                    time: moment(newRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
-                };
+                if (newRequest && newRequest[0] && newRequest[0].time) {
+                    newRequest[0].time = moment(newRequest[0].time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+                }
 
-                return res.status(201).json(formattedRequest);
+                return res.status(201).json(newRequest[0]);
             } else {
                 return res.status(500).json({ message: "Failed to create new request" });
             }
         }
 
         // Format the time for each request
-        const formattedRequests = requests.map(request => ({
-            ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
-        }));
+        if (requests && requests.length > 0) {
+            requests.forEach(request => {
+                if (request.time) {
+                    request.time = moment(request.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+                }
+            });
+        }
 
-        res.json(formattedRequests);
+        res.json(requests);
     } catch (err) {
         console.error('Database query error:', err);
         res.status(500).send('Internal server error');
+    }
+};
+
+exports.getCenterBatchNumbers = async (req, res) => {
+    console.log("Fetching center batch numbers");
+    const centerId = req.session.centerId;
+
+    if (!centerId) {
+        return res.status(401).json({ message: 'Unauthorized: No center ID in session' });
+    }
+
+    try {
+        const query = `
+            SELECT DISTINCT 
+                s.batchNo, 
+                s.batchdate, 
+                b.start_time, 
+                b.end_time,
+                COUNT(s.student_id) as student_count
+            FROM students s
+            LEFT JOIN batchdb b ON s.batchNo = b.batchNo
+            WHERE s.center = ?
+            GROUP BY s.batchNo, s.batchdate, b.start_time, b.end_time
+            HAVING COUNT(s.student_id) > 0
+            ORDER BY s.batchNo`;
+
+        const [batches] = await connection.query(query, [centerId]);
+
+        // Format dates and times if needed
+        const formattedBatches = batches.map(batch => ({
+            ...batch,
+            batchdate: moment(batch.batchdate).format('DD-MM-YYYY'),
+            start_time: moment(batch.start_time, 'HH:mm:ss').format('HH:mm:ss'),
+            end_time: moment(batch.end_time, 'HH:mm:ss').format('HH:mm:ss')
+        }));
+        
+        console.log("Formatted batches:", formattedBatches);
+
+        if (formattedBatches.length === 0) {
+            return res.status(404).json({ 
+                message: "No batches found for this center",
+                centerId: centerId
+            });
+        }
+
+        res.json(formattedBatches);
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            error: err.message 
+        });
     }
 };
 
@@ -276,7 +330,7 @@ exports.getCenterData = async (req, res) => {
         // Format the time for each request
         const formattedRequests = resetRequests.map(request => ({
             ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+            time: moment(request.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss')
         }));
 
         res.json(formattedRequests);
@@ -308,7 +362,7 @@ exports.uploadAttendanceReport = async (req, res) => {
         if (report_date) {
             // Parse the provided date regardless of format
             const parsedDate = moment(report_date, [
-                'YYYY/MM/DD', 'DD/MM/YYYY', 'MM/DD/YYYY', 
+                'YYYY/MM/DD', 'DD-MM-YYYY', 'MM/DD/YYYY', 
                 'YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'
             ]);
             
@@ -317,10 +371,10 @@ exports.uploadAttendanceReport = async (req, res) => {
             }
             
             // Format for MySQL DATE type (YYYY-MM-DD)
-            formattedDate = parsedDate.format('YYYY-MM-DD');
+            formattedDate = parsedDate.format('DD-MM-YYYY');
         } else {
             // Use current date if none provided
-            formattedDate = moment().tz("Asia/Kolkata").format('YYYY-MM-DD');
+            formattedDate = moment().tz("Asia/Kolkata").format('DD-MM-YYYY');
         }
 
         const insertQuery = `INSERT INTO attendance_reports 
