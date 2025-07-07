@@ -30,9 +30,10 @@ async function createAnswerSheet(doc, data) {
     
     function drawLines(doc, startY, endY, gap) {
         for (let y = startY; y <= endY; y += gap) {
-            doc.moveTo(margin, y)
-               .lineTo(doc.page.width - margin, y)
-               .stroke();
+            doc.lineWidth(0.1)  // Thin lines
+            .moveTo(margin, y)
+            .lineTo(doc.page.width - margin, y)
+            .stroke();
         }
     }
     
