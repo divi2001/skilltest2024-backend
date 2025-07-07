@@ -54,9 +54,9 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
 
     console.log('Batch Date (UTC):', batchDate);
-    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
-    console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD-MM-YYYY'));
+    console.log('Current Date (Kolkata):', nowKolkata.format('DD-MM-YYYY'));
+    console.log('One Day Before (Kolkata):', oneDayBefore.format('DD-MM-YYYY'));
 
     // Check if current date is after or equal to 1 day before the batch date
     return nowKolkata.isSameOrAfter(oneDayBefore);
@@ -72,7 +72,7 @@ function addHeader(doc, data) {
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('Skill Test Computer Shorthand Examination April 2025', 110, doc.y + 5, {
+        .text('Skill Test Computer Shorthand Examination April 2025', 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
