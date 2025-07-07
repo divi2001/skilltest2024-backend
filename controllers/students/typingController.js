@@ -72,6 +72,7 @@ exports.getpassages = async (req, res) => {
         res.status(500).send(err.message);
     }
 };
+
 exports.updateStudentLog = async (req, res) => {
     const studentId = req.session.studentId;
     const { passage_type } = req.body;
