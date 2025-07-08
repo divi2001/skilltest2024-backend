@@ -14,7 +14,12 @@ function convertDateFormat(dateString) {
     return moment.tz(`${day}/${month}/${year}`, 'DD-MM-YYYY', 'Asia/Kolkata').toDate();
 }
 
-
+// Helper function to get active department IDs
+async function getActiveDepartmentIds() {
+    const query = `SELECT departmentId FROM departmentdb WHERE departmentStatus = 1`;
+    const [results] = await connection.query(query);
+    return results.map(row => row.departmentId);
+}
 
 exports.getStudentsTrack = async (req, res) => {
     console.log('Starting getStudentsTrack function');
@@ -35,6 +40,18 @@ exports.getStudentsTrack = async (req, res) => {
     }
 
     try {
+        // Get active department IDs
+        const activeDepartmentIds = await getActiveDepartmentIds();
+        console.log("Active department IDs:", activeDepartmentIds);
+        
+        if (activeDepartmentIds.length === 0) {
+            console.log('No active departments found');
+            return res.status(404).json({message: 'No active departments found'});
+        }
+
+        // Create placeholders for IN clause
+        const departmentPlaceholders = activeDepartmentIds.map(() => '?').join(',');
+
         // Step 1: First check if there are any students for this center
         const studentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ?`;
         const [studentsResult] = await connection.query(studentsQuery, [examCenterCode]);
@@ -45,20 +62,20 @@ exports.getStudentsTrack = async (req, res) => {
             return res.status(404).json({message: 'No students found for this center'});
         }
 
-        // Step 2: Check students with departmentId = 5
-        const deptStudentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND departmentId = 5`;
-        const [deptStudentsResult] = await connection.query(deptStudentsQuery, [examCenterCode]);
-        console.log(`Students with departmentId=0 for center ${examCenterCode}:`, deptStudentsResult[0].count);
+        // Step 2: Check students with active department IDs
+        const deptStudentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND departmentId IN (${departmentPlaceholders})`;
+        const [deptStudentsResult] = await connection.query(deptStudentsQuery, [examCenterCode, ...activeDepartmentIds]);
+        console.log(`Students with active departments for center ${examCenterCode}:`, deptStudentsResult[0].count);
         
         if (deptStudentsResult[0].count === 0) {
-            console.log(`No students with departmentId=0 found for center: ${examCenterCode}`);
-            return res.status(404).json({message: 'No students with departmentId=0 found for this center'});
+            console.log(`No students with active departments found for center: ${examCenterCode}`);
+            return res.status(404).json({message: 'No students with active departments found for this center'});
         }
         
         // Step 3: Check if batch number exists (if provided)
         if (batchNo) {
-            const batchQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND batchNo = ?`;
-            const [batchResult] = await connection.query(batchQuery, [examCenterCode, batchNo]);
+            const batchQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND batchNo = ? AND departmentId IN (${departmentPlaceholders})`;
+            const [batchResult] = await connection.query(batchQuery, [examCenterCode, batchNo, ...activeDepartmentIds]);
             console.log(`Students with batch ${batchNo} for center ${examCenterCode}:`, batchResult[0].count);
             
             if (batchResult[0].count === 0) {
@@ -73,8 +90,8 @@ exports.getStudentsTrack = async (req, res) => {
                 SELECT COUNT(*) as count 
                 FROM students s
                 JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
-                WHERE s.center = ? AND sub.subject_name = ?`;
-            const [subjectResult] = await connection.query(subjectQuery, [examCenterCode, subject_name]);
+                WHERE s.center = ? AND sub.subject_name = ? AND s.departmentId IN (${departmentPlaceholders})`;
+            const [subjectResult] = await connection.query(subjectQuery, [examCenterCode, subject_name, ...activeDepartmentIds]);
             console.log(`Students with subject ${subject_name} for center ${examCenterCode}:`, subjectResult[0].count);
             
             if (subjectResult[0].count === 0) {
@@ -87,9 +104,9 @@ exports.getStudentsTrack = async (req, res) => {
         let studentsConditionQuery = `
             SELECT COUNT(*) as count 
             FROM students s
-            WHERE s.center = ? AND s.departmentId = 5`;
+            WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
         
-        let queryParams = [examCenterCode];
+        let queryParams = [examCenterCode, ...activeDepartmentIds];
         
         if (batchNo) {
             studentsConditionQuery += ` AND s.batchNo = ?`;
@@ -104,16 +121,19 @@ exports.getStudentsTrack = async (req, res) => {
             }
         }
         
+        // In the students condition query section
         if (exam_type) {
             if (exam_type === 'shorthand') {
-                studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 1`;
+                studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 0`;
             } else if (exam_type === 'typewriting') {
-                studentsConditionQuery += ` AND s.IsTypewriting = 1 AND s.IsShorthand = 1`;
+                studentsConditionQuery += ` AND s.IsTypewriting = 1 AND s.IsShorthand = 0`;
             } else if (exam_type === 'both') {
                 studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 1`;
             }
         }
-        
+
+ 
+                
         if (batchDate) {
             const formattedDate = convertDateFormat(batchDate);
             studentsConditionQuery += ` AND s.batchdate = ?`;
@@ -140,8 +160,8 @@ exports.getStudentsTrack = async (req, res) => {
             SELECT COUNT(*) as count 
             FROM students s
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
-            WHERE s.center = ? AND s.departmentId = 5`;
-        const [subjectsJoinResult] = await connection.query(subjectsJoinQuery, [examCenterCode]);
+            WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
+        const [subjectsJoinResult] = await connection.query(subjectsJoinQuery, [examCenterCode, ...activeDepartmentIds]);
         console.log("Results after subjectsdb join:", subjectsJoinResult[0].count);
         
         // Check audiologs join
@@ -150,8 +170,8 @@ exports.getStudentsTrack = async (req, res) => {
             FROM students s
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
             LEFT JOIN audiologs a ON s.student_id = a.student_id
-            WHERE s.center = ? AND s.departmentId = 5`;
-        const [audioJoinResult] = await connection.query(audioJoinQuery, [examCenterCode]);
+            WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
+        const [audioJoinResult] = await connection.query(audioJoinQuery, [examCenterCode, ...activeDepartmentIds]);
         console.log("Results after audiologs join:", audioJoinResult[0].count);
         
         // Check studentlogs join
@@ -169,11 +189,11 @@ exports.getStudentsTrack = async (req, res) => {
                 GROUP BY
                     student_id
             ) sl ON s.student_id = sl.student_id
-            WHERE s.center = ? AND s.departmentId = 5`;
-        const [logsJoinResult] = await connection.query(logsJoinQuery, [examCenterCode]);
+            WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
+        const [logsJoinResult] = await connection.query(logsJoinQuery, [examCenterCode, ...activeDepartmentIds]);
         console.log("Results after studentlogs join:", logsJoinResult[0].count);
         
-        // Step 7: Final full query with all conditions (using parameters from step 5)
+        // Step 7: Final full query with all conditions
         const finalQuery = `SELECT 
             s.student_id,
             s.center,
@@ -227,20 +247,30 @@ exports.getStudentsTrack = async (req, res) => {
             GROUP BY
                 student_id
         ) sl ON s.student_id = sl.student_id
-        WHERE s.departmentId = 5 AND s.center = ?` + 
+        WHERE s.departmentId IN (${departmentPlaceholders}) AND s.center = ?` + 
             (batchNo ? ' AND s.batchNo = ?' : '') +
             (subject_name ? ' AND sub.subject_name = ?' : '') +
             (loginStatus === 'loggedin' ? ' AND s.loggedin = 1' : 
              loginStatus === 'loggedout' ? ' AND s.loggedin = 0' : '') +
-            (exam_type === 'shorthand' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1' :
+            (exam_type === 'shorthand' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0' :
              exam_type === 'typewriting' ? ' AND s.IsTypewriting = 1 AND s.IsShorthand = 1' :
              exam_type === 'both' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1' : '') +
             (batchDate ? ' AND s.batchdate = ?' : '');
+
+        // Prepare final query parameters
+        let finalQueryParams = [...activeDepartmentIds, examCenterCode];
+        
+        if (batchNo) finalQueryParams.push(batchNo);
+        if (subject_name) finalQueryParams.push(subject_name);
+        if (batchDate) {
+            const formattedDate = convertDateFormat(batchDate);
+            finalQueryParams.push(formattedDate);
+        }
             
         console.log("Final query:", finalQuery);
-        console.log("Final query params:", queryParams);
+        console.log("Final query params:", finalQueryParams);
         
-        const [results] = await connection.query(finalQuery, queryParams);
+        const [results] = await connection.query(finalQuery, finalQueryParams);
         console.log('Final query executed. Number of results:', results.length);
 
         if (results.length > 0) {
@@ -435,7 +465,3 @@ exports.storeExamStage = async (req, res) => {
         res.status(500).json({error: 'Internal Server error'})
     }
 }
-
-
-
-
