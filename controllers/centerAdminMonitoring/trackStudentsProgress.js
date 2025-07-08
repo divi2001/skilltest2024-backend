@@ -46,7 +46,7 @@ exports.getStudentsTrack = async (req, res) => {
         }
 
         // Step 2: Check students with departmentId = 5
-        const deptStudentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND departmentId = 5`;
+        const deptStudentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND departmentId = 6`;
         const [deptStudentsResult] = await connection.query(deptStudentsQuery, [examCenterCode]);
         console.log(`Students with departmentId=0 for center ${examCenterCode}:`, deptStudentsResult[0].count);
         

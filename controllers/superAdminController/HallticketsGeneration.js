@@ -86,7 +86,7 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     })
     .fontSize(11)
-    .text("GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2025", centerX, 50, {
+    .text("GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025", centerX, 50, {
       width: textWidth,
       align: "center",
     })
