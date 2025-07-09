@@ -1,3 +1,4 @@
+// controllers\centerAdminMonitoring\trackStudentsProgress.js
 const connection = require('../../config/db1');
 const StudentTrackDTO = require('../../dto/studentProgress');
 const encryptionInterface = require('../../config/encrypt');
@@ -25,10 +26,11 @@ exports.getStudentsTrack = async (req, res) => {
     console.log('Starting getStudentsTrack function');
     const { batchNo } = req.params;
     const examCenterCode = req.session.centerId;
-    let { subject_name, loginStatus, batchDate, exam_type } = req.query;
+    let { subject_name, loginStatus, batchDate, exam_type, departmentId } = req.query;
 
     console.log("Exam center code:", examCenterCode);
     console.log("Batch no:", batchNo);
+    console.log("Department ID:", departmentId);
     console.log("Subject:", subject_name);
     console.log("Login status:", loginStatus);
     console.log("Exam type:", exam_type);
@@ -40,17 +42,33 @@ exports.getStudentsTrack = async (req, res) => {
     }
 
     try {
-        // Get active department IDs
-        const activeDepartmentIds = await getActiveDepartmentIds();
-        console.log("Active department IDs:", activeDepartmentIds);
+        // Determine which department IDs to use
+        let targetDepartmentIds = [];
         
-        if (activeDepartmentIds.length === 0) {
-            console.log('No active departments found');
-            return res.status(404).json({message: 'No active departments found'});
+        if (departmentId) {
+            // If specific department is requested, check if it's active
+            const deptQuery = 'SELECT departmentId FROM departmentdb WHERE departmentId = ? AND departmentStatus = 1';
+            const [deptResult] = await connection.query(deptQuery, [departmentId]);
+            
+            if (deptResult.length === 0) {
+                console.log(`Department ${departmentId} is not active or doesn't exist`);
+                return res.status(404).json({message: 'Selected department is not active'});
+            }
+            
+            targetDepartmentIds = [departmentId];
+        } else {
+            // Get all active department IDs
+            targetDepartmentIds = await getActiveDepartmentIds();
+            console.log("Active department IDs:", targetDepartmentIds);
+            
+            if (targetDepartmentIds.length === 0) {
+                console.log('No active departments found');
+                return res.status(404).json({message: 'No active departments found'});
+            }
         }
 
         // Create placeholders for IN clause
-        const departmentPlaceholders = activeDepartmentIds.map(() => '?').join(',');
+        const departmentPlaceholders = targetDepartmentIds.map(() => '?').join(',');
 
         // Step 1: First check if there are any students for this center
         const studentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ?`;
@@ -62,20 +80,20 @@ exports.getStudentsTrack = async (req, res) => {
             return res.status(404).json({message: 'No students found for this center'});
         }
 
-        // Step 2: Check students with active department IDs
+        // Step 2: Check students with target department IDs
         const deptStudentsQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND departmentId IN (${departmentPlaceholders})`;
-        const [deptStudentsResult] = await connection.query(deptStudentsQuery, [examCenterCode, ...activeDepartmentIds]);
-        console.log(`Students with active departments for center ${examCenterCode}:`, deptStudentsResult[0].count);
+        const [deptStudentsResult] = await connection.query(deptStudentsQuery, [examCenterCode, ...targetDepartmentIds]);
+        console.log(`Students with target departments for center ${examCenterCode}:`, deptStudentsResult[0].count);
         
         if (deptStudentsResult[0].count === 0) {
-            console.log(`No students with active departments found for center: ${examCenterCode}`);
-            return res.status(404).json({message: 'No students with active departments found for this center'});
+            console.log(`No students with target departments found for center: ${examCenterCode}`);
+            return res.status(404).json({message: 'No students with selected department found for this center'});
         }
         
         // Step 3: Check if batch number exists (if provided)
         if (batchNo) {
             const batchQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND batchNo = ? AND departmentId IN (${departmentPlaceholders})`;
-            const [batchResult] = await connection.query(batchQuery, [examCenterCode, batchNo, ...activeDepartmentIds]);
+            const [batchResult] = await connection.query(batchQuery, [examCenterCode, batchNo, ...targetDepartmentIds]);
             console.log(`Students with batch ${batchNo} for center ${examCenterCode}:`, batchResult[0].count);
             
             if (batchResult[0].count === 0) {
@@ -91,7 +109,7 @@ exports.getStudentsTrack = async (req, res) => {
                 FROM students s
                 JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
                 WHERE s.center = ? AND sub.subject_name = ? AND s.departmentId IN (${departmentPlaceholders})`;
-            const [subjectResult] = await connection.query(subjectQuery, [examCenterCode, subject_name, ...activeDepartmentIds]);
+            const [subjectResult] = await connection.query(subjectQuery, [examCenterCode, subject_name, ...targetDepartmentIds]);
             console.log(`Students with subject ${subject_name} for center ${examCenterCode}:`, subjectResult[0].count);
             
             if (subjectResult[0].count === 0) {
@@ -106,7 +124,7 @@ exports.getStudentsTrack = async (req, res) => {
             FROM students s
             WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
         
-        let queryParams = [examCenterCode, ...activeDepartmentIds];
+        let queryParams = [examCenterCode, ...targetDepartmentIds];
         
         if (batchNo) {
             studentsConditionQuery += ` AND s.batchNo = ?`;
@@ -131,8 +149,6 @@ exports.getStudentsTrack = async (req, res) => {
                 studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 1`;
             }
         }
-
- 
                 
         if (batchDate) {
             const formattedDate = convertDateFormat(batchDate);
@@ -161,7 +177,7 @@ exports.getStudentsTrack = async (req, res) => {
             FROM students s
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
             WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
-        const [subjectsJoinResult] = await connection.query(subjectsJoinQuery, [examCenterCode, ...activeDepartmentIds]);
+        const [subjectsJoinResult] = await connection.query(subjectsJoinQuery, [examCenterCode, ...targetDepartmentIds]);
         console.log("Results after subjectsdb join:", subjectsJoinResult[0].count);
         
         // Check audiologs join
@@ -171,7 +187,7 @@ exports.getStudentsTrack = async (req, res) => {
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
             LEFT JOIN audiologs a ON s.student_id = a.student_id
             WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
-        const [audioJoinResult] = await connection.query(audioJoinQuery, [examCenterCode, ...activeDepartmentIds]);
+        const [audioJoinResult] = await connection.query(audioJoinQuery, [examCenterCode, ...targetDepartmentIds]);
         console.log("Results after audiologs join:", audioJoinResult[0].count);
         
         // Check studentlogs join
@@ -190,7 +206,7 @@ exports.getStudentsTrack = async (req, res) => {
                     student_id
             ) sl ON s.student_id = sl.student_id
             WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
-        const [logsJoinResult] = await connection.query(logsJoinQuery, [examCenterCode, ...activeDepartmentIds]);
+        const [logsJoinResult] = await connection.query(logsJoinQuery, [examCenterCode, ...targetDepartmentIds]);
         console.log("Results after studentlogs join:", logsJoinResult[0].count);
         
         // Step 7: Final full query with all conditions
@@ -253,12 +269,12 @@ exports.getStudentsTrack = async (req, res) => {
             (loginStatus === 'loggedin' ? ' AND s.loggedin = 1' : 
              loginStatus === 'loggedout' ? ' AND s.loggedin = 0' : '') +
             (exam_type === 'shorthand' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0' :
-             exam_type === 'typewriting' ? ' AND s.IsTypewriting = 1 AND s.IsShorthand = 1' :
+             exam_type === 'typewriting' ? ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0' :
              exam_type === 'both' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1' : '') +
             (batchDate ? ' AND s.batchdate = ?' : '');
 
         // Prepare final query parameters
-        let finalQueryParams = [...activeDepartmentIds, examCenterCode];
+        let finalQueryParams = [...targetDepartmentIds, examCenterCode];
         
         if (batchNo) finalQueryParams.push(batchNo);
         if (subject_name) finalQueryParams.push(subject_name);
@@ -329,6 +345,66 @@ exports.getStudentsTrack = async (req, res) => {
         res.status(500).json({message: err.message});
     }
 };
+
+// New endpoint to get active departments
+exports.getActiveDepartments = async (req, res) => {
+    try {
+        const query = 'SELECT departmentId, departmentName FROM departmentdb WHERE departmentStatus = 1 ORDER BY departmentName';
+        const [results] = await connection.query(query);
+        
+        if (results.length === 0) {
+            return res.status(404).json({message: 'No active departments found'});
+        }
+        
+        res.status(200).json(results);
+    } catch (error) {
+        console.error('Error fetching active departments:', error);
+        res.status(500).json({message: 'Failed to fetch departments'});
+    }
+};
+
+// Modified endpoint to get batches for a specific department
+exports.getBatchesByDepartment = async (req, res) => {
+    try {
+        const { departmentId } = req.body;
+        const examCenterCode = req.session.centerId;
+
+        if (!examCenterCode) {
+            return res.status(404).json({message: "Center admin is not logged in"});
+        }
+
+        if (!departmentId) {
+            return res.status(400).json({message: "Department ID is required"});
+        }
+
+        // Check if department is active
+        const deptQuery = 'SELECT departmentId FROM departmentdb WHERE departmentId = ? AND departmentStatus = 1';
+        const [deptResult] = await connection.query(deptQuery, [departmentId]);
+        
+        if (deptResult.length === 0) {
+            return res.status(404).json({message: 'Selected department is not active'});
+        }
+
+        // Get distinct batch numbers for the specific department and center
+        const query = `
+            SELECT DISTINCT batchNo 
+            FROM students 
+            WHERE center = ? AND departmentId = ? 
+            ORDER BY batchNo`;
+        
+        const [results] = await connection.query(query, [examCenterCode, departmentId]);
+        
+        if (results.length === 0) {
+            return res.status(404).json({message: 'No batches found for this department and center'});
+        }
+        
+        res.status(200).json(results);
+    } catch (error) {
+        console.error('Error fetching batches by department:', error);
+        res.status(500).json({message: 'Failed to fetch batches'});
+    }
+};
+
 
 exports.getStoredStages = async (req, res) => {
     const studentId = req.session.studentId;
