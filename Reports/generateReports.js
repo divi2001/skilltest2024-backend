@@ -1,3 +1,4 @@
+// Reports\generateReports.js
 const connection = require("../config/db1");
 const XLSX = require('xlsx');
 const moment = require('moment-timezone');
@@ -25,8 +26,10 @@ exports.generateAbsenteeReport = async (req, res) => {
         margin: 50
     });
     
-    const {batchNo} = req.body;
+    const {batchNo, departmentId} = req.body;
     const center = req.session.centerId;
+
+    console.log(batchNo,center,departmentId);
     // Use a Promise to handle the PDF generation
     const pdfPromise = new Promise((resolve, reject) => {
         const chunks = [];
@@ -35,7 +38,7 @@ exports.generateAbsenteeReport = async (req, res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        generateReport(doc,center,batchNo).then(() => {
+        generateReport(doc,center,batchNo,departmentId).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating report:", error);
@@ -65,7 +68,7 @@ exports.generateAbsenteeReportPost = async (req, res) => {
         margin: 50
     });
     
-    const {batchNo} = req.body;
+    const {batchNo, departmentId} = req.body;
     const center = req.session.centerId;
     // Use a Promise to handle the PDF generation
     const pdfPromise = new Promise((resolve, reject) => {
@@ -75,7 +78,7 @@ exports.generateAbsenteeReportPost = async (req, res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        generatePostAbsenteeReport(doc,center,batchNo).then(() => {
+        generatePostAbsenteeReport(doc,center,batchNo,departmentId).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating report:", error);
@@ -112,7 +115,7 @@ exports.generateAttendanceReport = async (req, res) => {
     
     // const {batchNo} = req.body;
     // const center = req.session.centerId;
-    const {batchNo} = req.body;
+    const {batchNo, departmentId} = req.body;
     const center = req.session.centerId;
     console.log(batchNo,center);
 
@@ -124,7 +127,7 @@ exports.generateAttendanceReport = async (req, res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        AttendanceReport(doc,center,batchNo).then(() => {
+        AttendanceReport(doc,center,batchNo,departmentId).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating report:", error);
@@ -166,9 +169,9 @@ exports.generateBlankAnswerSheet = async (req, res) => {
         doc.on('data', (chunk) => chunks.push(chunk));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
-        const {batchNo} = req.body;
+        const {batchNo, departmentId} = req.body;
         const center = req.session.centerId;
-        generateBlankAnswerSheet(doc,center,batchNo).then(() => {
+        generateBlankAnswerSheet(doc,center,batchNo,departmentId).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating blank answer sheet:", error);
@@ -201,7 +204,7 @@ exports.generateAnswerSheet = async (req, res) => {
             right: 40
         }
     });
-    const {batchNo,student_id} = req.body;
+    const {batchNo,student_id,departmentId} = req.body;
     const center = req.session.centerId;
     // Use a Promise to handle the PDF generation
     const pdfPromise = new Promise((resolve, reject) => {
@@ -211,7 +214,7 @@ exports.generateAnswerSheet = async (req, res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        generateAnswerSheets(doc,center,batchNo,student_id).then(() => {
+        generateAnswerSheets(doc,center,batchNo,student_id,departmentId).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating blank answer sheet:", error);
@@ -245,7 +248,7 @@ exports.generateSeatingArrangement = async (req,res) => {
         margin: 50
     });
     
-    const {batchNo} = req.body;
+    const {batchNo,departmentId} = req.body;
     const center = req.session.centerId;
     // Use a Promise to handle the PDF generation
     const pdfPromise = new Promise((resolve, reject) => {
@@ -255,7 +258,7 @@ exports.generateSeatingArrangement = async (req,res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        generateSeatingArrangementReport(doc,center,batchNo).then(() => {
+        generateSeatingArrangementReport(doc,center,batchNo,departmentId).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating report:", error);
@@ -301,14 +304,14 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     return differenceInMinutes <= 105;
 }
 exports.generateStudentId_Password = async (req, res) => {
-    const { batchNo } = req.body;
+    const { batchNo,departmentId } = req.body;
     const center = req.session.centerId; 
     console.log(batchNo, center);
 
     try {
         // First, get the batch data
-        const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const [batchData] = await connection.query(batchQuery, [batchNo]);
+        const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? and departmentId = ?';
+        const [batchData] = await connection.query(batchQuery, [batchNo,departmentId]);
 
         if (!batchData || batchData.length === 0) {
             return res.status(404).json({ "message": "Batch not found" });
@@ -375,7 +378,7 @@ exports.generateStudentIdPasswordPdf =async (req,res) => {
         margin: 50
     });
     
-    const {batchNo} = req.body;
+    const {batchNo,departmentId} = req.body;
     const center = req.session.centerId;
     // Use a Promise to handle the PDF generation
     const pdfPromise = new Promise((resolve, reject) => {
@@ -385,7 +388,7 @@ exports.generateStudentIdPasswordPdf =async (req,res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        generateStudentIdPasswordPdf(doc,center,batchNo).then(() => {
+        generateStudentIdPasswordPdf(doc,center,batchNo,departmentId).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating report:", error);
