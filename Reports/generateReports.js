@@ -289,7 +289,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD-MM-YYYY'));
-    // console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
+    // console.log('Current Time (Kolkata):', now.format('DD-MM-YYYY hh:mm A'));
     console.log('Start Time (Kolkata):', startDateTime.format('DD-MM-YYYY hh:mm A'));
     console.log('Difference in Minutes:', differenceInMinutes);
 

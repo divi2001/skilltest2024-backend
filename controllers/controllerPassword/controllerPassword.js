@@ -16,8 +16,8 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD-MM-YYYY'));
-    console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD HH:mm:ss'));
-    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD HH:mm:ss'));
+    console.log('Current Time (Kolkata):', now.format('DD-MM-YYYY HH:mm:ss'));
+    console.log('Start Time (Kolkata):', startDateTime.format('DD-MM-YYYY HH:mm:ss'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
     return differenceInMinutes <= 3000000;
@@ -66,7 +66,7 @@ exports.getControllerPassForCenter = async (req, res) => {
         if (results.length > 0) {
             console.log("Controller passwords found in database:");
             results.forEach((result, index) => {
-                console.log(`Batch ${index + 1}: BatchNo: ${result.batchNo}, DepartmentId: ${result.departmentId}, Department: ${result.departmentName}, Controller Password: ${result.controller_pass}`);
+                console.log(`Batch ${index + 1}: BatchNo: ${result.batchNo}, DepartmentId: ${result.departmentId}, Department: ${result.departmentName}, Controller Password: ${result.controller_pass}, Batch Date: ${result.batchdate}`);
             });
 
             const filteredResults = results.filter(result => {
@@ -77,6 +77,7 @@ exports.getControllerPassForCenter = async (req, res) => {
 
             if (filteredResults.length > 0) {
                 console.log("===== CONTROLLER PASSWORDS WILL BE RETURNED =====");
+                
                 filteredResults.forEach((result, index) => {
                     console.log(`Filtered Batch ${index + 1}:`);
                     console.log(`  BatchNo: ${result.batchNo}`);
@@ -90,6 +91,7 @@ exports.getControllerPassForCenter = async (req, res) => {
                 });
 
                 const controllerPassDto = filteredResults.map(result => {
+                    const formattedBatchDate = moment(result.batchdate).format('DD-MM-YYYY');
                     return {
                         ...new ControllerPasswordDTO(
                             result.center,
@@ -100,7 +102,8 @@ exports.getControllerPassForCenter = async (req, res) => {
                             result.batchstatus
                         ),
                         departmentId: result.departmentId,
-                        departmentName: result.departmentName
+                        departmentName: result.departmentName,
+                        batchDate: formattedBatchDate  // Added batch date
                     };
                 });
 
@@ -160,8 +163,8 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
         const today = moment().startOf('day');
         const batchMoment = moment(batchData[0].batchdate).tz('Asia/Kolkata').startOf('day');
         
-        console.log(`Today: ${today.format('YYYY-MM-DD')}`);
-        console.log(`Batch Date: ${batchMoment.format('YYYY-MM-DD')}`);
+        console.log(`Today: ${today.format('DD-MM-YYYY')}`);
+        console.log(`Batch Date: ${batchMoment.format('DD-MM-YYYY')}`);
         
         if (!today.isSame(batchMoment)) {
             console.log("Download not allowed - not the same day as batch");
@@ -178,7 +181,7 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
 
         console.log("===== TIME CHECKS PASSED - FETCHING CONTROLLER PASSWORD =====");
         
-        const query = `SELECT c.controller_pass, d.departmentName 
+        const query = `SELECT c.controller_pass, d.departmentName, b.batchdate 
                       FROM controllerdb c
                       INNER JOIN batchdb b ON c.batchNo = b.batchNo
                       INNER JOIN departmentdb d ON b.departmentId = d.departmentId
@@ -192,6 +195,7 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
             console.log(`Department: ${results[0].departmentName}`);
             console.log(`Center: ${center}`);
             console.log(`Controller Password: ${results[0].controller_pass}`);
+            console.log(`Batch Date: ${results[0].batchdate}`);
             console.log("=====================================");
         } else {
             console.log("No controller password found for this batch, center and department");
@@ -204,7 +208,7 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
     }
 };
 
-const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
 function checkIfIsInTimeLimit(startTime) {
     const startMoment = moment.tz(startTime, 'hh:mm A', 'Asia/Kolkata');
     const now = moment();
