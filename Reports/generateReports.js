@@ -227,6 +227,10 @@ exports.generateAnswerSheet = async (req, res) => {
         res.status(500).send('Error generating blank answer sheet');
     }
 }
+
+
+
+
 exports.generateSeatingArrangement = async (req,res) => {
 
     res.setHeader('Content-Type', 'application/pdf');
