@@ -356,21 +356,21 @@ exports.uploadAttendanceReport = async (req, res) => {
         const [check] = await connection.query(checkQuery, [center, batchNo]);
         if (check.length > 0) return res.status(403).json({ "message": "Already added the data please Check!!" });
         
-        // Date handling - parse in any format but store in MySQL format (YYYY-MM-DD)
+        // Date handling - parse in any format but store in MySQL format (DD-MM-YYYY)
         let formattedDate;
         
         if (report_date) {
             // Parse the provided date regardless of format
             const parsedDate = moment(report_date, [
                 'YYYY/MM/DD', 'DD-MM-YYYY', 'MM/DD/YYYY', 
-                'YYYY-MM-DD', 'DD-MM-YYYY', 'MM-DD-YYYY'
+                'DD-MM-YYYY', 'DD-MM-YYYY', 'MM-DD-YYYY'
             ]);
             
             if (!parsedDate.isValid()) {
                 return res.status(400).json({ success: false, message: 'Invalid date format' });
             }
             
-            // Format for MySQL DATE type (YYYY-MM-DD)
+            // Format for MySQL DATE type (DD-MM-YYYY)
             formattedDate = parsedDate.format('DD-MM-YYYY');
         } else {
             // Use current date if none provided
