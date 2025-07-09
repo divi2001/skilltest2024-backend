@@ -26,7 +26,7 @@ exports.updateAudioLogTime = async (req, res) => {
     }
 
     // Get the current time in Kolkata, India
-    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
     try {
         const updateAudioLogQuery = `

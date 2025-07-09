@@ -82,10 +82,10 @@ exports.updateStudentLog = async (req, res) => {
         return res.status(400).send('Invalid data: Provide passage_type (trial or passage)');
     }
 
-    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
     // Validate the currentTime format
-    if (!moment(currentTime, 'DD-MM-YYYY HH:mm:ss', true).isValid()) {
+    if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
         return res.status(400).send('Invalid time format');
     }
 
@@ -127,7 +127,7 @@ exports.updateStudentLog = async (req, res) => {
         const [result] = await connection.query(query, params);
         
         if (result && result.time) {
-            result.time = moment(result.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+            result.time = moment(result.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
         }
 
         res.status(200).json({
@@ -150,10 +150,10 @@ exports.insertTypingPassageLog = async (req, res) => {
         return res.status(400).send('Invalid data: Provide at least one field to update');
     }
 
-    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
     // Validate the currentTime format
-    if (!moment(currentTime, 'DD-MM-YYYY HH:mm:ss', true).isValid()) {
+    if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
         return res.status(400).send('Invalid time format');
     }
 
@@ -346,9 +346,9 @@ exports.updateTypingPassageText = async (req, res) => {
             [studentId]
         );
 
-        const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+        const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
-        if (!moment(currentTime, 'DD-MM-YYYY HH:mm:ss', true).isValid()) {
+        if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
             return res.status(400).send('Invalid time format');
         }
 

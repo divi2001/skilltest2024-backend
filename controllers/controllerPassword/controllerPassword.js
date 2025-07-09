@@ -7,17 +7,17 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     const kolkataZone = 'Asia/Kolkata';
     const batchDateKolkata = moment(batchDate).tz(kolkataZone);
     const startDateTime = moment.tz(
-        `${batchDateKolkata.format('DD-MM-YYYY')} ${startTime}`,
-        'DD-MM-YYYY hh:mm A',
+        `${batchDateKolkata.format('YYYY-MM-DD')} ${startTime}`,
+        'YYYY-MM-DD hh:mm A',
         kolkataZone
     );
     const now = moment().tz(kolkataZone);
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
     
     console.log('Batch Date (UTC):', batchDate);
-    console.log('Batch Date (Kolkata):', batchDateKolkata.format('DD-MM-YYYY'));
-    console.log('Current Time (Kolkata):', now.format('DD-MM-YYYY HH:mm:ss'));
-    console.log('Start Time (Kolkata):', startDateTime.format('DD-MM-YYYY HH:mm:ss'));
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD HH:mm:ss'));
+    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD HH:mm:ss'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
     return differenceInMinutes <= 3000000;
@@ -91,7 +91,7 @@ exports.getControllerPassForCenter = async (req, res) => {
                 });
 
                 const controllerPassDto = filteredResults.map(result => {
-                    const formattedBatchDate = moment(result.batchdate).format('DD-MM-YYYY');
+                    const formattedBatchDate = moment(result.batchdate).format('YYYY-MM-DD');
                     return {
                         ...new ControllerPasswordDTO(
                             result.center,
@@ -163,8 +163,8 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
         const today = moment().startOf('day');
         const batchMoment = moment(batchData[0].batchdate).tz('Asia/Kolkata').startOf('day');
         
-        console.log(`Today: ${today.format('DD-MM-YYYY')}`);
-        console.log(`Batch Date: ${batchMoment.format('DD-MM-YYYY')}`);
+        console.log(`Today: ${today.format('YYYY-MM-DD')}`);
+        console.log(`Batch Date: ${batchMoment.format('YYYY-MM-DD')}`);
         
         if (!today.isSame(batchMoment)) {
             console.log("Download not allowed - not the same day as batch");
@@ -208,7 +208,7 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
     }
 };
 
-const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 function checkIfIsInTimeLimit(startTime) {
     const startMoment = moment.tz(startTime, 'hh:mm A', 'Asia/Kolkata');
     const now = moment();

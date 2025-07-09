@@ -18,7 +18,7 @@ exports.updateStudentBatchDates = async (req, res) => {
         const [result] = await connection.query(updateQuery);
 
         if (result && result.batchdate) {
-            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
+            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
         }
 
         res.send('Successfully updated batch dates for all students');
@@ -55,7 +55,7 @@ exports.updateAudioLogTime = async (req, res) => {
     }
 
     // Get the current time in Kolkata, India
-    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
     try {
         const updateAudioLogQuery = `
@@ -102,7 +102,7 @@ exports.updatePassagewLogTime = async (req, res) => {
     }
 
     // Get the current time in Kolkata, India
-    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
     try {
         const updateAudioLogQuery = `
@@ -585,7 +585,7 @@ exports.feedback = async (req, res) => {
         console.log('Feedback updated:', responseData);
 
         // Update the feedback_time in the studentlogs table
-        const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+        const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
         const updateFeedbackTimeQuery = `
             UPDATE studentlogs
             SET feedback_time = ?
@@ -608,10 +608,10 @@ exports.logTextInput = async (req, res) => {
     console.log(`Displaying identifier: ${identifier}`);
     
     // Get current time in Kolkata timezone
-    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
     // Validate the currentTime format
-    if (!moment(currentTime, 'DD-MM-YYYY HH:mm:ss', true).isValid()) {
+    if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
         return res.status(400).send('Invalid time format');
     }
     
