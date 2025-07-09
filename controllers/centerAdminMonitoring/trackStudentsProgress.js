@@ -4,7 +4,7 @@ const encryptionInterface = require('../../config/encrypt');
 const moment = require('moment-timezone');
 
 
-// Helper function to format date to YYYY-MM-DD
+// Helper function to format date to DD-MM-YYYY
 function formatDate(dateString) {
     return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
 }

@@ -5,6 +5,7 @@ exports.getCurrentStudentDetails = async (req, res) => {
     try {
         const center = req.session.centerId;
         const batchNo = req.query.batchNo;
+        const departmentId = req.query.departmentId;
 
         let filter = '';
         const queryParams = [center];
@@ -12,6 +13,11 @@ exports.getCurrentStudentDetails = async (req, res) => {
         if (batchNo) { 
             filter += ' AND s.batchNo = ?';
             queryParams.push(batchNo);
+        }
+
+        if (departmentId) {
+            filter += ' AND s.departmentId = ?';
+            queryParams.push(departmentId);
         }
 
         // First, get all subject IDs and names
@@ -31,23 +37,26 @@ exports.getCurrentStudentDetails = async (req, res) => {
         let query = `
             SELECT 
                 s.batchNo,
+                s.departmentId,
+                d.departmentName as department_name,
                 COUNT(DISTINCT s.student_id) AS total_students, 
                 COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
                 COUNT(DISTINCT CASE WHEN sl.feedback_time IS NOT NULL THEN s.student_id END) AS completed_student, 
                 b.start_time, 
-                s.batchdate,
+                COALESCE(b.batchdate, s.batchdate) as batchdate,
                 ${subjectCounts},
                 ${subjectNames}
             FROM 
                 students s
-            LEFT JOIN batchdb b ON b.batchNo = s.batchNo
+            LEFT JOIN batchdb b ON b.batchNo = s.batchNo AND b.departmentId = s.departmentId
             LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
+            LEFT JOIN departmentdb d ON d.departmentId = s.departmentId
             WHERE 
                 s.center = ? ${filter}
             GROUP BY  
-                s.batchNo, b.start_time, s.batchdate
+                s.batchNo, s.departmentId, d.departmentName, b.start_time, COALESCE(b.batchdate, s.batchdate)
             ORDER BY 
-                s.batchNo;
+                s.departmentId, s.batchNo, b.start_time;
         `;
 
         console.log('Query:', query);
@@ -55,10 +64,43 @@ exports.getCurrentStudentDetails = async (req, res) => {
 
         const [results] = await connection.query(query, queryParams);
 
-        // Convert date and time to Kolkata timezone
+        // Convert date and time to Kolkata timezone with better error handling
         results.forEach(result => {
+            // Handle batch date formatting with better error handling
             if (result.batchdate) {
-                result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
+                try {
+                    // Check if it's already a Date object
+                    if (result.batchdate instanceof Date) {
+                        result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
+                    } else if (typeof result.batchdate === 'string') {
+                        // Try to parse the string date
+                        const parsedDate = moment(result.batchdate);
+                        if (parsedDate.isValid()) {
+                            result.batchdate = parsedDate.tz('Asia/Kolkata').format('DD-MM-YYYY');
+                        } else {
+                            result.batchdate = result.batchdate; // Keep original if can't parse
+                        }
+                    }
+                } catch (error) {
+                    console.log('Error formatting date:', error);
+                    result.batchdate = result.batchdate; // Keep original if error
+                }
+            } else {
+                result.batchdate = 'N/A'; // Set default value if null
+            }
+
+            // Handle start_time formatting
+            if (result.start_time) {
+                try {
+                    // If it's already formatted correctly, keep it
+                    if (typeof result.start_time === 'string' && result.start_time.includes(':')) {
+                        // Keep as is if already in HH:MM:SS format
+                    } else {
+                        result.start_time = moment(result.start_time, 'HH:mm:ss').format('HH:mm:ss');
+                    }
+                } catch (error) {
+                    console.log('Error formatting time:', error);
+                }
             }
 
             // Restructure subject data for easier consumption
@@ -80,6 +122,26 @@ exports.getCurrentStudentDetails = async (req, res) => {
         });
 
         res.status(200).json({ results });
+    } catch (error) {
+        console.log('Error details:', error);
+        res.status(500).json({ "message": "Internal Server Error!!" });
+    }
+};
+
+exports.getDepartments = async (req, res) => {
+    try {
+        const center = req.session.centerId;
+        
+        const query = `
+            SELECT DISTINCT d.departmentId, d.departmentName as department_name
+            FROM departmentdb d
+            INNER JOIN students s ON s.departmentId = d.departmentId
+            WHERE s.center = ?
+            ORDER BY d.departmentId;
+        `;
+        
+        const [results] = await connection.query(query, [center]);
+        res.status(200).json({ departments: results });
     } catch (error) {
         console.log('Error details:', error);
         res.status(500).json({ "message": "Internal Server Error!!" });
