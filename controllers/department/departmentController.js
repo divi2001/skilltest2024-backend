@@ -48,11 +48,11 @@ exports.departementLogin = async (req, res) => {
 }
 
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
+    return moment(dateString).tz('Asia/Kolkata').format('YYYY-MM-DD')
 }
 
 function formatDateTime(dateTimeString) {
-    return moment(dateTimeString).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss')
+    return moment(dateTimeString).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
 }
 
 function formatTime(timeString) {
@@ -60,9 +60,9 @@ function formatTime(timeString) {
 }
 
 function convertDateFormat(dateString) {
-    // Expects DD-MM-YYYY
+    // Expects YYYY-MM-DD
     const [day, month, year] = dateString.split('/');
-    return moment.tz(`${day}/${month}/${year}`, 'DD-MM-YYYY', 'Asia/Kolkata').toDate();
+    return moment.tz(`${day}/${month}/${year}`, 'YYYY-MM-DD', 'Asia/Kolkata').toDate();
 }
 
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
