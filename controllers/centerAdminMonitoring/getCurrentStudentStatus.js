@@ -71,12 +71,12 @@ exports.getCurrentStudentDetails = async (req, res) => {
                 try {
                     // Check if it's already a Date object
                     if (result.batchdate instanceof Date) {
-                        result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
+                        result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
                     } else if (typeof result.batchdate === 'string') {
                         // Try to parse the string date
                         const parsedDate = moment(result.batchdate);
                         if (parsedDate.isValid()) {
-                            result.batchdate = parsedDate.tz('Asia/Kolkata').format('DD-MM-YYYY');
+                            result.batchdate = parsedDate.tz('Asia/Kolkata').format('YYYY-MM-DD');
                         } else {
                             result.batchdate = result.batchdate; // Keep original if can't parse
                         }

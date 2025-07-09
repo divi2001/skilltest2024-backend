@@ -157,7 +157,7 @@ exports.getResetRequests = async (req, res) => {
         // Format the time for each request
         const formattedRequests = resetRequests.map(request => ({
             ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss')
+            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
         }));
 
         res.json(formattedRequests);
