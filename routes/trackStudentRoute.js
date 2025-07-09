@@ -9,5 +9,6 @@ router.post('/track-students-on-exam-center-code', trackStudentController.getStu
 router.post('/track-students-on-exam-center-code/:batchNo', trackStudentController.getStudentsTrack);
 router.post('/examStage', trackStudentController.storeExamStage);
 router.get('/get-examStages', trackStudentController.getStoredStages);
+router.get('/get-active-departments', trackStudentController.getActiveDepartments);
 
 module.exports = router;
