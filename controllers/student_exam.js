@@ -838,7 +838,7 @@ exports.getPassageProgress = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const centersQuery = 'SELECT * FROM examcenterdb WHERE center = ?';
-    const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ? AND batchNo = ?';
+    const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ? AND batchNo = ? AND departmentId = ?';
 
     try {
         const [students] = await connection.query(studentQuery, [studentId]);
@@ -848,6 +848,7 @@ exports.getPassageProgress = async (req, res) => {
         }
         const student = students[0];
         const centrcode = student.center;
+        const department = student.departmentId;
         const batchno = student.batchNo
 
         console.log(batchno)
@@ -864,7 +865,7 @@ exports.getPassageProgress = async (req, res) => {
 
         console.log(`Exam center found: ${center1.center_name}`);
 
-        const [controllers] = await connection.query(controllersQuery, [centrcode, batchno]);
+        const [controllers] = await connection.query(controllersQuery, [centrcode, batchno, department]);
         if (controllers.length === 0) {
             console.log(`Error: Controller not found for center code ${centrcode}`);
             return res.status(404).send('Subject not found');
