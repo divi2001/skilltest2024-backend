@@ -5,12 +5,30 @@ const { encrypt, decrypt } = require('./config/encrypt'); // Adjust path to your
 const generateMockData = async () => {
     try {
         console.log('Connected to database using existing configuration');
+        
+        // Check if SECRET_KEY is loaded correctly
+        console.log('SECRET_KEY loaded:', process.env.SECRET_KEY ? 'Yes' : 'No');
+        console.log('SECRET_KEY length:', process.env.SECRET_KEY ? process.env.SECRET_KEY.length : 'undefined');
 
         // Parameters for mock data
         const BATCH_NO = 100;
         const SUBJECTS = [40, 41];
         const STUDENTS_PER_SUBJECT = 100;
         const MOCK_PASSWORD = 'mock123';
+        
+        // Test encryption/decryption first
+        console.log('\n🔐 Testing Encryption/Decryption:');
+        try {
+            const testEncrypted = encrypt(MOCK_PASSWORD);
+            const testDecrypted = decrypt(testEncrypted);
+            console.log(`   Original: ${MOCK_PASSWORD}`);
+            console.log(`   Encrypted: ${testEncrypted.substring(0, 50)}...`);
+            console.log(`   Decrypted: ${testDecrypted}`);
+            console.log(`   Test Result: ${testDecrypted === MOCK_PASSWORD ? '✅ SUCCESS' : '❌ FAILED'}`);
+        } catch (encryptionError) {
+            console.error('❌ Encryption test failed:', encryptionError.message);
+            return;
+        }
         
         // Get selected department (you can modify this or make it dynamic)
         const DEPARTMENT_ID = 6; // Changed to 6 as requested
@@ -39,8 +57,8 @@ const generateMockData = async () => {
 
         console.log(`Found ${centers.length} centers. Starting mock data generation...`);
 
-        // Encrypt the mock password using your encryption function
-        const encryptedPassword = encrypt({ password: MOCK_PASSWORD });
+        // Encrypt the mock password - store just the password string, not an object
+        const encryptedPassword = encrypt(MOCK_PASSWORD);
 
         let totalStudentsCreated = 0;
 
@@ -58,7 +76,6 @@ const generateMockData = async () => {
                 // Generate 100 students for this subject in this center
                 for (let i = 1; i <= STUDENTS_PER_SUBJECT; i++) {
                     // Create student_id format: center + sequential padded number
-                    // Example: for center 1: 1001, 1002, 1003... up to 1200 (100 for each subject)
                     const studentId = parseInt(`${centerId}${studentCounter.toString().padStart(3, '0')}`);
                     studentCounter++; // Increment counter for next student
                     
@@ -142,16 +159,73 @@ const generateMockData = async () => {
     }
 };
 
-// Additional utility function to clean up mock data if needed
-const cleanupMockData = async () => {
+// Function to test login with mock credentials - Updated to match your login logic
+const testMockLogin = async (studentId) => {
     try {
-        // Delete all students with batchNo 100 (our mock batch)
-        const [result] = await connection.query('DELETE FROM students WHERE batchNo = ? AND departmentId = ?', [100, 6]);
+        console.log('🔑 Secret Key Check:');
+        console.log('   SECRET_KEY loaded:', process.env.SECRET_KEY ? 'Yes' : 'No');
+        console.log('   SECRET_KEY value:', process.env.SECRET_KEY);
+        console.log('   SECRET_KEY length:', process.env.SECRET_KEY ? process.env.SECRET_KEY.length : 'undefined');
         
-        console.log(`✅ Cleanup completed. Deleted ${result.affectedRows} mock students.`);
+        // Get student data
+        const [students] = await connection.query(
+            'SELECT student_id, password, fullname, subjectsId FROM students WHERE student_id = ?',
+            [studentId]
+        );
+        
+        if (students.length === 0) {
+            console.log(`❌ Student with ID ${studentId} not found`);
+            return;
+        }
+        
+        const student = students[0];
+        
+        // Test password decryption to match your login logic
+        try {
+            console.log(`\n🧪 Testing Login for Student: ${student.fullname}`);
+            console.log(`   Student ID: ${student.student_id}`);
+            console.log(`   Subject ID: ${student.subjectsId}`);
+            
+            // Step 1: Decrypt stored password (what your login function does)
+            const storedPasswordDecrypted = decrypt(student.password);
+            console.log(`   Stored Password (encrypted): ${student.password}`);
+            console.log(`   Stored Password (decrypted): "${storedPasswordDecrypted}"`);
+            
+            // Step 2: Encrypt the test password (what client should send)
+            const inputPasswordEncrypted = encrypt('mock123');
+            console.log(`   Input Password (original): "mock123"`);
+            console.log(`   Input Password (encrypted): ${inputPasswordEncrypted}`);
+            
+            // Step 3: Decrypt the input password (what your login function does)
+            const inputPasswordDecrypted = decrypt(inputPasswordEncrypted);
+            console.log(`   Input Password (decrypted): "${inputPasswordDecrypted}"`);
+            
+            // Step 4: Compare (what your login function does)
+            const storedStr = String(storedPasswordDecrypted).trim();
+            const inputStr = String(inputPasswordDecrypted).trim();
+            
+            console.log(`\n🔍 Comparison:`);
+            console.log(`   Stored (trimmed): "${storedStr}"`);
+            console.log(`   Input (trimmed): "${inputStr}"`);
+            console.log(`   Match: ${storedStr === inputStr ? '✅ SUCCESS' : '❌ FAILED'}`);
+            
+            // Show what you need to send in your API request
+            console.log(`\n📝 For API Testing (POST to your login endpoint):`);
+            console.log(`{`);
+            console.log(`  "userId": ${studentId},`);
+            console.log(`  "password": "${inputPasswordEncrypted}",`);
+            console.log(`  "ipAddress": "192.168.1.100",`);
+            console.log(`  "macAddress": "AA:BB:CC:DD:EE:FF",`);
+            console.log(`  "diskIdentifier": "disk123"`);
+            console.log(`}`);
+            
+        } catch (decryptError) {
+            console.error('❌ Error in password encryption/decryption test:', decryptError);
+            console.error('Full error:', decryptError);
+        }
         
     } catch (error) {
-        console.error('❌ Error during cleanup:', error);
+        console.error('❌ Error during login test:', error);
     }
 };
 
@@ -219,8 +293,8 @@ const verifyMockData = async () => {
                 const decryptedPassword = decrypt(sampleStudent[0].password);
                 console.log(`\n🔓 Sample Student Verification:`);
                 console.log(`   Student ID: ${sampleStudent[0].student_id}`);
-                console.log(`   Encrypted: ${sampleStudent[0].password.substring(0, 50)}...`);
-                console.log(`   Decrypted: ${JSON.stringify(decryptedPassword)}`);
+                console.log(`   Encrypted: ${sampleStudent[0].password}`);
+                console.log(`   Decrypted: "${decryptedPassword}"`);
                 console.log(`   IsShorthand: ${sampleStudent[0].IsShorthand}`);
                 console.log(`   IsTypewriting: ${sampleStudent[0].IsTypewriting}`);
             } catch (decryptError) {
@@ -233,34 +307,16 @@ const verifyMockData = async () => {
     }
 };
 
-// Function to test login with mock credentials
-const testMockLogin = async (studentId) => {
+// Additional utility function to clean up mock data if needed
+const cleanupMockData = async () => {
     try {
-        // Get student data
-        const [students] = await connection.query(
-            'SELECT student_id, password, fullname, subjectsId FROM students WHERE student_id = ?',
-            [studentId]
-        );
+        // Delete all students with batchNo 100 (our mock batch)
+        const [result] = await connection.query('DELETE FROM students WHERE batchNo = ? AND departmentId = ?', [100, 6]);
         
-        if (students.length === 0) {
-            console.log(`❌ Student with ID ${studentId} not found`);
-            return;
-        }
-        
-        const student = students[0];
-        
-        // Decrypt the stored password
-        const decryptedPasswordObj = decrypt(student.password);
-        const storedPassword = decryptedPasswordObj.password;
-        
-        console.log(`🧪 Testing Login for Student: ${student.fullname}`);
-        console.log(`   Student ID: ${student.student_id}`);
-        console.log(`   Subject ID: ${student.subjectsId}`);
-        console.log(`   Stored Password: ${storedPassword}`);
-        console.log(`   Login Test: ${storedPassword === 'mock123' ? '✅ SUCCESS' : '❌ FAILED'}`);
+        console.log(`✅ Cleanup completed. Deleted ${result.affectedRows} mock students.`);
         
     } catch (error) {
-        console.error('❌ Error during login test:', error);
+        console.error('❌ Error during cleanup:', error);
     }
 };
 

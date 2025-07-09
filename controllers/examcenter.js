@@ -228,7 +228,7 @@ exports.getCenterResetRequests = async (req, res) => {
                 
                 // Format the time for the new request
                 if (newRequest && newRequest[0] && newRequest[0].time) {
-                    newRequest[0].time = moment(newRequest[0].time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+                    newRequest[0].time = moment(newRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
                 }
 
                 return res.status(201).json(newRequest[0]);
@@ -241,7 +241,7 @@ exports.getCenterResetRequests = async (req, res) => {
         if (requests && requests.length > 0) {
             requests.forEach(request => {
                 if (request.time) {
-                    request.time = moment(request.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+                    request.time = moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
                 }
             });
         }
@@ -281,7 +281,7 @@ exports.getCenterBatchNumbers = async (req, res) => {
         // Format dates and times if needed
         const formattedBatches = batches.map(batch => ({
             ...batch,
-            batchdate: moment(batch.batchdate).format('DD-MM-YYYY'),
+            batchdate: moment(batch.batchdate).format('YYYY-MM-DD'),
             start_time: moment(batch.start_time, 'HH:mm:ss').format('HH:mm:ss'),
             end_time: moment(batch.end_time, 'HH:mm:ss').format('HH:mm:ss')
         }));
@@ -329,7 +329,7 @@ exports.getCenterData = async (req, res) => {
         // Format the time for each request
         const formattedRequests = resetRequests.map(request => ({
             ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss')
+            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
         }));
 
         res.json(formattedRequests);
@@ -400,7 +400,7 @@ exports.uploadAttendanceReport = async (req, res) => {
             console.log('Processing report_date:', report_date);
             
             const parsedDate = moment(report_date, [
-                'DD-MM-YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD', 
+                'YYYY-MM-DD', 'MM/DD/YYYY', 'YYYY-MM-DD', 
                 'DD/MM/YYYY', 'MM-DD-YYYY', 'YYYY/MM/DD'
             ], true);
             
@@ -408,7 +408,7 @@ exports.uploadAttendanceReport = async (req, res) => {
                 console.log('Invalid date format provided:', report_date);
                 return res.status(400).json({ 
                     success: false, 
-                    message: 'Invalid date format. Please use DD-MM-YYYY, MM/DD/YYYY, or YYYY-MM-DD format' 
+                    message: 'Invalid date format. Please use YYYY-MM-DD, MM/DD/YYYY, or YYYY-MM-DD format' 
                 });
             }
             
@@ -549,7 +549,7 @@ exports.getAllAttendanceReport = async (req,res) => {
         // Format dates for display and ensure department info is included
         const formattedResponse = response.map(report => ({
             ...report,
-            report_date: moment(report.report_date).tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss'),
+            report_date: moment(report.report_date).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss'),
             departmentName: report.departmentName || 'Unknown Department',
             departmentId: report.departmentId || 'N/A'
         }));

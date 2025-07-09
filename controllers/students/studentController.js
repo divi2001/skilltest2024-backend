@@ -70,18 +70,18 @@ exports.loginStudent = async (req, res) => {
 
         const batchStatus = batchResults[0].batchstatus;
 
-        if (batchStatus !== 1) {
-            return res.status(401).send('invalid credentials 3');
-        }
+        // if (batchStatus !== 1) {
+        //     return res.status(401).send('invalid credentials 3');
+        // }
 
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
         const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
         // console.log(registrations)
 
-        if (registrations.length===0) {
-            return res.status(401).send('pc not registered');
-        }
+        // if (registrations.length===0) {
+        //     return res.status(401).send('pc not registered');
+        // }
 
         let decryptedStoredPassword, decryptedStoredPassword1;
         try {
@@ -94,7 +94,7 @@ exports.loginStudent = async (req, res) => {
 
         const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
         const providedPasswordStr = String(decryptedStoredPassword1).trim();
-        // console.log(decryptedStoredPasswordStr, providedPasswordStr);
+        console.log(decryptedStoredPasswordStr, providedPasswordStr);
 
         if (decryptedStoredPasswordStr !== providedPasswordStr) {
             return res.status(401).send('invalid credentials 5');
@@ -104,7 +104,7 @@ exports.loginStudent = async (req, res) => {
         req.session.studentId = student.student_id;
 
         // Get the current time in Kolkata, India
-        const loginTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+        const loginTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
         // Insert login log
         const insertLogQuery = `
@@ -149,7 +149,7 @@ exports.logoutStudent = async (req, res) => {
         await connection.query(updateLoggedInStatusQuery, [studentId]);
 
         // Get the current time in Kolkata, India
-        const logoutTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+        const logoutTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
         // Update student logout details
         const updateStudentLogsQuery = `
@@ -292,7 +292,7 @@ exports.getStudentResetRequests = async (req, res) => {
     const { student_id, reason, controller_password } = req.body;
     
     const reset_type = 're-login student';
-    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
     if (!student_id || !reason || !controller_password) {
         return res.status(400).send('Bad Request: Missing required parameters');

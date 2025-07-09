@@ -6,7 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Helper function to format date to DD-MM-YYYY with proper validation and logging
+// Helper function to format date to YYYY-MM-DD with proper validation and logging
 function formatDate(dateString) {
     console.log('formatDate input:', dateString, 'type:', typeof dateString);
     
@@ -24,7 +24,7 @@ function formatDate(dateString) {
     } else if (typeof dateString === 'string') {
         console.log('formatDate: Input is string, attempting to parse');
         // Try parsing with specific formats first
-        const formats = ['YYYY-MM-DD', 'DD-MM-YYYY', 'MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD HH:mm:ss'];
+        const formats = ['YYYY-MM-DD', 'YYYY-MM-DD', 'MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD HH:mm:ss'];
         momentDate = moment(dateString, formats, true);
         
         // If strict parsing fails, try lenient parsing
@@ -42,7 +42,7 @@ function formatDate(dateString) {
         return null;
     }
     
-    const formattedDate = momentDate.tz('Asia/Kolkata').format('DD-MM-YYYY');
+    const formattedDate = momentDate.tz('Asia/Kolkata').format('YYYY-MM-DD');
     console.log('formatDate output:', formattedDate);
     return formattedDate;
 }
