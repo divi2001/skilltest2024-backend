@@ -17,7 +17,7 @@ function convertDateFormat(dateString) {
 
 // Helper function to get active department IDs
 async function getActiveDepartmentIds() {
-    const query = `SELECT departmentId FROM departmentdb WHERE departmentStatus = 1`;
+    const query = `SELECT departmentId FROM departmentdb WHERE departmentStatus = 1`; 
     const [results] = await connection.query(query);
     return results.map(row => row.departmentId);
 }
