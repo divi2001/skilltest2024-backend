@@ -82,10 +82,10 @@ exports.updateStudentLog = async (req, res) => {
         return res.status(400).send('Invalid data: Provide passage_type (trial or passage)');
     }
 
-    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
 
     // Validate the currentTime format
-    if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
+    if (!moment(currentTime, 'DD-MM-YYYY HH:mm:ss', true).isValid()) {
         return res.status(400).send('Invalid time format');
     }
 
@@ -150,10 +150,10 @@ exports.insertTypingPassageLog = async (req, res) => {
         return res.status(400).send('Invalid data: Provide at least one field to update');
     }
 
-    const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+    const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
 
     // Validate the currentTime format
-    if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
+    if (!moment(currentTime, 'DD-MM-YYYY HH:mm:ss', true).isValid()) {
         return res.status(400).send('Invalid time format');
     }
 
@@ -346,9 +346,9 @@ exports.updateTypingPassageText = async (req, res) => {
             [studentId]
         );
 
-        const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+        const currentTime = moment().tz('Asia/Kolkata').format('DD-MM-YYYY HH:mm:ss');
 
-        if (!moment(currentTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()) {
+        if (!moment(currentTime, 'DD-MM-YYYY HH:mm:ss', true).isValid()) {
             return res.status(400).send('Invalid time format');
         }
 
