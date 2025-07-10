@@ -99,5 +99,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on 3000`);
+  console.log(`Server running on www.shorthandonlineexam.in:${PORT}`);
 });
