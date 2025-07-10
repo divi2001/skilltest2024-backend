@@ -20,7 +20,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD HH:mm:ss'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
-    return differenceInMinutes <= 3000000;
+    return differenceInMinutes <= 30;
 }
 
 exports.getControllerPassForCenter = async (req, res) => {
@@ -218,5 +218,5 @@ function checkIfIsInTimeLimit(startTime) {
     }
 
     const differenceInMinutes = now.diff(startMoment, 'minutes');
-    return differenceInMinutes <= 150000;
+    return differenceInMinutes <= 15;
 }
