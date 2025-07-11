@@ -1,5 +1,5 @@
 const connection = require("../config/db1");
-const moment = require('moment-timezone'); // Make sure to install and import moment.js for easier date handling
+const moment = require('moment-timezone');
 
 // Helper functions for formatting
 function formatDate(dateString) {
@@ -11,18 +11,53 @@ function formatDateTime(dateTimeString) {
 }
 
 function formatTime(timeString) {
-    return moment(timeString).tz('Asia/Kolkata').format('HH:mm:ss');
+    console.log('Formatting time:', timeString, 'Type:', typeof timeString);
+    
+    if (!timeString) {
+        return 'Not specified';
+    }
+    
+    // Convert to string
+    const timeStr = timeString.toString();
+    
+    // If it's already in HH:MM:SS format, return as is
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        // Ensure it's in HH:MM:SS format (pad single digit hours)
+        const parts = timeStr.split(':');
+        const hours = parts[0].padStart(2, '0');
+        const minutes = parts[1];
+        const seconds = parts[2];
+        return `${hours}:${minutes}:${seconds}`;
+    }
+    
+    // If it's in HH:MM format, add seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        const hours = parts[0].padStart(2, '0');
+        const minutes = parts[1];
+        return `${hours}:${minutes}:00`;
+    }
+    
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
 }
 
-async function getData(center, batchNo) {
+async function getData(center, batchNo, departmentId) {
     try {
-        // console.log(center, batchNo);
-        const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.loggedin = 0';
-        const response = await connection.query(query, [batchNo, center]);
-        console.log(response);
-        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const batchData = await connection.query(batchquery, [batchNo]);
-        console.log(response[0], batchData[0]);
+        const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.loggedin = 0 AND s.departmentId = ?';
+        const response = await connection.query(query, [batchNo, center, departmentId]);
+        
+        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const batchData = await connection.query(batchquery, [batchNo, departmentId]);
+        
+        // Debug the time value
+        if (batchData[0] && batchData[0].length > 0) {
+            const startTime = batchData[0][0].start_time;
+            console.log('Raw start_time value:', startTime);
+            console.log('start_time type:', typeof startTime);
+            console.log('start_time toString():', startTime ? startTime.toString() : 'null');
+            console.log('start_time JSON:', JSON.stringify(startTime));
+        }
 
         // Format the batch data dates and times
         if (batchData[0] && batchData[0].length > 0) {
@@ -35,22 +70,40 @@ async function getData(center, batchNo) {
                 }
             });
         }
-
-        // Check if download is allowed
-        // const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
-        
-        // if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
-       
         
         return { 
             response: response[0], 
-            batchData: batchData[0], 
-            // isDownloadAllowed 
+            batchData: batchData[0]
         };
     } catch (error) {
         console.error('Error in getData:', error);
         throw error;
     }
+}
+
+// Updated function to allow downloads 3 days before batch date
+function checkDownloadAllowed3DaysBefore(batchDate) {
+    const kolkataZone = 'Asia/Kolkata';
+    
+    // Parse the batchDate and convert to Kolkata timezone
+    const batchDateKolkata = moment(batchDate).tz(kolkataZone).startOf('day');
+    
+    // Get current time in Kolkata timezone
+    const now = moment().tz(kolkataZone).startOf('day');
+    
+    // Calculate difference in days
+    const differenceInDays = batchDateKolkata.diff(now, 'days');
+    
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Date (Kolkata):', now.format('YYYY-MM-DD'));
+    console.log('Difference in Days:', differenceInDays);
+    
+    // Allow download from 3 days before batch date until 1 day after batch date
+    // differenceInDays will be:
+    // - Positive if batch date is in future
+    // - 0 if batch date is today
+    // - Negative if batch date is in past
+    return differenceInDays >= -1 && differenceInDays <= 4;
 }
 
 function checkDownloadAllowed(batchDate) {
@@ -74,16 +127,16 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Get current date in Kolkata timezone
     const nowKolkata = moment().tz(kolkataZone).startOf('day');
 
-    // Calculate the date 1 day before the batch date
-    const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
+    // Calculate the date 3 days before the batch date (updated from 1 day)
+    const threeDaysBefore = batchDateKolkata.clone().subtract(3, 'days');
 
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
     console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
-    console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+    console.log('Three Days Before (Kolkata):', threeDaysBefore.format('YYYY-MM-DD'));
 
-    // Check if current date is after or equal to 1 day before the batch date
-    return nowKolkata.isSameOrAfter(oneDayBefore);
+    // Check if current date is after or equal to 3 days before the batch date
+    return nowKolkata.isSameOrAfter(threeDaysBefore);
 }
 
 function addHeader(doc, data) {
@@ -212,8 +265,6 @@ function addSignatureLines(doc, y, gap = 40) {
 
 function createAttendanceReport(doc, data) {
     addHeader(doc, data);
-    // doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
-
     createTable(doc, data.seatNumbers, data);
 }
 
@@ -222,10 +273,9 @@ function getDateFromISOString(isoString) {
     return moment(isoString).tz('Asia/Kolkata').format('YYYY-MM-DD');
 }
 
-async function generatePostAbsenteeReport(doc, center, batchNo) {
+async function generatePostAbsenteeReport(doc, center, batchNo, departmentId) {
     try {
-        const Data = await getData(center, batchNo);
-        // console.log(Data);
+        const Data = await getData(center, batchNo, departmentId);
 
         const response = Data.response;
         if (!Array.isArray(response) || response.length === 0) {
@@ -238,15 +288,29 @@ async function generatePostAbsenteeReport(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         
-        // Format date and time properly
         const examDate = formatDate(batchInfo.batchdate);
-        const examTime = formatTime(batchInfo.start_time);
+        
+        // Handle time formatting with fallback
+        let examTime = 'Not specified';
+        if (batchInfo.start_time) {
+            try {
+                examTime = formatTime(batchInfo.start_time);
+                if (examTime === 'Invalid time') {
+                    // Fallback: try to extract time from the raw value
+                    examTime = batchInfo.start_time.toString();
+                }
+            } catch (timeError) {
+                console.error('Time formatting error:', timeError);
+                examTime = batchInfo.start_time.toString();
+            }
+        }
         
         console.log('Formatted Exam Date:', examDate);
         console.log('Formatted Exam Time:', examTime);
         
+        // Use the updated 3-day check function
         if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
+            throw new Error("Download not allowed at this time - must be within 3 days of batch date");
         }
         
         const data = {
@@ -267,4 +331,10 @@ async function generatePostAbsenteeReport(doc, center, batchNo) {
     }
 }
 
-module.exports = { generatePostAbsenteeReport };
+// Add an alias function for backward compatibility
+async function generateReport(doc, center, batchNo, departmentId) {
+    return generatePostAbsenteeReport(doc, center, batchNo, departmentId);
+}
+
+// Fixed: Single module.exports statement
+module.exports = { generatePostAbsenteeReport, generateReport };
