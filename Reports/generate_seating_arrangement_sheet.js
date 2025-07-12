@@ -1,7 +1,47 @@
 const connection = require("../config/db1");
 const moment = require('moment-timezone'); // Make sure to install and import moment.js for easier date handling
 
-
+// Helper function to format time to 12-hour format
+function formatTime(timeString) {
+    if (!timeString) {
+        return 'Not specified';
+    }
+    
+    // Convert to string
+    const timeStr = timeString.toString();
+    
+    // If it's already in HH:MM:SS format, convert to 12-hour format
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        const seconds = parts[2];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+    }
+    
+    // If it's in HH:MM format, convert to 12-hour format with seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes}:00 ${ampm}`;
+    }
+    
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
+}
 
 async function getData(center, batchNo) {
     try {
@@ -29,8 +69,6 @@ async function getData(center, batchNo) {
     }
 }
 
-
-
 function addHeader(doc, data) {
     doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
 
@@ -45,7 +83,6 @@ function addHeader(doc, data) {
             width: 450,
             align: 'center'
         });
-
 
     doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
@@ -132,7 +169,6 @@ function createTable(doc, seatNumbers, headerData) {
     return currentY;
 }
 
-
 function createAttendanceReport(doc, data) {
     addHeader(doc, data);
     doc.fontSize(14).font('Helvetica-Bold')
@@ -143,6 +179,7 @@ function createAttendanceReport(doc, data) {
     // doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
     createTable(doc, data.seatNumbers, data);
 }
+
 function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     // Set the timezone to Kolkata
     const kolkataZone = 'Asia/Kolkata';
@@ -150,25 +187,28 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
     const batchDateKolkata = moment(batchDate).tz(kolkataZone);
 
-    // Combine the Kolkata date with the provided startTime
+    // Convert the 24-hour startTime to 12-hour format first
+    const formattedStartTime = formatTime(startTime);
+
+    // Combine the Kolkata date with the provided startTime (now in 12-hour format)
     const startDateTime = moment.tz(
-        `${batchDateKolkata.format('YYYY-MM-DD')} ${startTime}`,
-        'YYYY-MM-DD hh:mm A',
+        `${batchDateKolkata.format('YYYY-MM-DD')} ${formattedStartTime}`,
+        'YYYY-MM-DD hh:mm:ss A',
         kolkataZone
     );
     
     // Get current time in Kolkata timezone
-    const now = moment().tz();
+    const now = moment().tz(kolkataZone);
 
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
     
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    // console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
-    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD hh:mm A'));
+    console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm:ss A'));
+    console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD hh:mm:ss A'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
-    // Return true if startTime is between 0 and 30 minutes ahead of the current time
+    // Return true if startTime is between 0 and 105 minutes ahead of the current time
     return differenceInMinutes <= 105;
 }
 
@@ -188,19 +228,21 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time,batchInfo.batchdate)) {
+        if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time, batchInfo.batchdate)) {
             throw new Error("Download not allowed at this time");
         }
         
+        // Convert start_time to 12-hour format
+        const formattedExamTime = formatTime(batchInfo.start_time);
 
         const data = {
             centerCode: center,
             batch: batchNo.toString(),
             examDate: examDate,
-            examTime: batchInfo.start_time,
+            examTime: formattedExamTime, // Now in 12-hour format
             seatNumbers: response.map(student => student.student_id.toString()),
-            departmentName:response[0].departmentName,
-            departmentLogo:response[0].logo
+            departmentName: response[0].departmentName,
+            departmentLogo: response[0].logo
         };
 
         createAttendanceReport(doc, data);

@@ -1,7 +1,47 @@
 const connection = require("../config/db1");
 const moment = require('moment-timezone'); // Make sure to install and import moment.js for easier date handling
 
-
+// Helper function to format time to 12-hour format
+function formatTime(timeString) {
+    if (!timeString) {
+        return 'Not specified';
+    }
+    
+    // Convert to string
+    const timeStr = timeString.toString();
+    
+    // If it's already in HH:MM:SS format, convert to 12-hour format
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        const seconds = parts[2];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+    }
+    
+    // If it's in HH:MM format, convert to 12-hour format with seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes}:00 ${ampm}`;
+    }
+    
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
+}
 
 async function getData(center, batchNo) {
     try {
@@ -218,12 +258,14 @@ async function generatePostAbsenteeReport(doc, center, batchNo) {
             throw new Error("Download not allowed at this time");
         }
         
+        // Convert start_time to 12-hour format
+        const formattedExamTime = formatTime(batchInfo.start_time);
 
         const data = {
             centerCode: center,
             batch: batchNo.toString(),
             examDate: examDate,
-            examTime: batchInfo.start_time,
+            examTime: formattedExamTime, // Now in 12-hour format
             seatNumbers: response.map(student => student.student_id.toString()),
             departmentName : response[0].departmentName,
             departmentLogo : response[0].logo
