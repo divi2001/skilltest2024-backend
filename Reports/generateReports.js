@@ -46,7 +46,7 @@ function formatTime(timeString) {
         hours = hours ? hours : 12; // 0 should be 12
         const formattedHours = hours.toString().padStart(2, '0');
         
-        return `${formattedHours}:${minutes}:00 ${ampm}`;
+        return `${formattedHours}:${minutes} ${ampm}`;
     }
     
     console.error('Unexpected time format:', timeString);
