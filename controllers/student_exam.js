@@ -473,6 +473,9 @@ exports.updatePassageFinalLogs = async (req, res) => {
                 console.error('Failed to delete temporary text file:', unlinkErr);
             }
 
+            // Save filename to trackrecord table after successful zip creation
+            saveToTrackRecord(studentId, passage_type, `${fileName}.zip`);
+
             const responseData = {
                 student_id: studentId,
                 passage_type: passage_type,
@@ -504,6 +507,59 @@ exports.updatePassageFinalLogs = async (req, res) => {
         res.status(500).send('An error occurred while processing your request');
     }
 };
+
+// Helper function to save filename to trackrecord table
+async function saveToTrackRecord(studentId, passageType, zipFileName) {
+    try {
+        // First, ensure the trackrecord table exists
+        await ensureTrackRecordTable();
+
+        const currentDateTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+        
+        // Determine which column to update based on passage type
+        const datetimeColumn = passageType === 'passageA' ? 'PA_datetime' : 'PB_datetime';
+        const filenameColumn = passageType === 'passageA' ? 'PA_filename' : 'PB_filename';
+
+        // Check if record exists for this student
+        const checkQuery = `SELECT * FROM trackrecord WHERE student_id = ?`;
+        const [existingRows] = await connection.query(checkQuery, [studentId]);
+
+        if (existingRows.length > 0) {
+            // Update existing record
+            const updateQuery = `UPDATE trackrecord SET ${datetimeColumn} = ?, ${filenameColumn} = ? WHERE student_id = ?`;
+            await connection.query(updateQuery, [currentDateTime, zipFileName, studentId]);
+        } else {
+            // Insert new record
+            const insertQuery = `INSERT INTO trackrecord (student_id, ${datetimeColumn}, ${filenameColumn}) VALUES (?, ?, ?)`;
+            await connection.query(insertQuery, [studentId, currentDateTime, zipFileName]);
+        }
+
+        console.log(`Successfully saved ${passageType} filename to trackrecord for student: ${studentId}`);
+    } catch (error) {
+        // Log error but don't throw it to avoid interfering with main process
+        console.error(`Failed to save filename to trackrecord for student ${studentId}:`, error);
+    }
+}
+
+// Helper function to ensure trackrecord table exists
+async function ensureTrackRecordTable() {
+    try {
+        const createTableQuery = `
+            CREATE TABLE IF NOT EXISTS trackrecord (
+                student_id VARCHAR(50) NOT NULL PRIMARY KEY,
+                PA_datetime DATETIME NULL,
+                PB_datetime DATETIME NULL,
+                PA_filename VARCHAR(255) NULL,
+                PB_filename VARCHAR(255) NULL
+            )
+        `;
+        await connection.query(createTableQuery);
+        console.log('trackrecord table ensured');
+    } catch (error) {
+        console.error('Failed to create trackrecord table:', error);
+        throw error; // Only throw here since table creation is critical
+    }
+}
 
 exports.getPassageFinalLogs = async (req, res) => {
     const studentId = req.session.studentId;
