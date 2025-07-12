@@ -2,6 +2,47 @@ const connection = require("../config/db1");
 const QRCode = require('qrcode');
 const moment = require('moment-timezone');
 
+// Helper function to format time to 12-hour format
+function formatTime(timeString) {
+    if (!timeString) {
+        return 'Not specified';
+    }
+    
+    // Convert to string
+    const timeStr = timeString.toString();
+    
+    // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    // If it's in HH:MM format, convert to 12-hour format
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
+}
+
 async function createAnswerSheet(doc, data) {
     // Constants for layout
     const headerHeight = 60;
@@ -28,14 +69,23 @@ async function createAnswerSheet(doc, data) {
            .text(`: ${value}`);
     }
     
-    function drawLines(doc, startY, endY, gap) {
+      // Function to draw lines
+      function drawLines(doc, startY, endY, gap) {
         for (let y = startY; y <= endY; y += gap) {
-            doc.moveTo(margin, y)
-               .lineTo(doc.page.width - margin, y)
-               .stroke();
+          doc.moveTo(40, y)
+            .lineTo(doc.page.width - 40, y)
+            .lineWidth(0.1)  // Thinner lines for writing
+            .stroke();
         }
-    }
-    
+      }
+  // Function to draw a single line
+  function drawSingleLine(doc, y) {
+    doc.moveTo(40, y)
+      .lineTo(doc.page.width - 40, y)
+      .lineWidth(0.1)  // Thinner lines
+      .stroke();
+  }
+      
     async function generateQRCode(text) {
         try {
             return await QRCode.toDataURL(text, {
@@ -138,7 +188,7 @@ async function createAnswerSheet(doc, data) {
             addField('Subject', student.subject, fieldStartX, startY + fieldHeight + 10, fieldWidth, fieldHeight);
             addField('Batch', data.batch, fieldStartX + fieldWidth - 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
     
-            // Third row (new)
+            // Third row (new) - Time converted to 12-hour format
             addField('Date', data.examDate, fieldStartX, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
             addField('Time', data.start_time, fieldStartX + fieldWidth - 10, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
       
@@ -238,18 +288,21 @@ const generateAnswerSheets = async(doc, center, batchNo, student_id, departmentI
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
         
         // Updated to use 3-day validation instead of 1-day
         if(!checkDownloadAllowed3Days(batchInfo.batchdate)) {
             throw new Error("Download is only allowed within 3 days before the batch date");
         }
         
+        // Convert start_time to 12-hour format
+        const formattedStartTime = formatTime(batchInfo.start_time);
+        
         const data = {
             centerCode: center,
             batch: batchNo,
             examDate: examDate,
-            start_time: batchInfo.start_time,
+            start_time: formattedStartTime, // Now in 12-hour format
             students: response.map(student => ({
                 seatNo: student.student_id?.toString() || '',
                 name: student.fullname || '',

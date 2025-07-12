@@ -37,17 +37,18 @@ async function createBlankAnswerSheet(doc,data)  {
       function drawLines(doc, startY, endY, gap) {
         for (let y = startY; y <= endY; y += gap) {
           doc.moveTo(40, y)
-             .lineTo(doc.page.width - 40, y)
-             .stroke();
+            .lineTo(doc.page.width - 40, y)
+            .lineWidth(0.1)  // Thinner lines for writing
+            .stroke();
         }
       }
-      
-      // Function to draw a single line
-      function drawSingleLine(doc, y) {
-        doc.moveTo(40, y)
-           .lineTo(doc.page.width - 40, y)
-           .stroke();
-      }
+  // Function to draw a single line
+  function drawSingleLine(doc, y) {
+    doc.moveTo(40, y)
+      .lineTo(doc.page.width - 40, y)
+      .lineWidth(0.1)  // Thinner lines
+      .stroke();
+  }
       
       // Function to create a page
       function createPage(doc, isFirstPage) {
