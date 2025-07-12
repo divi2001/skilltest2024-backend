@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 
 // Helper functions for formatting
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('YYYY-MM-DD');
+    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY');
 }
 
 function formatDateTime(dateTimeString) {

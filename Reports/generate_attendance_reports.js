@@ -606,7 +606,7 @@ const AttendanceReport = async(doc, center, batchNo, departmentId) => {
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
         
         // Updated to use 3-day validation instead of 1-day
         if(!checkDownloadAllowed3Days(batchInfo.batchdate)) {

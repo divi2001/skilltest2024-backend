@@ -213,7 +213,7 @@ async function generatePostAbsenteeReport(doc, center, batchNo) {
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD')
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
         if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
             throw new Error("Download not allowed at this time");
         }

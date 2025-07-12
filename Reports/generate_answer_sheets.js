@@ -28,14 +28,23 @@ async function createAnswerSheet(doc, data) {
            .text(`: ${value}`);
     }
     
-    function drawLines(doc, startY, endY, gap) {
+      // Function to draw lines
+      function drawLines(doc, startY, endY, gap) {
         for (let y = startY; y <= endY; y += gap) {
-            doc.moveTo(margin, y)
-               .lineTo(doc.page.width - margin, y)
-               .stroke();
+          doc.moveTo(40, y)
+            .lineTo(doc.page.width - 40, y)
+            .lineWidth(0.1)  // Thinner lines for writing
+            .stroke();
         }
-    }
-    
+      }
+  // Function to draw a single line
+  function drawSingleLine(doc, y) {
+    doc.moveTo(40, y)
+      .lineTo(doc.page.width - 40, y)
+      .lineWidth(0.1)  // Thinner lines
+      .stroke();
+  }
+      
     async function generateQRCode(text) {
         try {
             return await QRCode.toDataURL(text, {
@@ -238,7 +247,7 @@ const generateAnswerSheets = async(doc, center, batchNo, student_id, departmentI
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
         
         // Updated to use 3-day validation instead of 1-day
         if(!checkDownloadAllowed3Days(batchInfo.batchdate)) {
