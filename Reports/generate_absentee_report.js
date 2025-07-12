@@ -106,16 +106,6 @@ function checkDownloadAllowed3DaysBefore(batchDate) {
     return differenceInDays >= -1 && differenceInDays <= 4;
 }
 
-function checkDownloadAllowed(batchDate) {
-    const today = moment().tz('Asia/Kolkata').startOf('day');
-    const batchMoment = moment(batchDate).tz('Asia/Kolkata').startOf('day');
-    console.log('Today (Kolkata):', today.format('YYYY-MM-DD'));
-    console.log('Batch Date (Kolkata):', batchMoment.format('YYYY-MM-DD'));
-    const differenceInDays = batchMoment.diff(today, 'days');
-    console.log('Difference in days:', differenceInDays);
-    // Allow download if it's the day of the batch or one day before
-    return differenceInDays <= 1 && differenceInDays >= 0;
-}
 
 function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Set the timezone to Kolkata
@@ -128,7 +118,7 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     const nowKolkata = moment().tz(kolkataZone).startOf('day');
 
     // Calculate the date 3 days before the batch date (updated from 1 day)
-    const threeDaysBefore = batchDateKolkata.clone().subtract(3, 'days');
+    const threeDaysBefore = batchDateKolkata.clone().subtract(4, 'days');
 
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
