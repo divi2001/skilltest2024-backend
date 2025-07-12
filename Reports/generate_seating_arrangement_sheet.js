@@ -86,17 +86,45 @@ function addHeader(doc, data) {
     doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
     doc.moveDown();
-    const yPosition = doc.y-8;
+    const yPosition = doc.y - 8;
     const fontSize = 12;
-    const spacer = '\u00A0\u00A0';
     doc.fontSize(fontSize).font('Helvetica');
 
-    doc.text(`CENTER CODE: ${data.centerCode}${spacer}`, 50, yPosition + 10);
-    doc.text(`BATCH: ${data.batch}${spacer}`, 185, yPosition + 10);
-    doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 275, yPosition + 10);
-    doc.text(`EXAM TIME: ${data.examTime}`, 425, yPosition + 10);
+    // Save the current position
+    const currentY = yPosition + 10;
+    
+    // Reset text state and position each element individually
+    doc.text('', 0, 0); // Reset any previous text state
+    
+    // Position each text element with explicit coordinates and no text flow
+    doc.text(`CENTER CODE: ${data.centerCode}`, 50, currentY, {
+        lineBreak: false,
+        width: 130,
+        align: 'left'
+    });
+    
+    doc.text(`BATCH: ${data.batch}`, 185, currentY, {
+        lineBreak: false,
+        width: 85,
+        align: 'left'
+    });
+    
+    doc.text(`EXAM DATE: ${data.examDate}`, 275, currentY, {
+        lineBreak: false,
+        width: 145,
+        align: 'left'
+    });
+    
+    doc.text(`EXAM TIME: ${data.examTime}`, 425, currentY, {
+        lineBreak: false,
+        width: 125,
+        align: 'left'
+    });
 
-    return doc.y + 20;
+    // Manually set the Y position for the next content
+    doc.y = currentY + 20;
+    
+    return doc.y;
 }
 
 function createTable(doc, seatNumbers, headerData) {
