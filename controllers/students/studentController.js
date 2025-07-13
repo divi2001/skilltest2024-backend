@@ -64,9 +64,9 @@ exports.loginStudent = async (req, res) => {
         const checkBatchStatusQuery = 'SELECT batchstatus FROM batchdb WHERE batchNo = ?';
         const [batchResults] = await connection.query(checkBatchStatusQuery, [batchNo]);
 
-        if (batchResults.length === 0) {
-            return res.status(404).send('invalid credentials 2');
-        }
+        // if (batchResults.length === 0) {
+        //     return res.status(404).send('invalid credentials 2');
+        // }
 
         const batchStatus = batchResults[0].batchstatus;
 
@@ -79,9 +79,9 @@ exports.loginStudent = async (req, res) => {
         const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
         // console.log(registrations)
 
-        if (registrations.length===0) {
-            return res.status(401).send('pc not registered');
-        }
+        // if (registrations.length===0) {
+        //     return res.status(401).send('pc not registered');
+        // }
 
         let decryptedStoredPassword, decryptedStoredPassword1;
         try {

@@ -656,11 +656,38 @@ exports.feedback = async (req, res) => {
     }
 };
 
+exports.updateFeedbackTime = async (req, res) => {
+    const studentId = req.session.studentId;
+
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
+
+    try {
+        const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+        const updateFeedbackTimeQuery = `
+            UPDATE studentlogs
+            SET feedback_time = ?
+            WHERE student_id = ?
+        `;
+        
+        await connection.query(updateFeedbackTimeQuery, [currentTime, studentId]);
+        
+        res.send({ 
+            student_id: studentId, 
+            feedback_time: currentTime 
+        });
+    } catch (err) {
+        console.error('Failed to update feedback time:', err);
+        res.status(500).send(err.message);
+    }
+};
+
 exports.logTextInput = async (req, res) => {
     const studentId = req.session.studentId;
     const { text, identifier, time } = req.body;
-    console.log('git');
-
+    
+    console.log(`logTextInput called - StudentID: ${studentId}, Identifier: ${identifier}, Time: ${time}`);
     console.log(`Displaying identifier: ${identifier}`);
     
     // Get current time in Kolkata timezone
@@ -702,7 +729,8 @@ exports.logTextInput = async (req, res) => {
         return res.status(400).send('Student ID is required');
     }
 
-    if (identifier !== 'passageA' && identifier !== 'passageB') {
+    if (!identifier || (identifier !== 'passageA' && identifier !== 'passageB')) {
+        console.error(`Invalid identifier received: ${identifier}`);
         return res.status(400).send('Invalid identifier');
     }
 
@@ -714,7 +742,17 @@ exports.logTextInput = async (req, res) => {
         await connection.query(createTableQuery);
         await connection.query(createHistoryTableQuery);
 
-        // Original functionality: Update the current record
+        // Check if passage time is already set
+        const timeColumn = identifier === 'passageA' ? 'passage1_time' : 'passage2_time';
+        const checkTimeQuery = `
+            SELECT ${timeColumn} 
+            FROM studentlogs 
+            WHERE student_id = ?
+        `;
+
+        const [timeCheck] = await connection.query(checkTimeQuery, [studentId]);
+        
+        // Update the current record in textlogs table
         const insertQuery = `
             INSERT INTO textlogs (student_id, min${identifier === 'passageA' ? 'a' : 'b'}, text${identifier === 'passageA' ? 'a' : 'b'})
             VALUES (?, ?, ?)
@@ -723,25 +761,35 @@ exports.logTextInput = async (req, res) => {
             text${identifier === 'passageA' ? 'a' : 'b'} = VALUES(text${identifier === 'passageA' ? 'a' : 'b'})
         `;
 
-        // New functionality: Also insert into history table
+        // Insert into history table for tracking all submissions
         const historyInsertQuery = `
             INSERT INTO textlogs_history (student_id, passage_identifier, text_content, time_taken)
             VALUES (?, ?, ?, ?)
         `;
 
-        // Update passage time in studentlogs table with Kolkata time
-        const updatePassageTimeQuery = `
-            UPDATE studentlogs 
-            SET ${identifier === 'passageA' ? 'passage1_time' : 'passage2_time'} = ?
-            WHERE student_id = ?
-        `;
+        // Prepare queries array
+        const queries = [
+            connection.query(insertQuery, [studentId, time, safeText]),
+            connection.query(historyInsertQuery, [studentId, identifier, safeText, time])
+        ];
+
+        // Only update passage time if it's not already set (NULL or empty)
+        if (timeCheck.length === 0 || !timeCheck[0][timeColumn]) {
+            console.log(`${timeColumn} is not set, updating with current time: ${currentTime}`);
+            
+            const updatePassageTimeQuery = `
+                UPDATE studentlogs 
+                SET ${timeColumn} = ?
+                WHERE student_id = ? AND (${timeColumn} IS NULL OR ${timeColumn} = '')
+            `;
+            
+            queries.push(connection.query(updatePassageTimeQuery, [currentTime, studentId]));
+        } else {
+            console.log(`${timeColumn} is already set: ${timeCheck[0][timeColumn]}, skipping update`);
+        }
 
         // Execute all queries
-        await Promise.all([
-            connection.query(insertQuery, [studentId, time, safeText]),
-            connection.query(historyInsertQuery, [studentId, identifier, safeText, time]),
-            connection.query(updatePassageTimeQuery, [currentTime, studentId])
-        ]);
+        await Promise.all(queries);
         
         console.log('Response logged successfully');
         res.sendStatus(200);
