@@ -99,5 +99,6 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, 'localhost', () => {
-  console.log(`Server running on www.shorthandonlineexam.in`);
+  // console.log(`Server running on www.shorthandonlineexam.in`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

@@ -5,10 +5,8 @@ const moment = require('moment-timezone');
 const { stat } = require('fs/promises');
 
 exports.departementLogin = async (req, res) => {
-
     console.log("Trying Department admin login");
     const { departmentId, password } = req.body;
-    // console.log("center: "+centerId+ " password: "+password);
     console.log(req.body);
     const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
 
@@ -22,20 +20,16 @@ exports.departementLogin = async (req, res) => {
             let decryptedStoredPassword = await decrypt(admin.departmentPassword);
             console.log(decryptedStoredPassword);
             try {
-
                 // console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
-
             } catch (error) {
                 console.log(error);
             }
-
 
             if ( decryptedStoredPassword === password) {
                 // Set institute session
                 req.session.departmentId = admin.departmentId;
                 console.log("Logged in successfully as an department admin!")
                 res.status(200).send({ "message": 'Logged in successfully as an department admin!' });
-
             } else {
                 res.status(401).send('Invalid credentials for center admin');
             }
@@ -47,26 +41,54 @@ exports.departementLogin = async (req, res) => {
     }
 }
 
+// Updated formatting functions with better error handling
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('YYYY-MM-DD')
+    if (!dateString) return null;
+    try {
+        return moment(dateString).tz('Asia/Kolkata').format('YYYY-MM-DD');
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return null;
+    }
 }
 
 function formatDateTime(dateTimeString) {
-    return moment(dateTimeString).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+    if (!dateTimeString) return null;
+    try {
+        return moment(dateTimeString).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+    } catch (error) {
+        console.error('Error formatting datetime:', error);
+        return null;
+    }
 }
 
 function formatTime(timeString) {
-    return moment(timeString).tz('Asia/Kolkata').format('HH:mm:ss')
+    if (!timeString) return null;
+    try {
+        return moment(timeString).tz('Asia/Kolkata').format('HH:mm:ss');
+    } catch (error) {
+        console.error('Error formatting time:', error);
+        return null;
+    }
 }
 
 function convertDateFormat(dateString) {
-    // Expects YYYY-MM-DD
-    const [day, month, year] = dateString.split('/');
-    return moment.tz(`${day}/${month}/${year}`, 'YYYY-MM-DD', 'Asia/Kolkata').toDate();
+    if (!dateString) return null;
+    try {
+        // Handle DD/MM/YYYY format
+        if (dateString.includes('/')) {
+            const [day, month, year] = dateString.split('/');
+            return moment.tz(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`, 'YYYY-MM-DD', 'Asia/Kolkata').format('YYYY-MM-DD');
+        }
+        // Handle YYYY-MM-DD format
+        return moment.tz(dateString, 'YYYY-MM-DD', 'Asia/Kolkata').format('YYYY-MM-DD');
+    } catch (error) {
+        console.error('Error converting date format:', error);
+        return null;
+    }
 }
 
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
-    
     const departmentId = req.session.departmentId.toString();
     console.log('Starting getStudentsTrack function',departmentId);
     let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.query;
@@ -166,21 +188,23 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 
     if (exam_type) {
         if (exam_type === 'shorthand') {
-            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting =0'
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
         }
         else if (exam_type === 'typewriting') {
-            query += ' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
+            query += ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0';
         }
         else if (exam_type === 'both') {
-            query += ' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1';
         }
     }
 
     if (batchDate) {
-        batchDate = convertDateFormat(batchDate);
-        console.log("Formatted Batch date:", batchDate);
-        query += ' AND s.batchdate = ?';
-        queryParams.push(batchDate);
+        const formattedBatchDate = convertDateFormat(batchDate);
+        if (formattedBatchDate) {
+            console.log("Formatted Batch date:", formattedBatchDate);
+            query += ' AND DATE(s.batchdate) = ?';
+            queryParams.push(formattedBatchDate);
+        }
     }
 
     try {
@@ -189,22 +213,22 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 
         if (results.length > 0) {
             const studentTrackDTOs = results.map(result => {
-                // Format all date and time fields
+                // Format all date and time fields with better error handling
                 const formattedResult = {
                     ...result,
-                    batchdate: result.batchdate ? formatDate(result.batchdate) : null,
-                    Reporting_Time: result.Reporting_Time ? formatTime(result.Reporting_Time) : null,
-                    start_time: result.start_time ? formatTime(result.start_time) : null,
-                    end_time: result.end_time ? formatTime(result.end_time) : null,
-                    loginTime: result.loginTime ? formatDateTime(result.loginTime) : null,
-                    trial_time: result.trial_time ? formatDateTime(result.trial_time) : null,
-                    audio1_time: result.audio1_time ? formatDateTime(result.audio1_time) : null,
-                    passage1_time: result.passage1_time ? formatDateTime(result.passage1_time) : null,
-                    audio2_time: result.audio2_time ? formatDateTime(result.audio2_time) : null,
-                    passage2_time: result.passage2_time ? formatDateTime(result.passage2_time) : null,
-                    trial_passage_time: result.trial_passage_time ? formatDateTime(result.trial_passage_time) : null,
-                    typing_passage_time: result.typing_passage_time ? formatDateTime(result.typing_passage_time) : null,
-                    feedback_time: result.feedback_time ? formatDateTime(result.feedback_time) : null
+                    batchdate: formatDate(result.batchdate),
+                    Reporting_Time: formatTime(result.Reporting_Time),
+                    start_time: formatTime(result.start_time),
+                    end_time: formatTime(result.end_time),
+                    loginTime: formatDateTime(result.loginTime),
+                    trial_time: formatDateTime(result.trial_time),
+                    audio1_time: formatDateTime(result.audio1_time),
+                    passage1_time: formatDateTime(result.passage1_time),
+                    audio2_time: formatDateTime(result.audio2_time),
+                    passage2_time: formatDateTime(result.passage2_time),
+                    trial_passage_time: formatDateTime(result.trial_passage_time),
+                    typing_passage_time: formatDateTime(result.typing_passage_time),
+                    feedback_time: formatDateTime(result.feedback_time)
                 };
 
                 const studentTrack = new StudentTrackDTO(
@@ -252,7 +276,6 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 }
 
 exports.getDepartmentDetails = async (req,res) => {
-
     const department = req.session.departmentId.toString();
     console.log(department);
     if (!department) {
@@ -332,12 +355,8 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
 
         // Convert date and time to Kolkata timezone with proper formatting
         results.forEach(result => {
-            if (result.batchdate) {
-                result.batchdate = formatDate(result.batchdate);
-            }
-            if (result.start_time) {
-                result.start_time = formatTime(result.start_time);
-            }
+            result.batchdate = formatDate(result.batchdate);
+            result.start_time = formatTime(result.start_time);
 
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({
@@ -365,7 +384,6 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
 };
 
 exports.getDepartmentswithstudents = async (req, res) => {
-
     try {
         let query = `select d.departmentId ,d.departmentName, d.departmentStatus from departmentdb d join students s on s.departmentId = d.departmentId group by d.departmentId;`;
 
