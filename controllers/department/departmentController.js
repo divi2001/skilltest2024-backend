@@ -1,8 +1,8 @@
+// controllers/department/departmentController.js
 const connection = require('../../config/db1');
 const StudentTrackDTO = require("../../dto/studentProgress");
 const { decrypt } = require("../../config/encrypt");
 const moment = require('moment-timezone');
-const { stat } = require('fs/promises');
 
 exports.departementLogin = async (req, res) => {
     console.log("Trying Department admin login");
@@ -41,11 +41,12 @@ exports.departementLogin = async (req, res) => {
     }
 }
 
-// Updated formatting functions with better error handling
+// CRITICAL FIX: Send raw datetime strings to frontend without timezone conversion
 function formatDate(dateString) {
     if (!dateString) return null;
     try {
-        return moment(dateString).tz('Asia/Kolkata').format('YYYY-MM-DD');
+        // Return the datetime string as-is, let frontend handle formatting
+        return dateString;
     } catch (error) {
         console.error('Error formatting date:', error);
         return null;
@@ -55,7 +56,8 @@ function formatDate(dateString) {
 function formatDateTime(dateTimeString) {
     if (!dateTimeString) return null;
     try {
-        return moment(dateTimeString).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+        // Return the datetime string as-is, let frontend handle formatting
+        return dateTimeString;
     } catch (error) {
         console.error('Error formatting datetime:', error);
         return null;
@@ -65,7 +67,8 @@ function formatDateTime(dateTimeString) {
 function formatTime(timeString) {
     if (!timeString) return null;
     try {
-        return moment(timeString).tz('Asia/Kolkata').format('HH:mm:ss');
+        // Return the time string as-is, let frontend handle formatting
+        return timeString;
     } catch (error) {
         console.error('Error formatting time:', error);
         return null;
@@ -78,10 +81,10 @@ function convertDateFormat(dateString) {
         // Handle DD/MM/YYYY format
         if (dateString.includes('/')) {
             const [day, month, year] = dateString.split('/');
-            return moment.tz(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`, 'YYYY-MM-DD', 'Asia/Kolkata').format('YYYY-MM-DD');
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
         }
         // Handle YYYY-MM-DD format
-        return moment.tz(dateString, 'YYYY-MM-DD', 'Asia/Kolkata').format('YYYY-MM-DD');
+        return dateString;
     } catch (error) {
         console.error('Error converting date format:', error);
         return null;
@@ -213,22 +216,22 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 
         if (results.length > 0) {
             const studentTrackDTOs = results.map(result => {
-                // Format all date and time fields with better error handling
+                // Don't format - pass raw data to frontend
                 const formattedResult = {
                     ...result,
-                    batchdate: formatDate(result.batchdate),
-                    Reporting_Time: formatTime(result.Reporting_Time),
-                    start_time: formatTime(result.start_time),
-                    end_time: formatTime(result.end_time),
-                    loginTime: formatDateTime(result.loginTime),
-                    trial_time: formatDateTime(result.trial_time),
-                    audio1_time: formatDateTime(result.audio1_time),
-                    passage1_time: formatDateTime(result.passage1_time),
-                    audio2_time: formatDateTime(result.audio2_time),
-                    passage2_time: formatDateTime(result.passage2_time),
-                    trial_passage_time: formatDateTime(result.trial_passage_time),
-                    typing_passage_time: formatDateTime(result.typing_passage_time),
-                    feedback_time: formatDateTime(result.feedback_time)
+                    batchdate: result.batchdate,
+                    Reporting_Time: result.Reporting_Time,
+                    start_time: result.start_time,
+                    end_time: result.end_time,
+                    loginTime: result.loginTime,
+                    trial_time: result.trial_time,
+                    audio1_time: result.audio1_time,
+                    passage1_time: result.passage1_time,
+                    audio2_time: result.audio2_time,
+                    passage2_time: result.passage2_time,
+                    trial_passage_time: result.trial_passage_time,
+                    typing_passage_time: result.typing_passage_time,
+                    feedback_time: result.feedback_time
                 };
 
                 const studentTrack = new StudentTrackDTO(
@@ -275,6 +278,7 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     }
 }
 
+// ... rest of the controller methods remain the same
 exports.getDepartmentDetails = async (req,res) => {
     const department = req.session.departmentId.toString();
     console.log(department);
@@ -353,11 +357,8 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
 
         const [results] = await connection.query(query, queryParams);
 
-        // Convert date and time to Kolkata timezone with proper formatting
+        // Don't format dates here - let frontend handle it
         results.forEach(result => {
-            result.batchdate = formatDate(result.batchdate);
-            result.start_time = formatTime(result.start_time);
-
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({
                 id: sub.subjectId,
