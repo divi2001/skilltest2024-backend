@@ -54,7 +54,8 @@ function formatTime(timeString) {
 
 async function getData(center, batchNo, departmentId) {
     try {
-        const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.loggedin = 0 AND s.departmentId = ?';
+        // Modified query to get ALL students, not just absent ones
+        const query = 'SELECT s.student_id, s.loggedin, d.departmentName, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.batchNo = ? AND s.center = ? AND s.departmentId = ?';
         const response = await connection.query(query, [batchNo, center, departmentId]);
         
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
@@ -116,7 +117,6 @@ function checkDownloadAllowed3DaysBefore(batchDate) {
     return differenceInDays >= -1 && differenceInDays <= 4;
 }
 
-
 function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Set the timezone to Kolkata
     const kolkataZone = 'Asia/Kolkata';
@@ -176,7 +176,7 @@ function addHeader(doc, data) {
     return doc.y + 20;
 }
 
-function createTable(doc, seatNumbers, headerData) {
+function createTable(doc, students, headerData) {
     const tableTop = 190;
     const tableLeft = 50;
     const cellWidth = 100;
@@ -189,8 +189,8 @@ function createTable(doc, seatNumbers, headerData) {
     const columnsPerRow = 5;
     const maxRowsPerPage = Math.floor((pageHeight - tableTop - marginBottom - signatureHeight - signatureGap) / cellHeight);
 
-    if (!Array.isArray(seatNumbers)) {
-        console.error('seatNumbers is not an array:', seatNumbers);
+    if (!Array.isArray(students)) {
+        console.error('students is not an array:', students);
         return tableTop;
     }
 
@@ -212,7 +212,7 @@ function createTable(doc, seatNumbers, headerData) {
     currentY = drawHeaderRow(currentY);
     let rowsOnCurrentPage = 0;
 
-    for (let i = 0; i < seatNumbers.length; i += columnsPerRow) {
+    for (let i = 0; i < students.length; i += columnsPerRow) {
         if (rowsOnCurrentPage >= maxRowsPerPage) {
             currentY = addSignatureLines(doc, currentY, signatureGap);
             doc.addPage();
@@ -226,12 +226,18 @@ function createTable(doc, seatNumbers, headerData) {
             const currentX = tableLeft + j * cellWidth;
             doc.rect(currentX, currentY, cellWidth, cellHeight).stroke();
 
-            if (i + j < seatNumbers.length) {
+            if (i + j < students.length) {
+                const student = students[i + j];
                 doc.fontSize(10).font('Helvetica');
                 const textHeight = doc.currentLineHeight();
                 const textY = currentY + (cellHeight - textHeight) / 2;
 
-                doc.text(seatNumbers[i + j], currentX, textY, {
+                // Display student ID with status indicator (optional)
+                const displayText = student.student_id.toString();
+                // You can add a marker for absent students if needed:
+                // const displayText = student.loggedin === 0 ? `${student.student_id} (A)` : student.student_id.toString();
+
+                doc.text(displayText, currentX, textY, {
                     width: cellWidth,
                     align: 'center'
                 });
@@ -265,7 +271,7 @@ function addSignatureLines(doc, y, gap = 40) {
 
 function createAttendanceReport(doc, data) {
     addHeader(doc, data);
-    createTable(doc, data.seatNumbers, data);
+    createTable(doc, data.students, data);
 }
 
 function getDateFromISOString(isoString) {
@@ -318,7 +324,7 @@ async function generatePostAbsenteeReport(doc, center, batchNo, departmentId) {
             batch: batchNo.toString(),
             examDate: examDate,
             examTime: examTime,
-            seatNumbers: response.map(student => student.student_id.toString()),
+            students: response, // Changed from seatNumbers to students array
             departmentName: response[0].departmentName,
             departmentLogo: response[0].logo
         };
