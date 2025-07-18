@@ -4,10 +4,10 @@
 // This will print the Marathi text correctly in a UTF-8 capable console
 const connection = require("../config/db1");
 async function createBlankAnswerSheet(doc,data)  {
-      
       // Constants for layout
       const headerHeight = 85;
       const lineGap = 30;
+      const margin = 40; // Add this line to define margin
       
       // Function to create header
       function createHeader(doc, text1, text2) {
@@ -88,6 +88,9 @@ async function createBlankAnswerSheet(doc,data)  {
       createPage(doc, false);
     
 }
+
+
+
 async function getData(center, batchNo) {
   try {
       // console.log(center, batchNo);
