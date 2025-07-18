@@ -35,24 +35,24 @@ async function createBlankAnswerSheet(doc,data)  {
       
       // Function to draw lines
       function drawLines(doc, startY, endY, gap) {
-          for (let y = startY; y <= endY; y += gap) {
-              doc.lineWidth(0.1)  // Thin lines
-                .moveTo(margin, y)
-                .lineTo(doc.page.width - margin, y)
-                .stroke();
-          }
+        for (let y = startY; y <= endY; y += gap) {
+          doc.moveTo(40, y)
+            .lineTo(doc.page.width - 40, y)
+            .lineWidth(0.1)  // Thinner lines for writing
+            .stroke();
+        }
       }
-      
-      // Function to draw a single line
-      function drawSingleLine(doc, y) {
-        doc.moveTo(40, y)
-           .lineTo(doc.page.width - 40, y)
-           .stroke();
-      }
+  // Function to draw a single line
+  function drawSingleLine(doc, y) {
+    doc.moveTo(40, y)
+      .lineTo(doc.page.width - 40, y)
+      .lineWidth(0.1)  // Thinner lines
+      .stroke();
+  }
       
       // Function to create a page
       function createPage(doc, isFirstPage) {
-        createHeader(doc, data.departmentName, 'Skill Test Computer Shorthand Examination April 2025');
+        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025');
         
         let startY = headerHeight;
       
