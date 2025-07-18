@@ -1,3 +1,4 @@
+// D:\Shorthand Software\shorthand-backend\controllers\student_exam.js
 const connection = require('../config/db1');
 const path = require('path');
 const fs1 = require('fs');
@@ -938,79 +939,184 @@ exports.getPassageProgress = async (req, res) => {
     }
   };
 
-  exports.getcontrollerpass = async (req, res) => {
+
+exports.getcontrollerpass = async (req, res) => {
+    console.log('[getcontrollerpass] Function started');
+    console.log('[getcontrollerpass] Session ID:', req.sessionID);
+    console.log('[getcontrollerpass] Session data:', req.session);
+
     const studentId = req.session.studentId;
+    console.log('[getcontrollerpass] Received studentId from session:', studentId);
+
+    if (!studentId) {
+        console.error('[getcontrollerpass] Error: No studentId found in session');
+        return res.status(400).send('Student ID not found in session');
+    }
+
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const centersQuery = 'SELECT * FROM examcenterdb WHERE center = ?';
     const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ? AND batchNo = ? AND departmentId = ?';
 
     try {
+        console.log('[getcontrollerpass] Executing student query:', studentQuery, 'with params:', [studentId]);
         const [students] = await connection.query(studentQuery, [studentId]);
+        
+        console.log('[getcontrollerpass] Student query returned', students.length, 'results');
+        
         if (students.length === 0) {
-            console.log(`Error: Student not found for ID ${studentId}`);
+            console.error(`[getcontrollerpass] Error: Student not found for ID ${studentId}`);
             return res.status(404).send('Student not found');
         }
+        
         const student = students[0];
+        console.log('[getcontrollerpass] Found student:', {
+            id: student.student_id,
+            name: student.name,
+            center: student.center,
+            department: student.departmentId,
+            batch: student.batchNo
+        });
+
         const centrcode = student.center;
         const department = student.departmentId;
-        const batchno = student.batchNo
+        const batchno = student.batchNo;
 
-        console.log(batchno)
+        console.log('[getcontrollerpass] Extracted student details:', {
+            centerCode: centrcode,
+            departmentId: department,
+            batchNo: batchno
+        });
 
-
-        console.log(`Student center: ${centrcode}`);
-
+        console.log('[getcontrollerpass] Executing exam center query:', centersQuery, 'with params:', [centrcode]);
         const [centers] = await connection.query(centersQuery, [centrcode]);
+        
+        console.log('[getcontrollerpass] Exam center query returned', centers.length, 'results');
+        
         if (centers.length === 0) {
-            console.log(`Error: Exam center not found for center code ${centrcode}`);
-            return res.status(404).send('Subject not found');
+            console.error(`[getcontrollerpass] Error: Exam center not found for center code ${centrcode}`);
+            return res.status(404).send('Exam center not found');
         }
+        
         const center1 = centers[0];
+        console.log('[getcontrollerpass] Found exam center:', {
+            centerCode: center1.center,
+            centerName: center1.center_name
+        });
 
-        console.log(`Exam center found: ${center1.center_name}`);
-
+        console.log('[getcontrollerpass] Executing controller query:', controllersQuery, 'with params:', [centrcode, batchno, department]);
         const [controllers] = await connection.query(controllersQuery, [centrcode, batchno, department]);
+        
+        console.log('[getcontrollerpass] Controller query returned', controllers.length, 'results');
+        
         if (controllers.length === 0) {
-            console.log(`Error: Controller not found for center code ${centrcode}`);
-            return res.status(404).send('Subject not found');
+            console.error(`[getcontrollerpass] Error: Controller not found for center ${centrcode}, batch ${batchno}, department ${department}`);
+            return res.status(404).send('Controller not found');
         }
 
         const controllers1 = controllers[0];
+        console.log('[getcontrollerpass] Found controller:', {
+            center: controllers1.center,
+            batchNo: controllers1.batchNo,
+            departmentId: controllers1.departmentId
+        });
 
-        // Ensure both passwords are treated as strings
-        const decryptedStoredPasswordStr = String(controllers1.controller_pass).trim();
+        // Ensure the controller password is properly extracted
+        let decryptedStoredPasswordStr;
+        
+        // Check if the stored password is encrypted (contains ':' separator)
+        if (typeof controllers1.controller_pass === 'string' && controllers1.controller_pass.includes(':')) {
+            try {
+                console.log('[getcontrollerpass] Attempting to decrypt stored password');
+                decryptedStoredPasswordStr = decrypt(controllers1.controller_pass);
+                console.log('[getcontrollerpass] Successfully decrypted stored password');
+                
+                // If decrypted result is a JSON string, parse it
+                if (typeof decryptedStoredPasswordStr === 'string' && 
+                    decryptedStoredPasswordStr.startsWith('"') && 
+                    decryptedStoredPasswordStr.endsWith('"')) {
+                    decryptedStoredPasswordStr = JSON.parse(decryptedStoredPasswordStr);
+                }
+            } catch (decryptError) {
+                console.log('[getcontrollerpass] Decryption failed, using password as plain text:', decryptError.message);
+                decryptedStoredPasswordStr = String(controllers1.controller_pass).trim();
+            }
+        } else {
+            // Password is stored as plain text
+            decryptedStoredPasswordStr = String(controllers1.controller_pass).trim();
+        }
 
+        console.log('[getcontrollerpass] Controller password (raw):', controllers1.controller_pass);
+        console.log('[getcontrollerpass] Controller password (processed):', decryptedStoredPasswordStr);
 
-
+        // Prepare the response data object
         const responseData = {
             center: center1.center,
             controllerpass: decryptedStoredPasswordStr,
             center_name: center1.center_name
         };
-        console.log(responseData)
+        
+        console.log('[getcontrollerpass] Prepared response data:', responseData);
 
+        try {
+            console.log('[getcontrollerpass] Starting encryption of response data');
+            
+            // Encrypt the entire response object
+            const encryptedResponseData = encrypt(responseData);
+            console.log('[getcontrollerpass] Successfully encrypted response data');
+            console.log('[getcontrollerpass] Encrypted response length:', encryptedResponseData.length);
 
+            // Test decryption to ensure it works
+            try {
+                const testDecrypt = decrypt(encryptedResponseData);
+                console.log('[getcontrollerpass] Test decryption successful:', testDecrypt);
+            } catch (testError) {
+                console.error('[getcontrollerpass] Test decryption failed:', testError);
+            }
 
-        const encryptedResponseData = {};
-        for (let key in responseData) {
-            if (responseData.hasOwnProperty(key)) {
-                try {
-                    encryptedResponseData[key] = encrypt(responseData[key].toString());
-                } catch (encryptError) {
-                    console.log(`Error encrypting ${key}:`, encryptError);
-                    encryptedResponseData[key] = '';
+            console.log('[getcontrollerpass] Sending encrypted response to client');
+            res.send({ data: encryptedResponseData });
+
+        } catch (encryptError) {
+            console.error('[getcontrollerpass] Error encrypting response data:', encryptError);
+            console.error('[getcontrollerpass] Encryption error stack:', encryptError.stack);
+            
+            // Fallback: send individual encrypted fields (your original approach)
+            console.log('[getcontrollerpass] Falling back to individual field encryption');
+            
+            const encryptedResponseData = {};
+            for (let key in responseData) {
+                if (responseData.hasOwnProperty(key)) {
+                    try {
+                        console.log(`[getcontrollerpass] Encrypting field: ${key}`);
+                        const valueToEncrypt = responseData[key].toString();
+                        console.log(`[getcontrollerpass] Value before encryption (${key}):`, valueToEncrypt);
+                        
+                        const encryptedValue = encrypt(valueToEncrypt);
+                        encryptedResponseData[key] = encryptedValue;
+                        
+                        console.log(`[getcontrollerpass] Value after encryption (${key}):`, encryptedValue);
+                    } catch (fieldEncryptError) {
+                        console.error(`[getcontrollerpass] Error encrypting ${key}:`, fieldEncryptError);
+                        encryptedResponseData[key] = '';
+                    }
                 }
             }
+
+            console.log('[getcontrollerpass] Final encrypted response data (fallback):', encryptedResponseData);
+            res.send(encryptedResponseData);
         }
 
-        console.log('Encrypted response data keys:', Object.keys(encryptedResponseData));
-
-        res.send(encryptedResponseData);
-        // console.log(`Encrypted data while controller login: ${encryptedResponseData}`)
-
     } catch (err) {
-        console.error('Failed to fetch student details:', err);
-        console.log('Error stack:', err.stack);
-        res.status(500).send(err.message);
+        console.error('[getcontrollerpass] Unhandled error in function:', err);
+        console.error('[getcontrollerpass] Error stack:', err.stack);
+        
+        // Log additional error details if available
+        if (err.code) console.error('[getcontrollerpass] Error code:', err.code);
+        if (err.sqlMessage) console.error('[getcontrollerpass] SQL error message:', err.sqlMessage);
+        if (err.sql) console.error('[getcontrollerpass] SQL query:', err.sql);
+        
+        res.status(500).send('Internal server error');
+    } finally {
+        console.log('[getcontrollerpass] Function execution completed');
     }
 };

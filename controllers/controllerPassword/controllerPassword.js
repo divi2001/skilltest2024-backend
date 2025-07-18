@@ -1,3 +1,4 @@
+// D:\Shorthand Software\shorthand-backend\controllers\controllerPassword\controllerPassword.js
 const ControllerPasswordDTO = require('../../dto/controllerPasswordDTO');
 const connection = require('../../config/db1');
 const encryptionInterface = require('../../config/encrypt');
