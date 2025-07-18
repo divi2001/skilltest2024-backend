@@ -2,6 +2,47 @@ const connection = require("../config/db1");
 const QRCode = require('qrcode');
 const moment = require('moment-timezone');
 
+// Helper function to format time to 12-hour format
+function formatTime(timeString) {
+    if (!timeString) {
+        return 'Not specified';
+    }
+    
+    // Convert to string
+    const timeStr = timeString.toString();
+    
+    // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    // If it's in HH:MM format, convert to 12-hour format
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
+}
+
 async function createAnswerSheet(doc, data) {
     // Constants for layout
     const headerHeight = 60;
@@ -28,15 +69,23 @@ async function createAnswerSheet(doc, data) {
            .text(`: ${value}`);
     }
     
-    function drawLines(doc, startY, endY, gap) {
+      // Function to draw lines
+      function drawLines(doc, startY, endY, gap) {
         for (let y = startY; y <= endY; y += gap) {
-            doc.lineWidth(0.1)  // Thin lines
-            .moveTo(margin, y)
-            .lineTo(doc.page.width - margin, y)
+          doc.moveTo(40, y)
+            .lineTo(doc.page.width - 40, y)
+            .lineWidth(0.1)  // Thinner lines for writing
             .stroke();
         }
-    }
-    
+      }
+  // Function to draw a single line
+  function drawSingleLine(doc, y) {
+    doc.moveTo(40, y)
+      .lineTo(doc.page.width - 40, y)
+      .lineWidth(0.1)  // Thinner lines
+      .stroke();
+  }
+      
     async function generateQRCode(text) {
         try {
             return await QRCode.toDataURL(text, {
@@ -87,7 +136,7 @@ async function createAnswerSheet(doc, data) {
     }
     
     async function createPage(doc, student, isFirstPage, qrCodeUrl) {
-        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION FEBRUARY 2025');
+        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025');
         
         let startY = headerHeight+15;
       
@@ -139,7 +188,7 @@ async function createAnswerSheet(doc, data) {
             addField('Subject', student.subject, fieldStartX, startY + fieldHeight + 10, fieldWidth, fieldHeight);
             addField('Batch', data.batch, fieldStartX + fieldWidth - 10, startY + fieldHeight + 10, fieldWidth, fieldHeight);
     
-            // Third row (new)
+            // Third row (new) - Time converted to 12-hour format
             addField('Date', data.examDate, fieldStartX, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
             addField('Time', data.start_time, fieldStartX + fieldWidth - 10, startY + 2 * fieldHeight + 15, fieldWidth, fieldHeight);
       
@@ -161,21 +210,22 @@ async function createAnswerSheet(doc, data) {
     }
 }
 
-const getData = async(center, batchNo, student_id) => {
+const getData = async(center, batchNo, student_id, departmentId) => {
     try {
         console.log(center, batchNo, student_id);
         let query, response, queryParams = [center, batchNo];
         
         if(student_id) {
-            query = "SELECT s.fullname, s.student_id, s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ?;";
-            queryParams.push(student_id);
+            query = "SELECT s.fullname, s.student_id, s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ? AND s.departmentId = ?;";
+            queryParams.push(student_id, departmentId);
         } else {
-            query = 'SELECT s.fullname, s.student_id, s.base64, sub.subject_name, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
+            query = 'SELECT s.fullname, s.student_id, s.base64, sub.subject_name, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+            queryParams.push(departmentId);
         }
         
         response = await connection.query(query, queryParams);
-        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const batchData = await connection.query(batchquery, [batchNo]);
+        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const batchData = await connection.query(batchquery, [batchNo, departmentId]);
         
         return { 
             response: response[0], 
@@ -188,30 +238,26 @@ const getData = async(center, batchNo, student_id) => {
     }
 }
 
-function checkDownloadAllowed(batchDate) {
-    const today = moment().startOf('day');
-    const batchMoment = moment(batchDate).startOf('day');
-    const differenceInDays = batchMoment.diff(today, 'days');
-    console.log(differenceInDays);
-    // Allow download if it's the day of the batch or one day before
-    return differenceInDays <= 1 && differenceInDays >= 0;
-}
-
-function checkDownloadAllowedStudentLoginPass(batchDate) {
-    // Set the timezone to Kolkata
+// Updated function to allow downloads 3 days before batch date
+function checkDownloadAllowed3Days(batchDate) {
     const kolkataZone = 'Asia/Kolkata';
-
-    // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
+    
+    // Parse the batchDate and convert to Kolkata timezone
     const batchDateKolkata = moment(batchDate).tz(kolkataZone).startOf('day');
-
-    // Get current date in Kolkata timezone
-    const nowKolkata = moment().tz(kolkataZone).startOf('day');
-
-    // Calculate the date 1 day before the batch date
-    const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
-
-    // Check if current date is after or equal to 1 day before the batch date
-    return nowKolkata.isSameOrAfter(oneDayBefore);
+    
+    // Get current time in Kolkata timezone
+    const now = moment().tz(kolkataZone).startOf('day');
+    
+    // Calculate difference in days
+    const differenceInDays = batchDateKolkata.diff(now, 'days');
+    
+    console.log('Batch Date (UTC):', batchDate);
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Date (Kolkata):', now.format('YYYY-MM-DD'));
+    console.log('Difference in Days:', differenceInDays);
+    
+    // Return true if current date is within 3 days before batch date (including batch date)
+    return differenceInDays >= -1 && differenceInDays <= 5;
 }
 
 function getTextBeforePlus(inputText) {
@@ -224,9 +270,9 @@ function getTextBeforePlus(inputText) {
     return inputText; // Return original text if '+' not found
 }
 
-const generateAnswerSheets = async(doc, center, batchNo, student_id) => {
+const generateAnswerSheets = async(doc, center, batchNo, student_id, departmentId) => {
     try {
-        const Data = await getData(center, batchNo, student_id);
+        const Data = await getData(center, batchNo, student_id, departmentId);
         
         if (!Data) {
             throw new Error('No data returned from getData');
@@ -242,17 +288,21 @@ const generateAnswerSheets = async(doc, center, batchNo, student_id) => {
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
+        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
         
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
+        // Updated to use 3-day validation instead of 1-day
+        if(!checkDownloadAllowed3Days(batchInfo.batchdate)) {
+            throw new Error("Download is only allowed within 3 days before the batch date");
         }
+        
+        // Convert start_time to 12-hour format
+        const formattedStartTime = formatTime(batchInfo.start_time);
         
         const data = {
             centerCode: center,
             batch: batchNo,
             examDate: examDate,
-            start_time: batchInfo.start_time,
+            start_time: formattedStartTime, // Now in 12-hour format
             students: response.map(student => ({
                 seatNo: student.student_id?.toString() || '',
                 name: student.fullname || '',

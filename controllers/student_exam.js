@@ -473,6 +473,9 @@ exports.updatePassageFinalLogs = async (req, res) => {
                 console.error('Failed to delete temporary text file:', unlinkErr);
             }
 
+            // Save filename to trackrecord table after successful zip creation
+            saveToTrackRecord(studentId, passage_type, `${fileName}.zip`);
+
             const responseData = {
                 student_id: studentId,
                 passage_type: passage_type,
@@ -504,6 +507,59 @@ exports.updatePassageFinalLogs = async (req, res) => {
         res.status(500).send('An error occurred while processing your request');
     }
 };
+
+// Helper function to save filename to trackrecord table
+async function saveToTrackRecord(studentId, passageType, zipFileName) {
+    try {
+        // First, ensure the trackrecord table exists
+        await ensureTrackRecordTable();
+
+        const currentDateTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+        
+        // Determine which column to update based on passage type
+        const datetimeColumn = passageType === 'passageA' ? 'PA_datetime' : 'PB_datetime';
+        const filenameColumn = passageType === 'passageA' ? 'PA_filename' : 'PB_filename';
+
+        // Check if record exists for this student
+        const checkQuery = `SELECT * FROM trackrecord WHERE student_id = ?`;
+        const [existingRows] = await connection.query(checkQuery, [studentId]);
+
+        if (existingRows.length > 0) {
+            // Update existing record
+            const updateQuery = `UPDATE trackrecord SET ${datetimeColumn} = ?, ${filenameColumn} = ? WHERE student_id = ?`;
+            await connection.query(updateQuery, [currentDateTime, zipFileName, studentId]);
+        } else {
+            // Insert new record
+            const insertQuery = `INSERT INTO trackrecord (student_id, ${datetimeColumn}, ${filenameColumn}) VALUES (?, ?, ?)`;
+            await connection.query(insertQuery, [studentId, currentDateTime, zipFileName]);
+        }
+
+        console.log(`Successfully saved ${passageType} filename to trackrecord for student: ${studentId}`);
+    } catch (error) {
+        // Log error but don't throw it to avoid interfering with main process
+        console.error(`Failed to save filename to trackrecord for student ${studentId}:`, error);
+    }
+}
+
+// Helper function to ensure trackrecord table exists
+async function ensureTrackRecordTable() {
+    try {
+        const createTableQuery = `
+            CREATE TABLE IF NOT EXISTS trackrecord (
+                student_id VARCHAR(50) NOT NULL PRIMARY KEY,
+                PA_datetime DATETIME NULL,
+                PB_datetime DATETIME NULL,
+                PA_filename VARCHAR(255) NULL,
+                PB_filename VARCHAR(255) NULL
+            )
+        `;
+        await connection.query(createTableQuery);
+        console.log('trackrecord table ensured');
+    } catch (error) {
+        console.error('Failed to create trackrecord table:', error);
+        throw error; // Only throw here since table creation is critical
+    }
+}
 
 exports.getPassageFinalLogs = async (req, res) => {
     const studentId = req.session.studentId;
@@ -600,11 +656,38 @@ exports.feedback = async (req, res) => {
     }
 };
 
+exports.updateFeedbackTime = async (req, res) => {
+    const studentId = req.session.studentId;
+
+    if (!studentId) {
+        return res.status(400).send('Student ID is required');
+    }
+
+    try {
+        const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+        const updateFeedbackTimeQuery = `
+            UPDATE studentlogs
+            SET feedback_time = ?
+            WHERE student_id = ?
+        `;
+        
+        await connection.query(updateFeedbackTimeQuery, [currentTime, studentId]);
+        
+        res.send({ 
+            student_id: studentId, 
+            feedback_time: currentTime 
+        });
+    } catch (err) {
+        console.error('Failed to update feedback time:', err);
+        res.status(500).send(err.message);
+    }
+};
+
 exports.logTextInput = async (req, res) => {
     const studentId = req.session.studentId;
     const { text, identifier, time } = req.body;
-    console.log('git');
-
+    
+    console.log(`logTextInput called - StudentID: ${studentId}, Identifier: ${identifier}, Time: ${time}`);
     console.log(`Displaying identifier: ${identifier}`);
     
     // Get current time in Kolkata timezone
@@ -646,7 +729,8 @@ exports.logTextInput = async (req, res) => {
         return res.status(400).send('Student ID is required');
     }
 
-    if (identifier !== 'passageA' && identifier !== 'passageB') {
+    if (!identifier || (identifier !== 'passageA' && identifier !== 'passageB')) {
+        console.error(`Invalid identifier received: ${identifier}`);
         return res.status(400).send('Invalid identifier');
     }
 
@@ -658,7 +742,17 @@ exports.logTextInput = async (req, res) => {
         await connection.query(createTableQuery);
         await connection.query(createHistoryTableQuery);
 
-        // Original functionality: Update the current record
+        // Check if passage time is already set
+        const timeColumn = identifier === 'passageA' ? 'passage1_time' : 'passage2_time';
+        const checkTimeQuery = `
+            SELECT ${timeColumn} 
+            FROM studentlogs 
+            WHERE student_id = ?
+        `;
+
+        const [timeCheck] = await connection.query(checkTimeQuery, [studentId]);
+        
+        // Update the current record in textlogs table
         const insertQuery = `
             INSERT INTO textlogs (student_id, min${identifier === 'passageA' ? 'a' : 'b'}, text${identifier === 'passageA' ? 'a' : 'b'})
             VALUES (?, ?, ?)
@@ -667,25 +761,35 @@ exports.logTextInput = async (req, res) => {
             text${identifier === 'passageA' ? 'a' : 'b'} = VALUES(text${identifier === 'passageA' ? 'a' : 'b'})
         `;
 
-        // New functionality: Also insert into history table
+        // Insert into history table for tracking all submissions
         const historyInsertQuery = `
             INSERT INTO textlogs_history (student_id, passage_identifier, text_content, time_taken)
             VALUES (?, ?, ?, ?)
         `;
 
-        // Update passage time in studentlogs table with Kolkata time
-        const updatePassageTimeQuery = `
-            UPDATE studentlogs 
-            SET ${identifier === 'passageA' ? 'passage1_time' : 'passage2_time'} = ?
-            WHERE student_id = ?
-        `;
+        // Prepare queries array
+        const queries = [
+            connection.query(insertQuery, [studentId, time, safeText]),
+            connection.query(historyInsertQuery, [studentId, identifier, safeText, time])
+        ];
+
+        // Only update passage time if it's not already set (NULL or empty)
+        if (timeCheck.length === 0 || !timeCheck[0][timeColumn]) {
+            console.log(`${timeColumn} is not set, updating with current time: ${currentTime}`);
+            
+            const updatePassageTimeQuery = `
+                UPDATE studentlogs 
+                SET ${timeColumn} = ?
+                WHERE student_id = ? AND (${timeColumn} IS NULL OR ${timeColumn} = '')
+            `;
+            
+            queries.push(connection.query(updatePassageTimeQuery, [currentTime, studentId]));
+        } else {
+            console.log(`${timeColumn} is already set: ${timeCheck[0][timeColumn]}, skipping update`);
+        }
 
         // Execute all queries
-        await Promise.all([
-            connection.query(insertQuery, [studentId, time, safeText]),
-            connection.query(historyInsertQuery, [studentId, identifier, safeText, time]),
-            connection.query(updatePassageTimeQuery, [currentTime, studentId])
-        ]);
+        await Promise.all(queries);
         
         console.log('Response logged successfully');
         res.sendStatus(200);
@@ -838,7 +942,7 @@ exports.getPassageProgress = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const centersQuery = 'SELECT * FROM examcenterdb WHERE center = ?';
-    const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ? AND batchNo = ?';
+    const controllersQuery = 'SELECT * FROM controllerdb WHERE center = ? AND batchNo = ? AND departmentId = ?';
 
     try {
         const [students] = await connection.query(studentQuery, [studentId]);
@@ -848,6 +952,7 @@ exports.getPassageProgress = async (req, res) => {
         }
         const student = students[0];
         const centrcode = student.center;
+        const department = student.departmentId;
         const batchno = student.batchNo
 
         console.log(batchno)
@@ -864,7 +969,7 @@ exports.getPassageProgress = async (req, res) => {
 
         console.log(`Exam center found: ${center1.center_name}`);
 
-        const [controllers] = await connection.query(controllersQuery, [centrcode, batchno]);
+        const [controllers] = await connection.query(controllersQuery, [centrcode, batchno, department]);
         if (controllers.length === 0) {
             console.log(`Error: Controller not found for center code ${centrcode}`);
             return res.status(404).send('Subject not found');
