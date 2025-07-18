@@ -126,7 +126,7 @@ async function createAttendanceTable() {
     
     try {
         await connection.query(createTableQuery);
-        console.log('Attendance reports table created or already exists');
+        // console.log('Attendance reports table created or already exists');
     } catch (error) {
         console.error('Error creating attendance reports table:', error);
     }

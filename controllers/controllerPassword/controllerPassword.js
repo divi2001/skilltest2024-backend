@@ -2,6 +2,7 @@ const ControllerPasswordDTO = require('../../dto/controllerPasswordDTO');
 const connection = require('../../config/db1');
 const encryptionInterface = require('../../config/encrypt');
 const moment = require('moment');
+const { decrypt } = require('../../config/encrypt');
 
 function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     const kolkataZone = 'Asia/Kolkata';
@@ -20,7 +21,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD HH:mm:ss'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
-    return differenceInMinutes <= 3000000;
+    return differenceInMinutes <= 30;
 }
 
 exports.getControllerPassForCenter = async (req, res) => {
@@ -77,14 +78,17 @@ exports.getControllerPassForCenter = async (req, res) => {
 
             if (filteredResults.length > 0) {
                 console.log("===== CONTROLLER PASSWORDS WILL BE RETURNED =====");
-                
+                let controller_pass_decrypted;
                 filteredResults.forEach((result, index) => {
                     console.log(`Filtered Batch ${index + 1}:`);
                     console.log(`  BatchNo: ${result.batchNo}`);
                     console.log(`  DepartmentId: ${result.departmentId}`);
                     console.log(`  Department: ${result.departmentName}`);
                     console.log(`  Center: ${result.center}`);
+
                     console.log(`  Controller Password: ${result.controller_pass}`);
+                    controller_pass_decrypted = decrypt(result.controller_pass);
+                    console.log(`  Controller Password Decrypted : ${controller_pass_decrypted}`);
                     console.log(`  Start Time: ${result.Start_time}`);
                     console.log(`  Batch Date: ${result.batchdate}`);
                     console.log("---");
@@ -96,7 +100,7 @@ exports.getControllerPassForCenter = async (req, res) => {
                         ...new ControllerPasswordDTO(
                             result.center,
                             result.batchNo,
-                            result.controller_pass,
+                            controller_pass_decrypted,
                             result.Start_time,
                             result.End_Time,
                             result.batchstatus
@@ -218,5 +222,5 @@ function checkIfIsInTimeLimit(startTime) {
     }
 
     const differenceInMinutes = now.diff(startMoment, 'minutes');
-    return differenceInMinutes <= 150000;
+    return differenceInMinutes <= 15;
 }
