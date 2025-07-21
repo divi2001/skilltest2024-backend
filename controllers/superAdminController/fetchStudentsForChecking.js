@@ -1,3 +1,4 @@
+// controllers\superAdminController\fetchStudentsForChecking.js
 const connection = require("../../config/db1");
 
 exports.getStudentsFromExpertReviewlog = async (req,res) => {
@@ -23,7 +24,7 @@ exports.getStudentsFromExpertReviewlog = async (req,res) => {
 }
 
 exports.getStudentsFromModReviewlog = async (req,res) => {
-
+    console.log("Fetching mod review logs for department");
     const {department} = req.query;
 
     try {
