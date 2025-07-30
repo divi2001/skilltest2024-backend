@@ -1,3 +1,4 @@
+// D:\Shorthand Software\shorthand-backend\config\encrypt.js
 const crypto = require('crypto');
 require('dotenv').config();
 

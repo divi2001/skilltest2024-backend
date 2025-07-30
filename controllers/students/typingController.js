@@ -72,6 +72,7 @@ exports.getpassages = async (req, res) => {
         res.status(500).send(err.message);
     }
 };
+
 exports.updateStudentLog = async (req, res) => {
     const studentId = req.session.studentId;
     const { passage_type } = req.body;
@@ -125,6 +126,10 @@ exports.updateStudentLog = async (req, res) => {
 
         const [result] = await connection.query(query, params);
         
+        if (result && result.time) {
+            result.time = moment(result.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+        }
+
         res.status(200).json({
             message: existingRows.length > 0 ? 'Student log updated successfully' : 'Student log inserted successfully',
             affectedRows: result.affectedRows

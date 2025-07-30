@@ -68,20 +68,20 @@ exports.loginStudent = async (req, res) => {
             return res.status(404).send('invalid credentials 2');
         }
 
-        const batchStatus = batchResults[0].batchstatus;
+        // const batchStatus = batchResults[0].batchstatus;
 
-        if (batchStatus !== 1) {
-            return res.status(401).send('invalid credentials 3');
-        }
+        // if (batchStatus !== 1) {
+        //     return res.status(401).send('invalid credentials 3');
+        // }
 
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
         const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
         // console.log(registrations)
 
-        if (registrations.length===0) {
-            return res.status(401).send('pc not registered');
-        }
+        // if (registrations.length===0) {
+        //     return res.status(401).send('pc not registered');
+        // }
 
         let decryptedStoredPassword, decryptedStoredPassword1;
         try {
@@ -94,7 +94,7 @@ exports.loginStudent = async (req, res) => {
 
         const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
         const providedPasswordStr = String(decryptedStoredPassword1).trim();
-        // console.log(decryptedStoredPasswordStr, providedPasswordStr);
+        console.log(decryptedStoredPasswordStr, providedPasswordStr);
 
         if (decryptedStoredPasswordStr !== providedPasswordStr) {
             return res.status(401).send('invalid credentials 5');
@@ -299,9 +299,9 @@ exports.getStudentResetRequests = async (req, res) => {
     }
     
     try {
-        // First, get the student's information including center and batch
+        // First, get the student's information including center, batch, and departmentId
         const [students] = await connection.query(
-            'SELECT center, batchNo, loggedin FROM students WHERE student_id = ?',
+            'SELECT center, batchNo, departmentId, loggedin FROM students WHERE student_id = ?',
             [student_id]
         );
 
@@ -311,22 +311,22 @@ exports.getStudentResetRequests = async (req, res) => {
 
         const student = students[0];
         const centerId = student.center;
+        const batchNo = student.batchNo;
+        const departmentId = student.departmentId;
 
         if (student.loggedin === 0) {
             return res.status(400).send('Student is already logged out');
         }
 
-        const batchNo = student.batchNo;
-
-        // Verify the controller password
+        // Verify the controller password using center, batchNo, and departmentId
         const controllerQuery = `
             SELECT controllerdb.controller_pass, batchdb.Start_time, batchdb.batchdate
             FROM controllerdb 
             INNER JOIN batchdb ON controllerdb.batchNo = batchdb.batchNo 
-            WHERE controllerdb.center = ? AND controllerdb.batchNo = ?
+            WHERE controllerdb.center = ? AND controllerdb.batchNo = ? AND controllerdb.departmentId = ?
         `;
 
-        const [controllerResults] = await connection.query(controllerQuery, [centerId, batchNo]);
+        const [controllerResults] = await connection.query(controllerQuery, [centerId, batchNo, departmentId]);
 
         if (controllerResults.length === 0) {
             return res.status(404).send('Controller data not found');
@@ -334,14 +334,10 @@ exports.getStudentResetRequests = async (req, res) => {
 
         const controllerData = controllerResults[0];
 
-        // Decrypt the stored password
-        const decryptedStoredPassword = controllerData.controller_pass;
+        // Verify the controller password
         if (controllerData.controller_pass !== controller_password) {
             return res.status(401).send('Unauthorized: Incorrect controller password');
         }
-
-
-        // Check if the password is correct and the batch is within the allowed time
 
         // Update the student's logged in status and add reset request
         const updateStudentQuery = `

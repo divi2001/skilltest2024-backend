@@ -1,3 +1,4 @@
+// routes\pdf_routes.js
 const router = require("express").Router();
 const {generateAbsenteeReport,generateAttendanceReport,generateStudentIdPasswordPdf,generateBlankAnswerSheet,generateSeatingArrangement, generateStudentId_Password,generateAnswerSheet, generateAbsenteeReportPost} = require("../Reports/generateReports");
 

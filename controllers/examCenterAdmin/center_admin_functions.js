@@ -20,6 +20,7 @@ exports.loginCenterAdmin = async (req, res) => {
             try {
                 console.log("entered:");
                 decryptedStoredPassword = decrypt(admin.centerpass);
+                console.log("decrypted: " + decryptedStoredPassword);
 
             } catch (error) {
                 console.log(decryptedStoredPassword )
