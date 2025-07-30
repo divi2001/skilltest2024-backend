@@ -10,13 +10,13 @@ const config = {
     database: process.env.DB_DATABASE,
 };
 
-console.log('Database configuration:', {
-    host: config.host,
-    port: config.port,
-    user: config.user,
-    database: config.database,
-    // Don't log the password for security reasons
-});
+// console.log('Database configuration:', {
+//     host: config.host,
+//     port: config.port,
+//     user: config.user,
+//     database: config.database,
+//     // Don't log the password for security reasons
+// });
 
 async function createDatabaseAndTables() {
   let connection;
@@ -59,7 +59,7 @@ async function createDatabaseAndTables() {
         // Table doesn't exist, create it
         const createTableQuery = `CREATE TABLE ${tableName} (${columns}) ${options}`;
         await connection.query(createTableQuery);
-        console.log(`Table ${tableName} created with UTF-8 support.`);
+        // console.log(`Table ${tableName} created with UTF-8 support.`);
         updatedTables.push(tableName);
       } else {
         // Table exists, check its current charset

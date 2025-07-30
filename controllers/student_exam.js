@@ -148,7 +148,7 @@ exports.getStudentDetails = async (req, res) => {
         }
         const student = students[0];
         
-        console.log(student);
+        // console.log(student);
 
         const batchDate1 = student.batchdate
         console.log(batchDate1)

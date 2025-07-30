@@ -9,7 +9,7 @@ exports.loginadmin = async (req, res) => {
     const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
 
     let dm = encrypt(password);
-    console.log('Encrypted stored password:', dm);
+    // console.log('Encrypted stored password:', dm);
 
     try {
         const [results] = await connection.query(query1, [userId]);
@@ -22,10 +22,10 @@ exports.loginadmin = async (req, res) => {
             let decryptedStoredPassword;
             try {
                 decryptedStoredPassword = decrypt(admin.password);
-                console.log('Decrypted stored password: ', decryptedStoredPassword);
+                // console.log('Decrypted stored password: ', decryptedStoredPassword);
                 // decryptedStoredPassword = (admin.password);
-                console.log('Stored password:', decryptedStoredPassword);
-                console.log('Provided password:', password);
+                // console.log('Stored password:', decryptedStoredPassword);
+                // console.log('Provided password:', password);
             } catch (error) {
                 console.error('Error decrypting stored password:', error);
                 res.status(500).send('Error decrypting stored password');
@@ -36,22 +36,22 @@ exports.loginadmin = async (req, res) => {
             const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
             const providedPasswordStr = String(password).trim();
 
-            console.log('Comparing passwords:');
-            console.log('Stored (after trim):', decryptedStoredPasswordStr);
+            // console.log('Comparing passwords:');
+            // console.log('Stored (after trim):', decryptedStoredPasswordStr);
 
-            console.log('Provided (after trim):', providedPasswordStr);
-            console.log('Passwords match:', decryptedStoredPasswordStr === providedPasswordStr);
+            // console.log('Provided (after trim):', providedPasswordStr);
+            // console.log('Passwords match:', decryptedStoredPasswordStr === providedPasswordStr);
 
             if (decryptedStoredPasswordStr === providedPasswordStr) {
-                console.log('Login successful for admin:', admin.adminid);
+                // console.log('Login successful for admin:', admin.adminid);
                 req.session.adminid = admin.adminid;
                 res.send('Logged in successfully as an admin!');
             } else {
-                console.log('Password mismatch for admin:', admin.adminid);
+                // console.log('Password mismatch for admin:', admin.adminid);
                 res.status(401).send('Invalid credentials for admin');
             }
         } else {
-            console.log('Admin ID not found:', userId);
+            // console.log('Admin ID not found:', userId);
             res.status(404).send('admin not found');
         }
     } catch (err) {
@@ -72,7 +72,7 @@ exports.fetchTableData = async (req, res) => {
     }
 
     try {
-        console.log(`Fetching column information for table: ${tableName}`);
+        // console.log(`Fetching column information for table: ${tableName}`);
         // First, get the column information for the table
         const [columns] = await connection.query(`
               SELECT COLUMN_NAME, DATA_TYPE 
@@ -80,7 +80,7 @@ exports.fetchTableData = async (req, res) => {
               WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
           `, [tableName]);
 
-        console.log(`Columns found:`, columns);
+        // console.log(`Columns found:`, columns);
 
         if (columns.length === 0) {
             return res.status(404).send('Table not found or has no columns');
@@ -100,10 +100,10 @@ exports.fetchTableData = async (req, res) => {
         });
 
         const query = `SELECT ${selectParts.join(', ')} FROM ${mysql.escapeId(tableName)}`;
-        console.log('Executing query:', query);
+        // console.log('Executing query:', query);
 
         const [results] = await connection.query(query);
-        console.log(`Query executed successfully. Rows returned: ${results.length}`);
+        // console.log(`Query executed successfully. Rows returned: ${results.length}`);
 
         res.json(results);
     } catch (err) {

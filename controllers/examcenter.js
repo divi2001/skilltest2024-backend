@@ -6,9 +6,7 @@ const fs = require('fs');
 const { encrypt, decrypt } = require('../config/encrypt');
 
 exports.loginCenter = async (req, res) => {
-    console.log("Trying center login");
     const { centerId, centerPass, ipAddress, diskIdentifier, macAddress } = req.body;
-    console.log(`Received data - centerId: ${centerId}, centerPass: ${centerPass}, ipAddress: ${ipAddress}, diskIdentifier: ${diskIdentifier}, macAddress: ${macAddress}`);
 
     try {
         // Check if PC registration feature is enabled
@@ -16,17 +14,11 @@ exports.loginCenter = async (req, res) => {
         const [featureResult] = await connection.query(checkFeatureQuery);
         
         if (featureResult.length === 0 || featureResult[0].status === 0) {
-            console.log("PC registration feature is not available");
             return res.status(403).send('PC registration is not available at this time');
         }
 
-        console.log("PC registration feature is enabled");
-
-        console.log("PC registration feature is enabled");
-
         const query1 = 'SELECT * FROM examcenterdb WHERE center = ?';
 
-        console.log("Ensuring pcregistration table exists");
         // Ensure pcregistration table exists
         const createTableQuery = `
             CREATE TABLE IF NOT EXISTS pcregistration (
@@ -38,20 +30,15 @@ exports.loginCenter = async (req, res) => {
             )
         `;
         await connection.query(createTableQuery);
-        console.log("pcregistration table ensured");
 
-        console.log("Querying examcenterdb for centerId");
         const [results] = await connection.query(query1, [centerId]);
         if (results.length > 0) {
             const center = results[0];
-            console.log(`Center found: ${JSON.stringify(center)}`);
 
             // Decrypt the stored centerPass
             let decryptedStoredCenterPass;
             try {
-                console.log("Decrypting stored center pass");
                 decryptedStoredCenterPass = decrypt(center.centerpass);
-                console.log(`Decrypted stored center pass: '${decryptedStoredCenterPass}'`);
             } catch (error) {
                 console.error('Error decrypting stored center pass:', error);
                 return res.status(500).send('Error decrypting stored center pass');
@@ -61,59 +48,44 @@ exports.loginCenter = async (req, res) => {
             const decryptedStoredCenterPassStr = String(decryptedStoredCenterPass).trim();
             const providedCenterPassStr = String(centerPass).trim();
 
-            console.log(`Comparing passwords - stored: '${decryptedStoredCenterPassStr}', provided: '${providedCenterPassStr}'`);
             if (decryptedStoredCenterPassStr === providedCenterPassStr) {
-                console.log("Passwords match");
-
                 // Check if the PC is already registered
                 const checkPcQuery = `
                     SELECT COUNT(*) AS pcExists FROM pcregistration 
                     WHERE center = ? AND ip_address = ? AND disk_id = ? AND mac_address = ?
                 `;
-                console.log("Checking if the PC is already registered");
                 const [checkPcResults] = await connection.query(checkPcQuery, [centerId, ipAddress, diskIdentifier, macAddress]);
                 const pcExists = checkPcResults[0].pcExists;
 
                 if (pcExists > 0) {
-                    console.log("PC is already registered for the center");
                     return res.status(403).send('This PC is already registered for the center');
                 }
 
-                console.log("PC is not already registered");
-
                 // Check the number of registered PCs for the center
                 const countQuery = 'SELECT COUNT(*) AS pcCount FROM pcregistration WHERE center = ?';
-                console.log("Checking the number of registered PCs for the center");
                 const [countResults] = await connection.query(countQuery, [centerId]);
                 const pcCount = countResults[0].pcCount;
 
                 // Get the maximum allowed PCs for the center
                 const maxPcQuery = 'SELECT max_pc FROM examcenterdb WHERE center = ?';
-                console.log("Getting the maximum allowed PCs for the center");
                 const [maxPcResults] = await connection.query(maxPcQuery, [centerId]);
                 const maxPcCount = maxPcResults[0].max_pc;
 
-                console.log(`PC count: ${pcCount}, Max PC count: ${maxPcCount}`);
                 if (pcCount < maxPcCount) {
-                    console.log("Registering new PC");
                     // Insert PC registration log
                     const insertLogQuery = `
                         INSERT INTO pcregistration (center, ip_address, disk_id, mac_address)
                         VALUES (?, ?, ?, ?)
                     `;
                     await connection.query(insertLogQuery, [centerId, ipAddress, diskIdentifier, macAddress]);
-                    console.log("PC registered successfully");
                     return res.status(200).send('PC registered successfully for the center!');
                 } else {
-                    console.log("The maximum number of PCs for this center has been reached");
                     return res.status(403).send('The maximum number of PCs for this center has been reached');
                 }
             } else {
-                console.log("Invalid credentials for center");
                 return res.status(401).send('Invalid credentials for center');
             }
         } else {
-            console.log("Center not found");
             return res.status(404).send('Center not found');
         }
     } catch (err) {
@@ -254,7 +226,6 @@ exports.getCenterResetRequests = async (req, res) => {
 };
 
 exports.getCenterBatchNumbers = async (req, res) => {
-    console.log("Fetching center batch numbers");
     const centerId = req.session.centerId;
 
     if (!centerId) {
@@ -285,8 +256,6 @@ exports.getCenterBatchNumbers = async (req, res) => {
             start_time: moment(batch.start_time, 'HH:mm:ss').format('HH:mm:ss'),
             end_time: moment(batch.end_time, 'HH:mm:ss').format('HH:mm:ss')
         }));
-        
-        console.log("Formatted batches:", formattedBatches);
 
         if (formattedBatches.length === 0) {
             return res.status(404).json({ 
@@ -344,15 +313,6 @@ exports.uploadAttendanceReport = async (req, res) => {
     const center = req.session.centerId;
     const { batchNo, departmentId, present_count, absent_count, report_date } = req.body;
     
-    console.log('Upload attendance input values:', {
-        center,
-        batchNo,
-        departmentId,
-        present_count,
-        absent_count,
-        report_date
-    });
-    
     if (!req.file) {
         return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
@@ -397,15 +357,12 @@ exports.uploadAttendanceReport = async (req, res) => {
         let mysqlDateTime;
         
         if (report_date) {
-            console.log('Processing report_date:', report_date);
-            
             const parsedDate = moment(report_date, [
                 'YYYY-MM-DD', 'MM/DD/YYYY', 'YYYY-MM-DD', 
                 'DD/MM/YYYY', 'MM-DD-YYYY', 'YYYY/MM/DD'
             ], true);
             
             if (!parsedDate.isValid()) {
-                console.log('Invalid date format provided:', report_date);
                 return res.status(400).json({ 
                     success: false, 
                     message: 'Invalid date format. Please use YYYY-MM-DD, MM/DD/YYYY, or YYYY-MM-DD format' 
@@ -426,17 +383,6 @@ exports.uploadAttendanceReport = async (req, res) => {
         const newPath = path.join(path.dirname(oldPath), newFileName);
         fs.renameSync(oldPath, newPath);
         const url = `/uploads/${newFileName}`;
-        
-        console.log('Executing SQL query:', insertQuery);
-        console.log('Query parameters:', [
-            center,
-            batchNo,
-            departmentId,  // Include departmentId
-            mysqlDateTime,
-            present_count,
-            absent_count,
-            url 
-        ]);
         
         const [result] = await connection.query(insertQuery, [
             center,
@@ -466,7 +412,6 @@ exports.uploadAttendanceReport = async (req, res) => {
         if (req.file && req.file.path && fs.existsSync(req.file.path)) {
             try {
                 fs.unlinkSync(req.file.path);
-                console.log('Cleaned up uploaded file due to error');
             } catch (unlinkError) {
                 console.error('Error cleaning up uploaded file:', unlinkError);
             }
@@ -511,7 +456,6 @@ exports.deleteAttendanceReport = async (req,res)=>{
             try {
                 if (fs.existsSync(filePath)) {
                     fs.unlinkSync(filePath);
-                    console.log('Attendance PDF file deleted:', filePath);
                 }
             } catch (fileError) {
                 console.error('Error deleting attendance PDF file:', fileError);
@@ -520,10 +464,10 @@ exports.deleteAttendanceReport = async (req,res)=>{
 
         res.status(200).json({"message":"Attendance report deleted successfully!!"})
     } catch (error) {
-        console.log(error);
         res.status(500).json({ "message": error.message });
     }
 }
+
 exports.getAllAttendanceReport = async (req,res) => {
     const center = req.session.centerId;
     
@@ -554,14 +498,12 @@ exports.getAllAttendanceReport = async (req,res) => {
             departmentId: report.departmentId || 'N/A'
         }));
         
-        console.log("Formatted attendance reports with departments:", formattedResponse);
         res.status(200).json({
             "message":"Received all data successfully!!",
             "Reports":formattedResponse
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({ "message": error.message });
     }
 }
