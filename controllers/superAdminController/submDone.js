@@ -2,10 +2,151 @@ const connection = require('../../config/db1');
 const moment = require('moment-timezone');
 
 // Get expert review logs with filtering options
+// exports.getExpertReviewLogs = async (req, res) => {
+//     const { subjectId, qset, expertId, status, subm_done } = req.query;
+
+//     try {
+//         let query = 'SELECT * FROM expertreviewlog WHERE 1=1';
+//         const queryParams = [];
+
+//         // Add filtering conditions
+//         if (subjectId) {
+//             query += ' AND subjectId = ?';
+//             queryParams.push(subjectId);
+//         }
+//         if (qset) {
+//             query += ' AND qset = ?';
+//             queryParams.push(qset);
+//         }
+//         if (expertId) {
+//             query += ' AND expertId = ?';
+//             queryParams.push(expertId);
+//         }
+//         if (status !== undefined) {
+//             query += ' AND status = ?';
+//             queryParams.push(status);
+//         }
+//         if (subm_done !== undefined) {
+//             query += ' AND subm_done = ?';
+//             queryParams.push(subm_done);
+//         }
+
+//         query += ' ORDER BY id DESC';
+
+//         const [results] = await connection.query(query, queryParams);
+
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: "No expert review logs found with the specified criteria" });
+//         }
+
+//         // Format datetime fields
+//         const formattedResults = results.map(log => ({
+//             ...log,
+//             loggedin: log.loggedin ? moment(log.loggedin).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : null,
+//             subm_time: log.subm_time ? moment(log.subm_time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : null
+//         }));
+
+//         res.json({
+//             message: "Expert review logs retrieved successfully",
+//             data: formattedResults,
+//             count: formattedResults.length
+//         });
+
+//     } catch (err) {
+//         console.error('Database query error:', err);
+//         res.status(500).json({ message: 'Internal server error', error: err.message });
+//     }
+// };
+
+// exports.getExpertReviewLogs = async (req, res) => {
+//     const { subjectId, qset, expertId, status, subm_done } = req.query;
+
+//     try {
+//         let query = 'SELECT * FROM expertreviewlog WHERE 1=1';
+//         const queryParams = [];
+
+//         // Add filtering conditions
+//         if (subjectId) {
+//             query += ' AND subjectId = ?';
+//             queryParams.push(subjectId);
+//         }
+//         if (qset) {
+//             query += ' AND qset = ?';
+//             queryParams.push(qset);
+//         }
+//         if (expertId) {
+//             query += ' AND expertId = ?';
+//             queryParams.push(expertId);
+//         }
+//         if (status !== undefined) {
+//             query += ' AND status = ?';
+//             queryParams.push(status);
+//         }
+//         if (subm_done !== undefined) {
+//             query += ' AND subm_done = ?';
+//             queryParams.push(subm_done);
+//         }
+
+//         query += ' ORDER BY id DESC';
+
+//         const [results] = await connection.query(query, queryParams);
+
+//         // Get unique QSets for the selected subject
+//         let subjectQsets = [];
+//         if (subjectId) {
+//             // Get existing QSets from results
+//             const existingQsets = [...new Set(
+//                 results.filter(log => log.subjectId == subjectId).map(log => log.qset)
+//             )].sort((a, b) => a - b);
+            
+//             // Generate all possible QSets (1-12) with exists flag
+//             for (let i = 1; i <= 12; i++) {
+//                 subjectQsets.push({
+//                     qset: i,
+//                     exists: existingQsets.includes(i),
+//                     displayText: `${subjectId} - QSet ${i}`
+//                 });
+//             }
+//         }
+
+//         if (results.length === 0) {
+//             return res.status(404).json({ 
+//                 message: "No expert review logs found with the specified criteria",
+//                 subjectQsets: subjectId ? subjectQsets : undefined
+//             });
+//         }
+
+//         // Format datetime fields
+//         const formattedResults = results.map(log => ({
+//             ...log,
+//             loggedin: log.loggedin ? moment(log.loggedin).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : null,
+//             subm_time: log.subm_time ? moment(log.subm_time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : null
+//         }));
+
+//         res.json({
+//             message: "Expert review logs retrieved successfully",
+//             data: formattedResults,
+//             count: formattedResults.length,
+//             subjectQsets: subjectId ? subjectQsets : undefined
+//         });
+
+//     } catch (err) {
+//         console.error('Database query error:', err);
+//         res.status(500).json({ message: 'Internal server error', error: err.message });
+//     }
+// };
+
 exports.getExpertReviewLogs = async (req, res) => {
     const { subjectId, qset, expertId, status, subm_done } = req.query;
 
     try {
+        // Validate subjectId is provided if qset is requested
+        if (qset && !subjectId) {
+            return res.status(400).json({ 
+                message: "Subject ID is required when filtering by QSet" 
+            });
+        }
+
         let query = 'SELECT * FROM expertreviewlog WHERE 1=1';
         const queryParams = [];
 
@@ -35,8 +176,32 @@ exports.getExpertReviewLogs = async (req, res) => {
 
         const [results] = await connection.query(query, queryParams);
 
+        // Get QSets specifically for the selected subject
+        let subjectQsets = [];
+        if (subjectId) {
+            // First get ACTUAL existing QSets from database for this subject
+            const [existingQsets] = await connection.query(
+                'SELECT DISTINCT qset FROM expertreviewlog WHERE subjectId = ? ORDER BY qset',
+                [subjectId]
+            );
+            
+            const existingQsetNumbers = existingQsets.map(q => q.qset);
+            
+            // Generate all possible QSets (1-12) for display
+            for (let i = 1; i <= 12; i++) {
+                subjectQsets.push({
+                    qset: i,
+                    exists: existingQsetNumbers.includes(i),
+                    displayText: `${subjectId} - QSet ${i}`
+                });
+            }
+        }
+
         if (results.length === 0) {
-            return res.status(404).json({ message: "No expert review logs found with the specified criteria" });
+            return res.status(404).json({ 
+                message: "No expert review logs found with the specified criteria",
+                subjectQsets: subjectId ? subjectQsets : undefined
+            });
         }
 
         // Format datetime fields
@@ -49,7 +214,8 @@ exports.getExpertReviewLogs = async (req, res) => {
         res.json({
             message: "Expert review logs retrieved successfully",
             data: formattedResults,
-            count: formattedResults.length
+            count: formattedResults.length,
+            subjectQsets: subjectId ? subjectQsets : undefined
         });
 
     } catch (err) {

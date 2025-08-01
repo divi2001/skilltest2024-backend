@@ -53,6 +53,10 @@ router.get('/download-student-hall-ticket/:seatNo', HallticketsGeneration.downlo
 router.post('/upload-student-data', excelUploadController.uploadStudentData);
 router.post('/validate-student-data', excelUploadController.validateStudentData);
 
+
+
+
+// skilltest2024-backend\routes\superAdmin_updateDb.js
 // Expert Review Log Routes
 router.get('/expert-review-logs', submdoneController.getExpertReviewLogs);
 router.post('/expert-review-logs/reset', submdoneController.resetExpertReviewLogs);
