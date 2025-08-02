@@ -31,9 +31,9 @@ const PORT = 3004;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// CORS configuration
+// CORS configuration 
 const corsOptions = {
-  origin: ['*', 'http://localhost:3002', 'http://192.168.1.102:3002/'],// Your frontend URL
+  origin: ['*', 'http://localhost:3001', 'http://192.168.1.102:3002/'],// Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
