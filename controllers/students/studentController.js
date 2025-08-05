@@ -15,6 +15,7 @@ const { json } = require('body-parser');
 
 exports.loginStudent = async (req, res) => {
     const { userId, password, ipAddress, diskIdentifier, macAddress } = req.body;
+    // console.log(userId);
 
     const defaultIpAddress = ipAddress || "default";
     const defaultDiskIdentifier = diskIdentifier || "default";
@@ -35,27 +36,27 @@ exports.loginStudent = async (req, res) => {
             WHERE ip_address = ? AND request_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)
         `;
         const [loginAttempts] = await connection.query(checkLoginAttemptsQuery, [defaultIpAddress]);
-
+``
         if (loginAttempts[0].attempt_count > 30) {
-            return res.status(429).json({ error: 'Too many login attempts. Please try again later.' });
+            return res.status(429).send('Too many login attempts. Please try again later.');
         }
 
         const query1 = 'SELECT * FROM students WHERE student_id = ?';
         const [results] = await connection.query(query1, [userId]);
 
         if (results.length === 0) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res.status(404).send('invalid credentials 1');
         }
 
         const student = results[0];
 
         // Check if the student is already logged in
         if (student.loggedin === 1) {
-            return res.status(403).json({ error: 'Access denied' });
+            return res.status(403).send('Student is already logged in');
         }
 
         if (!student.IsShorthand) {
-            return res.status(403).json({ error: 'Access denied' });
+            return res.status(403).send('Access denied. Student is not eligible for shorthand exam.');
         }
 
         const batchNo = student.batchNo;
@@ -64,20 +65,22 @@ exports.loginStudent = async (req, res) => {
         const [batchResults] = await connection.query(checkBatchStatusQuery, [batchNo]);
 
         if (batchResults.length === 0) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res.status(404).send('invalid credentials 2');
         }
 
         // const batchStatus = batchResults[0].batchstatus;
+
         // if (batchStatus !== 1) {
-        //     return res.status(401).json({ error: 'Invalid credentials' });
+        //     return res.status(401).send('invalid credentials 3');
         // }
 
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
-        const [registrations] = await connection.query(query4, [examCenterCode, macAddress]);
+        const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
+        // console.log(registrations)
 
-        // if (registrations.length === 0) {
-        //     return res.status(401).json({ error: 'PC not registered' });
+        // if (registrations.length===0) {
+        //     return res.status(401).send('pc not registered');
         // }
 
         let decryptedStoredPassword, decryptedStoredPassword1;
@@ -85,16 +88,16 @@ exports.loginStudent = async (req, res) => {
             decryptedStoredPassword = decrypt(student.password);
             decryptedStoredPassword1 = decrypt(password);
         } catch (error) {
-            console.error('Password decryption error:', error); // Log server-side only
-            return res.status(401).json({ error: 'Invalid credentials' });
+            console.log(decryptedStoredPassword, password);
+            return res.status(500).send('invalid credentials 4');
         }
 
         const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
         const providedPasswordStr = String(decryptedStoredPassword1).trim();
-        console.log('Password verification attempt'); // Generic log
+        console.log(decryptedStoredPasswordStr, providedPasswordStr);
 
         if (decryptedStoredPasswordStr !== providedPasswordStr) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res.status(401).send('invalid credentials 5');
         }
 
         // Set student session
@@ -124,10 +127,10 @@ exports.loginStudent = async (req, res) => {
         `;
         await connection.query(updateLoggedInStatusQuery, [userId]);
 
-        res.json({ message: 'Logged in successfully as a student!' });
+        res.send('Logged in successfully as a student!');
     } catch (err) {
-        console.error('Database query error:', err); // Detailed error logged server-side
-        res.status(500).json({ error: 'Internal server error' }); // Generic error to client
+        console.log('Database query error:', err);
+        res.status(500).send('Internal server error');
     }
 };
 
