@@ -57,7 +57,8 @@ app.use((req, res, next) => {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// CORS configuration
+// CORS configuration (KEEP ONLY THIS - REMOVE THE DUPLICATE)
+// For the more restrictive approach, disable preflight completely
 const corsOptions = {
   origin: [
     'http://localhost:3001', 
@@ -72,7 +73,8 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200
+  preflightContinue: false, // Don't pass control to next handler
+  optionsSuccessStatus: 204 // Some legacy browsers choke on 204
 };
 
 // Use CORS with the above options
@@ -161,12 +163,49 @@ if(!fs.existsSync(uploadsDir)){
 app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname,'uploads')));
 
-// Disable unnecessary HTTP methods
+// Disable unnecessary HTTP methods (REPLACE YOUR CURRENT MIDDLEWARE)
 app.use((req, res, next) => {
   const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE'];
   
+  // Handle OPTIONS method specifically
+  if (req.method === 'OPTIONS') {
+    // Check if this is a CORS preflight request
+    const origin = req.headers.origin;
+    const corsOrigins = [
+      'http://localhost:3001', 
+      'http://192.168.1.102:3001',
+      'http://3.109.1.101:3000', 
+      'http://3.109.1.101:3001', 
+      'http://3.109.1.101:3002', 
+      'http://43.204.22.53:5000', 
+      'https://www.shorthandonlineexam.in', 
+      'http://65.0.124.197:5000'
+    ];
+    
+    // Only allow OPTIONS for valid CORS preflight requests
+    if (origin && corsOrigins.includes(origin) && req.headers['access-control-request-method']) {
+      // This is a valid CORS preflight request - let CORS middleware handle it
+      return next();
+    } else {
+      // This is a standalone OPTIONS request - block it
+      console.log('Blocked standalone OPTIONS request from:', req.ip, 'User-Agent:', req.get('User-Agent'));
+      return res.status(405).json({ 
+        error: 'Method Not Allowed',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+  
+  // Check other methods
   if (!allowedMethods.includes(req.method)) {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    // Log the blocked request for security monitoring
+    console.log('Blocked HTTP method:', req.method, 'from IP:', req.ip, 'to URL:', req.url, 'User-Agent:', req.get('User-Agent'));
+    
+    return res.status(405).json({ 
+      error: 'Method Not Allowed',
+      allow: allowedMethods.join(', '), // Tell client which methods are allowed
+      timestamp: new Date().toISOString()
+    });
   }
   
   next();
