@@ -33,30 +33,44 @@ const PORT = 3000;
 
 // 1. HTTPS redirect middleware (VULNERABILITY FIX #1 - Insecure Communication)
 app.use((req, res, next) => {
-  if (process.env.NODE_ENV === 'production' && req.header('x-forwarded-proto') !== 'https') {
-    res.redirect(`https://${req.header('host')}${req.url}`);
-  } else {
-    next();
+  if (req.header('x-forwarded-proto') !== 'https') {
+    return res.redirect(301, `https://${req.header('host')}${req.url}`);
   }
-});
-
-// 2. Security headers middleware (VULNERABILITY FIX #3 - Missing Security Headers)
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-  
-  if (process.env.NODE_ENV === 'production') {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  }
-  
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;");
   next();
 });
 
-// 3. HTTP method restriction (VULNERABILITY FIX #4 - OPTIONS Method Enabled)
+// 2. Header sanitization middleware to fix protocol violation
+app.use((req, res, next) => {
+  // Override res.setHeader to ensure proper line endings
+  const originalSetHeader = res.setHeader;
+  res.setHeader = function(name, value) {
+    // Sanitize header values to prevent protocol violations
+    if (typeof value === 'string') {
+      // Remove any CR/LF characters that could cause protocol violations
+      value = value.replace(/[\r\n]/g, '');
+    }
+    return originalSetHeader.call(this, name, value);
+  };
+  next();
+});
+
+// 3. Security headers middleware (VULNERABILITY FIX #3 - Missing Security Headers)
+app.use((req, res, next) => {
+  try {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;");
+  } catch (error) {
+    console.error('Header setting error:', error);
+  }
+  next();
+});
+
+// 4. HTTP method restriction (VULNERABILITY FIX #4 - OPTIONS Method Enabled)
 app.use((req, res, next) => {
   const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE'];
   if (!allowedMethods.includes(req.method)) {
@@ -65,6 +79,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Body parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -83,7 +98,8 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Removed OPTIONS
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 }
 
 // Use CORS with the above options
@@ -96,11 +112,12 @@ app.use(session({
   saveUninitialized: true,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Enable secure cookies in production
+    secure: true, // Always use secure cookies since we're forcing HTTPS
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
 
+// Static file handling
 const uploadsDir = path.join(__dirname,'uploads');
 
 if(!fs.existsSync(uploadsDir)){
@@ -110,6 +127,7 @@ if(!fs.existsSync(uploadsDir)){
 app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname,'uploads')));
 
+// Routes
 app.use(studentRoutes)
 app.use(examcentereRoutes)
 app.use(dataInputRoutes)
@@ -135,7 +153,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-// 4. Error handling middleware (VULNERABILITY FIX #2 - Improper Error Handling)
+// 5. Error handling middleware (VULNERABILITY FIX #2 - Improper Error Handling)
 app.use((err, req, res, next) => {
   // Log the detailed error for debugging (server-side only)
   console.error('Error:', err);
@@ -143,12 +161,27 @@ app.use((err, req, res, next) => {
   // Send generic error message to client
   const statusCode = err.status || 500;
   
-  res.status(statusCode).json({
-    error: err.message || 'An error occurred while processing your request'
-  });
+  // Ensure error response doesn't cause protocol violations
+  try {
+    res.status(statusCode).json({
+      error: 'An error occurred while processing your request'
+    });
+  } catch (headerError) {
+    // Fallback if there's still a header issue
+    console.error('Header error in error handler:', headerError);
+    res.end();
+  }
+});
+
+// Handle uncaught exceptions to prevent crashes
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  // console.log(`Server running on www.shorthandonlineexam.in`);
   console.log(`Server running on https://www.shorthandonlineexam.in:${PORT}`);
 });
