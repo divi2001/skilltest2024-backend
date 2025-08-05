@@ -12,12 +12,14 @@ const studentController = require('../controllers/student_exam');
 const studentController1 = require('../controllers/students/studentController')
 
 
-router.post('/student_login', (req, res, next) => {
-  studentController1.loginStudent(req, res).catch(err => {
-    console.error('Login error:', err); // Log detailed error server-side
-    res.status(500).json({ error: 'Authentication failed' }); // Generic error message
-  });
+router.post('/student_login', async (req, res, next) => {
+  try {
+    await studentController1.loginStudent(req, res);
+  } catch (err) {
+    next(err);
+  }
 });
+
 router.get('/student_logout',isAuthenticated, studentController1.logoutStudent);
 router.post('/student_info',studentController1.getStudentDetails);
 router.post('/audiologs',isAuthenticated, studentController.updateAudioLogs);
@@ -42,9 +44,6 @@ router.post('/passagetime', isAuthenticated,studentController.updatePassagewLogT
 router.post('/audiotime', isAuthenticated,studentController.updateAudioLogTime);
 router.post('/batchdate',studentController.updateStudentBatchDates)
 router.post('/reset-student-login',studentController1.getStudentResetRequests)
-
-
-
 
 
 module.exports = router;

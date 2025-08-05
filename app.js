@@ -28,6 +28,21 @@ const superAdminTrackDashboardRoute = require('./routes/superAdmin_updateDb');
 const expertLoginRoutes = require('./routes/expertsCheckingRoutes/expertsAuthRoutes'); //ExpertLoginRoutes
 const expertDashboardStage3Routes = require('./routes/expertsCheckingRoutes/studentSpecificRoutes')
 
+// Handle uncaught exceptions and rejections
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', {
+    message: err.message,
+    stack: err.stack,
+    timestamp: new Date().toISOString()
+  });
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 const app = express();
 const PORT = 3000;
 
@@ -53,13 +68,12 @@ const corsOptions = {
     'http://43.204.22.53:5000', 
     'https://www.shorthandonlineexam.in', 
     'http://65.0.124.197:5000'
-  ], // Remove '*' for security
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
 };
-
 
 // Use CORS with the above options
 app.use(cors(corsOptions));
@@ -183,7 +197,55 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
+// Global error handling middleware (ADD THIS BEFORE app.listen())
+app.use((err, req, res, next) => {
+  // Log detailed error information server-side for debugging
+  console.error('Error details:', {
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    timestamp: new Date().toISOString()
+  });
+
+  // Determine error type and send generic response
+  let statusCode = 500;
+  let message = 'Internal server error';
+
+  if (err.name === 'ValidationError') {
+    statusCode = 400;
+    message = 'Invalid request data';
+  } else if (err.name === 'UnauthorizedError' || err.status === 401) {
+    statusCode = 401;
+    message = 'Authentication failed';
+  } else if (err.status === 403) {
+    statusCode = 403;
+    message = 'Access denied';
+  } else if (err.status === 404) {
+    statusCode = 404;
+    message = 'Resource not found';
+  } else if (err.status === 429) {
+    statusCode = 429;
+    message = 'Too many requests';
+  }
+
+  // Send generic error response
+  res.status(statusCode).json({
+    error: message,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Handle 404 errors (ADD THIS BEFORE the global error handler)
+app.use((req, res, next) => {
+  res.status(404).json({
+    error: 'Resource not found',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
-  // console.log(`Server running on www.shorthandonlineexam.in`);
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on https://www.shorthandonlineexam.in`);
 });
