@@ -27,6 +27,15 @@ const expertDashboardStage3Routes = require('./routes/expertsCheckingRoutes/stud
 
 const app = express();
 const PORT = 3000;
+
+// Force HTTPS redirect (for all environments)
+app.use((req, res, next) => {
+  if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect(`https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -47,14 +56,38 @@ app.use(cors({
   credentials: true
 }));
 
+// Add security headers middleware
+app.use((req, res, next) => {
+  // Content Security Policy
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'");
+  
+  // X-Frame-Options
+  res.setHeader('X-Frame-Options', 'DENY');
+  
+  // X-Content-Type-Options
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // X-XSS-Protection
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Referrer Policy
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Remove X-Powered-By header
+  res.removeHeader('X-Powered-By');
+  
+  next();
+});
+
 app.use(session({
   secret: 'divis@GeYT',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false, // Changed to false for better security
   cookie: {
     httpOnly: true,
-    // secure: process.env.NODE_ENV === "production", // Ensure cookies are sent over HTTPS in production
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: process.env.NODE_ENV === "production", // Enable in production
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'strict' // Add this for CSRF protection
   }
 }));
 
@@ -71,7 +104,16 @@ if(!fs.existsSync(uploadsDir)){
 app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname,'uploads')));
 
-
+// Disable unnecessary HTTP methods
+app.use((req, res, next) => {
+  const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE'];
+  
+  if (!allowedMethods.includes(req.method)) {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+  
+  next();
+});
 
 app.use(studentRoutes)
 app.use(examcentereRoutes)

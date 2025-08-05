@@ -9,7 +9,12 @@ const studentController = require('../controllers/student_exam');
 const studentController1 = require('../controllers/students/studentController')
 
 
-router.post('/student_login', studentController1.loginStudent);
+router.post('/student_login', (req, res, next) => {
+  studentController1.loginStudent(req, res).catch(err => {
+    console.error('Login error:', err); // Log detailed error server-side
+    res.status(500).json({ error: 'Authentication failed' }); // Generic error message
+  });
+});
 router.get('/student_logout',isAuthenticated, studentController1.logoutStudent);
 router.post('/student_info',studentController1.getStudentDetails);
 router.post('/audiologs',isAuthenticated, studentController.updateAudioLogs);

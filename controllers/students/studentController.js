@@ -134,6 +134,9 @@ exports.loginStudent = async (req, res) => {
     }
 };
 
+
+
+
 exports.logoutStudent = async (req, res) => {
     const studentId = req.session.studentId;
 
