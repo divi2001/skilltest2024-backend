@@ -1,3 +1,6 @@
+// routes/student_exam_routes.js
+// This file defines the routes for student exam functionalities.
+// It includes login, logout, fetching student details, and handling audio logs and feedback.
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');

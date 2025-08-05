@@ -1,3 +1,6 @@
+// app.js
+// This is the main entry point for the Shorthand Online Exam backend application.
+// It sets up the server, middleware, routes, and security configurations.
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
@@ -41,12 +44,22 @@ app.use(bodyParser.json());
 
 // CORS configuration
 const corsOptions = {
-  origin: ['*', 'http://localhost:3001', 'http://192.168.1.102:3001/'],// Your frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: [
+    'http://localhost:3001', 
+    'http://192.168.1.102:3001',
+    'http://3.109.1.101:3000', 
+    'http://3.109.1.101:3001', 
+    'http://3.109.1.101:3002', 
+    'http://43.204.22.53:5000', 
+    'https://www.shorthandonlineexam.in', 
+    'http://65.0.124.197:5000'
+  ], // Remove '*' for security
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
-}
+};
+
 
 // Use CORS with the above options
 app.use(cors(corsOptions));
@@ -57,7 +70,11 @@ app.use(cors({
 }));
 
 // Add security headers middleware
+// Add security headers middleware (UPDATE THIS SECTION)
 app.use((req, res, next) => {
+  // Strict-Transport-Security (HSTS) - Force HTTPS for 1 year
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  
   // Content Security Policy
   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'");
   
@@ -72,6 +89,32 @@ app.use((req, res, next) => {
   
   // Referrer Policy
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Permissions Policy - Restrict browser features
+  res.setHeader('Permissions-Policy', 
+    'geolocation=(), ' +
+    'camera=(), ' +
+    'microphone=(), ' +
+    'accelerometer=(), ' +
+    'ambient-light-sensor=(), ' +
+    'autoplay=(), ' +
+    'battery=(), ' +
+    'display-capture=(), ' +
+    'document-domain=(), ' +
+    'encrypted-media=(), ' +
+    'fullscreen=(), ' +
+    'gyroscope=(), ' +
+    'magnetometer=(), ' +
+    'midi=(), ' +
+    'payment=(), ' +
+    'picture-in-picture=(), ' +
+    'publickey-credentials-get=(), ' +
+    'screen-wake-lock=(), ' +
+    'sync-xhr=(), ' +
+    'usb=(), ' +
+    'web-share=(), ' +
+    'xr-spatial-tracking=()'
+  );
   
   // Remove X-Powered-By header
   res.removeHeader('X-Powered-By');
