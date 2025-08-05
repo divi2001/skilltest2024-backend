@@ -44,6 +44,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = 3000;
 
 // Force HTTPS redirect (for all environments)
