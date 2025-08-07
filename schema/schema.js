@@ -107,6 +107,7 @@ const schema = {
         id: 'INT PRIMARY KEY',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
         qset: 'INT',
+        departmentId:'INT',
         code_a: 'VARCHAR(10)',
         code_b: 'VARCHAR(10)',
         code_t: 'VARCHAR(10)',

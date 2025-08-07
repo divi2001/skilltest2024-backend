@@ -224,7 +224,7 @@ exports.getaudios = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
-    const audioQuery = "SELECT * FROM audiodb WHERE subjectId = ? AND qset = ?";
+    const audioQuery = "SELECT * FROM audiodb WHERE subjectId = ? AND qset = ? AND departmentId = ?";
 
     try {
         const [students] = await connection.query(studentQuery, [studentId]);
@@ -235,6 +235,7 @@ exports.getaudios = async (req, res) => {
         
         // Extract subjectsId and parse it to an array
         const subjectsId = student.subjectsId;
+        const departmentId = student.departmentId;
         const qset = student.qset;
         console.log(qset);
 
@@ -246,7 +247,7 @@ exports.getaudios = async (req, res) => {
         }
         const subject = subjects[0];
 
-        const [auidos] = await connection.query(audioQuery, [subjectId, qset]);
+        const [auidos] = await connection.query(audioQuery, [subjectId, qset, departmentId]);
         if (auidos.length === 0) {
             return res.status(404).send('audio not found');
         }
