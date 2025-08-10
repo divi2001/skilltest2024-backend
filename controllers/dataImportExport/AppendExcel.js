@@ -1,4 +1,3 @@
-// controllers\dataImportExport\AppendExcel.js
 const fs = require('fs');
 const xlsx = require('xlsx');
 const fastCsv = require('fast-csv');
@@ -53,6 +52,9 @@ const appendCSV = async (tableName, csvFilePath) => {
     // Check if table exists, if not create it
     await createTableIfNotExists(tableName, columns);
 
+    // Get primary key column(s) for the table
+    const primaryKeys = await getPrimaryKeys(tableName);
+
     const stream = fs.createReadStream(csvFilePath)
       .pipe(fastCsv.parse({ headers: true }))
       .on('error', (error) => {
@@ -62,6 +64,7 @@ const appendCSV = async (tableName, csvFilePath) => {
     const chunkSize = 100;
     let chunk = [];
     let totalInserted = 0;
+    let totalUpdated = 0;
     let isEmpty = true;
     let rowNumber = 1;
     let errors = [];
@@ -80,10 +83,11 @@ const appendCSV = async (tableName, csvFilePath) => {
         validateRow(tableName, filteredRow, rowNumber);
         chunk.push(filteredRow);
         if (chunk.length >= chunkSize) {
-          await insertOrUpdateChunk(tableName, columns.filter(col => col.toLowerCase() !== 'id'), chunk);
-          totalInserted += chunk.length;
+          const result = await insertOrUpdateChunk(tableName, columns.filter(col => col.toLowerCase() !== 'id'), chunk, primaryKeys);
+          totalInserted += result.inserted;
+          totalUpdated += result.updated;
           chunk = [];
-          console.log(`Inserted/Updated ${totalInserted} rows in '${tableName}' so far...`);
+          console.log(`Processed ${totalInserted + totalUpdated} rows in '${tableName}' so far... (${totalInserted} inserted, ${totalUpdated} updated)`);
         }
       } catch (error) {
         errors.push(`Row ${rowNumber}: ${error.message}`);
@@ -92,28 +96,43 @@ const appendCSV = async (tableName, csvFilePath) => {
 
     if (isEmpty) {
       console.log(`The Excel sheet for '${tableName}' is empty. No data to insert/update.`);
-      return { tableName, rowsProcessed: 0, errors };
+      return { tableName, rowsInserted: 0, rowsUpdated: 0, errors };
     }
 
     if (chunk.length > 0) {
       try {
-        await insertOrUpdateChunk(tableName, columns.filter(col => col.toLowerCase() !== 'id'), chunk);
-        totalInserted += chunk.length;
+        const result = await insertOrUpdateChunk(tableName, columns.filter(col => col.toLowerCase() !== 'id'), chunk, primaryKeys);
+        totalInserted += result.inserted;
+        totalUpdated += result.updated;
       } catch (error) {
         errors.push(`Error inserting/updating final chunk: ${error.message}`);
       }
     }
 
-    console.log(`Finished processing ${totalInserted} rows in '${tableName}'.`);
+    console.log(`Finished processing '${tableName}': ${totalInserted} rows inserted, ${totalUpdated} rows updated.`);
     if (errors.length > 0) {
       console.error(`Encountered ${errors.length} errors while processing '${tableName}':`);
       errors.forEach(error => console.error(error));
     }
-    return { tableName, rowsProcessed: totalInserted, errors };
+    return { tableName, rowsInserted: totalInserted, rowsUpdated: totalUpdated, errors };
   } catch (error) {
     console.error(`Error processing CSV for '${tableName}':`, error);
     throw error;
   }
+};
+
+const getPrimaryKeys = async (tableName) => {
+  const query = `
+    SELECT COLUMN_NAME 
+    FROM information_schema.KEY_COLUMN_USAGE 
+    WHERE TABLE_SCHEMA = DATABASE() 
+    AND TABLE_NAME = ? 
+    AND CONSTRAINT_NAME = 'PRIMARY'
+    ORDER BY ORDINAL_POSITION
+  `;
+  
+  const [result] = await executeQuery(query, [tableName]);
+  return result.map(row => row.COLUMN_NAME);
 };
 
 const createTableIfNotExists = async (tableName, columns) => {
@@ -143,7 +162,10 @@ const createTableIfNotExists = async (tableName, columns) => {
   }
 };
 
-const insertOrUpdateChunk = async (tableName, columns, chunk) => {
+const insertOrUpdateChunk = async (tableName, columns, chunk, primaryKeys) => {
+  // First, let's check which records already exist
+  const existingRecords = await checkExistingRecords(tableName, chunk, primaryKeys);
+  
   const insertQuery = `
       INSERT INTO ?? (${columns.map(column => `\`${column}\``).join(', ')}) 
       VALUES ? 
@@ -210,11 +232,48 @@ const insertOrUpdateChunk = async (tableName, columns, chunk) => {
     });
   });
 
-  await executeQuery(insertQuery, [tableName, values]);
+  const [result] = await executeQuery(insertQuery, [tableName, values]);
+  
+  // Calculate inserted vs updated based on affectedRows and existing records
+  const totalAffected = result.affectedRows;
+  const updated = existingRecords.length;
+  const inserted = totalAffected - updated;
+  
+  return { inserted: Math.max(0, inserted), updated };
 };
-// Reuse the existing validateRow, executeQuery functions...
 
+const checkExistingRecords = async (tableName, chunk, primaryKeys) => {
+  if (primaryKeys.length === 0) {
+    return [];
+  }
 
+  // Build conditions for checking existing records
+  const conditions = chunk.map(row => {
+    const pkConditions = primaryKeys.map(pk => {
+      const value = row[pk];
+      return value !== null && value !== undefined ? `\`${pk}\` = ?` : `\`${pk}\` IS NULL`;
+    }).join(' AND ');
+    return `(${pkConditions})`;
+  }).join(' OR ');
+
+  if (!conditions) {
+    return [];
+  }
+
+  const values = chunk.flatMap(row => 
+    primaryKeys.map(pk => row[pk]).filter(val => val !== null && val !== undefined)
+  );
+
+  const checkQuery = `SELECT ${primaryKeys.map(pk => `\`${pk}\``).join(', ')} FROM ?? WHERE ${conditions}`;
+  
+  try {
+    const [result] = await executeQuery(checkQuery, [tableName, ...values]);
+    return result || [];
+  } catch (error) {
+    console.error('Error checking existing records:', error);
+    return [];
+  }
+};
 
 const validateRow = (tableName, row, rowNumber) => {
   if (tableName === 'students' && (!row.student_id || row.student_id.trim() === '')) {
@@ -246,8 +305,5 @@ const executeQuery = async (query, params, retries = 3) => {
   }
   throw lastError;
 };
-
-
-
 
 module.exports = { appendExcel };

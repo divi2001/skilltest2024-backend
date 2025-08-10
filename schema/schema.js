@@ -44,6 +44,7 @@ const schema = {
     },
     departmentdb: {
         departmentId: 'INT PRIMARY KEY',
+        login_id: 'INT',
         departmentName: 'VARCHAR(255)',
         departmentPassword: 'LONGTEXT',
         logo: 'LONGTEXT',
