@@ -253,39 +253,86 @@ exports.getStudentDetails = async (req, res) => {
     // console.log('Ending getStudentDetails function');
 };
 
-exports.totalLoginCounts = async (req,res) => {
-
-    const {center ,batchNo , department} = req.body;
-    // console.log(req.body);
-
+exports.totalLoginCounts = async (req, res) => {
+    const { center, batchNo, department, subject_name, loginStatus, exam_type, batchDate } = req.body;
+    
     try {
-        let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 1 '
+        let query = `SELECT 
+            COUNT(DISTINCT s.student_id) as total_count 
+        FROM students s
+        LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
+        WHERE 1=1`;
+        
         let queryParams = [];
-        if(department){
-           query +=' AND departmentId = ?';
-           queryParams.push(department);
+
+        // Apply login status filter (this was missing before)
+        if (loginStatus) {
+            if (loginStatus === 'loggedin') {
+                query += ' AND s.loggedin = 1';
+            } else if (loginStatus === 'loggedout') {
+                query += ' AND s.loggedin = 0';
+            }
+        } else {
+            // If no specific login status filter, count only logged in users for "Total logged in"
+            query += ' AND s.loggedin = 1';
         }
-        if(center){
-            query += ' AND center = ?';
+
+        if (department) {
+            query += ' AND s.departmentId = ?';
+            queryParams.push(department);
+        }
+
+        if (center) {
+            query += ' AND s.center = ?';
             queryParams.push(center);
         }
-        if(center && batchNo){
-            query += ' AND batchNo = ?';
+
+        if (batchNo) {
+            query += ' AND s.batchNo = ?';
             queryParams.push(batchNo);
         }
-        if(!center &&batchNo){
-            return res.status(404).json({"Message":"You should also provide center no. to get the login count of a perticular batch"})
+
+        // Add subject filter
+        if (subject_name) {
+            query += ' AND sub.subject_name = ?';
+            queryParams.push(subject_name);
         }
 
-        const [result] = await connection.query(query,queryParams);
-        // console.log(result[0]);
-        res.status(200).json(result[0])
+        // Add exam type filter
+        if (exam_type) {
+            if (exam_type === 'shorthand') {
+                query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
+            } else if (exam_type === 'typewriting') {
+                query += ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0';
+            } else if (exam_type === 'both') {
+                query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1';
+            }
+        }
+
+        // Add batch date filter
+        if (batchDate) {
+            // Convert date format if needed (same as in main controller)
+            const convertedDate = convertDateFormat(batchDate);
+            query += ' AND s.batchdate = ?';
+            queryParams.push(convertedDate);
+        }
+
+        console.log('Login count query:', query);
+        console.log('Login count params:', queryParams);
+
+        const [result] = await connection.query(query, queryParams);
+        res.status(200).json(result[0]);
         
     } catch (error) {
-        console.log(error);
-        res.status(500).json({})
+        console.log('Error in totalLoginCounts:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-    
+};
+
+// Helper function (add this if not already present)
+function convertDateFormat(dateString) {
+    const [day, month, year] = dateString.split('/');
+    return moment.tz(`${day}/${month}/${year}`, 'YYYY-MM-DD', 'Asia/Kolkata').toDate();
 }
 
 exports.getStudentResetRequests = async (req, res) => {

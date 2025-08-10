@@ -1,48 +1,28 @@
 const connection = require('../config/db1');
 const moment = require('moment-timezone');
 const { encrypt, decrypt } = require('../config/encrypt');
-
+const mysql = require('mysql2/promise');
 exports.loginadmin = async (req, res) => {
     const { userId, password } = req.body;
     console.log('Login attempt - UserID:', userId);
 
     const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
 
-    let dm = encrypt(password);
-    console.log('Encrypted stored password:', dm);
-
     try {
         const [results] = await connection.query(query1, [userId]);
-        console.log(results)
+        console.log(results);
 
         if (results.length > 0) {
             const admin = results[0];
             console.log('Admin found in database:', admin.adminid);
 
-            let decryptedStoredPassword;
-            try {
-                decryptedStoredPassword = decrypt(admin.password);
-                console.log('Decrypted stored password: ', decryptedStoredPassword);
-                // decryptedStoredPassword = (admin.password);
-                console.log('Stored password:', decryptedStoredPassword);
-                console.log('Provided password:', password);
-            } catch (error) {
-                console.error('Error decrypting stored password:', error);
-                res.status(500).send('Error decrypting stored password');
-                return;
-            }
+            // Direct comparison since database has plain text password
+            const storedPassword = admin.password;
+            
+            console.log('Stored password:', storedPassword);
+            console.log('Provided password:', password);
 
-            // Ensure both passwords are treated as strings
-            const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
-            const providedPasswordStr = String(password).trim();
-
-            console.log('Comparing passwords:');
-            console.log('Stored (after trim):', decryptedStoredPasswordStr);
-
-            console.log('Provided (after trim):', providedPasswordStr);
-            console.log('Passwords match:', decryptedStoredPasswordStr === providedPasswordStr);
-
-            if (decryptedStoredPasswordStr === providedPasswordStr) {
+            if (storedPassword === password) {
                 console.log('Login successful for admin:', admin.adminid);
                 req.session.adminid = admin.adminid;
                 res.send('Logged in successfully as an admin!');
@@ -60,7 +40,7 @@ exports.loginadmin = async (req, res) => {
     }
 };
 
-const mysql = require('mysql2/promise');
+
 
 exports.fetchTableData = async (req, res) => {
     console.log("Fetching table data for admin");
