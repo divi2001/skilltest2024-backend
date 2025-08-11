@@ -77,6 +77,7 @@ async function getData(center, batchNo) {
         return { 
             response: decryptedResults, 
             departmentName:results[0].departmentName,
+            departmentExam:results[0].departmentExam,
             logo:results[0].logo,
             batchData: batchData
         };
