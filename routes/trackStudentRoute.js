@@ -7,7 +7,9 @@ const trackStudentController = require('../controllers/centerAdminMonitoring/tra
 
 // router.post('/track-students-on-exam-center-code', trackStudentController.getStudentsTrack);
 router.post('/track-students-on-exam-center-code', trackStudentController.getBatchesByDepartment);
-router.post('/get-active-departments', trackStudentController.getActiveDepartments)
+// In your routes file
+router.post('/get-batches-by-department', trackStudentController.getBatchesByDepartment);
+// router.post('/get-active-departments', trackStudentController.getActiveDepartments)
 //router.post('/track-students-on-exam-center-code/:examCenterCode/:batchNo',  trackStudentController.getStudentsTrack);
 //router.post('/track-students-on-exam-center-code/:examCenterCode', trackStudentController.getStudentsTrack);
 router.post('/track-students-on-exam-center-code/:batchNo', trackStudentController.getStudentsTrack);

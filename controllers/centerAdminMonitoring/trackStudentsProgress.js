@@ -486,6 +486,7 @@ exports.getBatchesByDepartment = async (req, res) => {
     try {
         const { departmentId } = req.body;
         const examCenterCode = req.session.centerId;
+        console.log(departmentId,examCenterCode)
 
         if (!examCenterCode) {
             return res.status(404).json({message: "Center admin is not logged in"});
@@ -910,9 +911,11 @@ exports.getStudentsByBatchAndDepartment = async (req, res) => {
 
 // Get batch numbers for a specific department (optional utility function)
 exports.getBatchesByDepartment = async (req, res) => {
+    console.log('this is called')
     try {
-        const { departmentId } = req.params;
+        const { departmentId } = req.body;
         const examCenterCode = req.session.centerId;
+        console.log(departmentId)
         
         if (!examCenterCode) {
             return res.status(401).json({ message: "Center admin is not logged in" });
