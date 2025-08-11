@@ -12,7 +12,7 @@ function createAttendanceReport(doc , data) {
             });
 
         doc.fontSize(12).font('Helvetica')
-            .text('GCC COMPUTER SHORTHAND EXAMINATION FEBRUARY 2025', 110, doc.y + 5, {
+            .text(data.departmentExam, 110, doc.y + 5, {
                 width: 450,
                 align: 'center'
             });
@@ -315,6 +315,7 @@ const AttendanceReport = async(doc,center,batchNo) => {
             }
         }),
         departmentName:response[0].departmentName,
+        departmentExam:response[0].departmentExam,
         departmentLogo:response[0].logo
     }
     createAttendanceReport(doc,data);
