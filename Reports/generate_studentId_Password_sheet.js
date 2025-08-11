@@ -2,6 +2,15 @@ const connection = require("../config/db1");
 const moment = require('moment-timezone');
 const {decrypt} = require('../config/encrypt');
 
+// Helper function to strip last two digits from student ID to create Login ID
+function generateLoginId(studentId) {
+    const idStr = studentId.toString();
+    if (idStr.length <= 2) {
+        return idStr; // Return as is if length is 2 or less
+    }
+    return idStr.slice(0, -2); // Remove last 2 characters
+}
+
 // Helper function to format time to 12-hour format
 function formatTime(timeString) {
     if (!timeString) {
@@ -61,6 +70,7 @@ async function getData(center, batchNo) {
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
             student_id: String(row.student_id),
+            login_id: generateLoginId(String(row.student_id)), // Generate Login ID
             password: await decrypt(row.password)
         })));
 
@@ -109,31 +119,63 @@ function addHeader(doc, data) {
 
 function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
     const cellPadding = 5;
-    const columnWidth = tableWidth / 2;
+    const seatNoWidth = tableWidth * 0.35; // Increased from 33% to 45% for Seat No.
+    const loginIdWidth = tableWidth * 0.40; // Decreased from 33% to 30% for Login ID
+    const passwordWidth = tableWidth * 0.25; // Decreased from 34% to 25% for Password
     const rowHeight = 20;
 
     // Draw table header
-    doc.font('Helvetica-Bold').fontSize(10);
+    doc.font('Helvetica-Bold').fontSize(9);
     doc.rect(tableLeft, currentY, tableWidth, rowHeight).stroke();
-    doc.text('Seat No.', tableLeft + cellPadding, currentY + cellPadding, { width: columnWidth - cellPadding * 2 });
-    doc.text('Password', tableLeft + columnWidth + cellPadding, currentY + cellPadding, { width: columnWidth - cellPadding * 2 });
+    
+    // Header texts
+    doc.text('Seat No.', tableLeft + cellPadding, currentY + cellPadding, { 
+        width: seatNoWidth - cellPadding * 2,
+        align: 'center'
+    });
+    doc.text('Login ID' , tableLeft + seatNoWidth + cellPadding, currentY + cellPadding, { 
+        width: loginIdWidth - cellPadding * 2,
+        align: 'center'
+    });
+    doc.text('Password', tableLeft + seatNoWidth + loginIdWidth + cellPadding, currentY + cellPadding, { 
+        width: passwordWidth - cellPadding * 2,
+        align: 'center'
+    });
 
-    // Add vertical line in header
-    doc.moveTo(tableLeft + columnWidth, currentY)
-       .lineTo(tableLeft + columnWidth, currentY + rowHeight)
+    // Add vertical lines in header
+    doc.moveTo(tableLeft + seatNoWidth, currentY)
+       .lineTo(tableLeft + seatNoWidth, currentY + rowHeight)
+       .stroke();
+    doc.moveTo(tableLeft + seatNoWidth + loginIdWidth, currentY)
+       .lineTo(tableLeft + seatNoWidth + loginIdWidth, currentY + rowHeight)
        .stroke();
 
     // Draw table rows
-    doc.font('Helvetica').fontSize(10);
+    doc.font('Helvetica').fontSize(9);
     students.forEach((student, index) => {
         const rowY = currentY + rowHeight * (index + 1);
         doc.rect(tableLeft, rowY, tableWidth, rowHeight).stroke();
-        doc.text(student.student_id, tableLeft + cellPadding, rowY + cellPadding, { width: columnWidth - cellPadding * 2 });
-        doc.text(student.password, tableLeft + columnWidth + cellPadding, rowY + cellPadding, { width: columnWidth - cellPadding * 2 });
+        
+        // Cell contents
+        doc.text(student.login_id, tableLeft + cellPadding, rowY + cellPadding, { 
+            width: seatNoWidth - cellPadding * 2,
+            align: 'center'
+        });
+        doc.text(student.student_id, tableLeft + seatNoWidth + cellPadding, rowY + cellPadding, { 
+            width: loginIdWidth - cellPadding * 2,
+            align: 'center'
+        });
+        doc.text(student.password, tableLeft + seatNoWidth + loginIdWidth + cellPadding, rowY + cellPadding, { 
+            width: passwordWidth - cellPadding * 2,
+            align: 'center'
+        });
 
-        // Add vertical line in row
-        doc.moveTo(tableLeft + columnWidth, rowY)
-           .lineTo(tableLeft + columnWidth, rowY + rowHeight)
+        // Add vertical lines in row
+        doc.moveTo(tableLeft + seatNoWidth, rowY)
+           .lineTo(tableLeft + seatNoWidth, rowY + rowHeight)
+           .stroke();
+        doc.moveTo(tableLeft + seatNoWidth + loginIdWidth, rowY)
+           .lineTo(tableLeft + seatNoWidth + loginIdWidth, rowY + rowHeight)
            .stroke();
     });
 

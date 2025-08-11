@@ -1,6 +1,15 @@
 const connection = require("../config/db1");
 const moment = require('moment-timezone'); // Make sure to install and import moment.js for easier date handling
 
+// Helper function to strip last two digits from student ID
+function stripLastTwoDigits(studentId) {
+    const idStr = studentId.toString();
+    if (idStr.length <= 2) {
+        return idStr; // Return as is if length is 2 or less
+    }
+    return idStr.slice(0, -2); // Remove last 2 characters
+}
+
 // Helper function to format time to 12-hour format
 function formatTime(timeString) {
     if (!timeString) {
@@ -182,6 +191,7 @@ function createTable(doc, seatNumbers, headerData) {
                 const textHeight = doc.currentLineHeight();
                 const textY = currentY + (cellHeight - textHeight) / 2;
 
+                // Display the stripped seat number
                 doc.text(seatNumbers[i + j], currentX, textY, {
                     width: cellWidth,
                     align: 'center'
@@ -267,7 +277,7 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
             batch: batchNo.toString(),
             examDate: examDate,
             examTime: formattedExamTime, // Now in 12-hour format
-            seatNumbers: response.map(student => student.student_id.toString()),
+            seatNumbers: response.map(student => stripLastTwoDigits(student.student_id.toString())), // Strip last two digits
             departmentName: response[0].departmentName,
             departmentLogo: response[0].logo
         };

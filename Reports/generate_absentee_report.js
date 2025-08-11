@@ -52,6 +52,15 @@ function formatTime(timeString) {
     return timeStr;
 }
 
+// Helper function to strip last two digits from student ID
+function stripLastTwoDigits(studentId) {
+    const idStr = studentId.toString();
+    if (idStr.length <= 2) {
+        return idStr; // Return as is if length is 2 or less
+    }
+    return idStr.slice(0, -2); // Remove last 2 characters
+}
+
 async function getData(center, batchNo, departmentId) {
     try {
         // Modified query to get ALL students, not just absent ones
@@ -232,10 +241,10 @@ function createTable(doc, students, headerData) {
                 const textHeight = doc.currentLineHeight();
                 const textY = currentY + (cellHeight - textHeight) / 2;
 
-                // Display student ID with status indicator (optional)
-                const displayText = student.student_id.toString();
+                // Strip last two digits from student ID before displaying
+                const displayText = stripLastTwoDigits(student.student_id);
                 // You can add a marker for absent students if needed:
-                // const displayText = student.loggedin === 0 ? `${student.student_id} (A)` : student.student_id.toString();
+                // const displayText = student.loggedin === 0 ? `${stripLastTwoDigits(student.student_id)} (A)` : stripLastTwoDigits(student.student_id);
 
                 doc.text(displayText, currentX, textY, {
                     width: cellWidth,

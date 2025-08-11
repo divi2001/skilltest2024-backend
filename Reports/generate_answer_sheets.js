@@ -2,6 +2,15 @@ const connection = require("../config/db1");
 const QRCode = require('qrcode');
 const moment = require('moment-timezone');
 
+// Helper function to strip last two digits from student ID
+function stripLastTwoDigits(studentId) {
+    const idStr = studentId.toString();
+    if (idStr.length <= 2) {
+        return idStr; // Return as is if length is 2 or less
+    }
+    return idStr.slice(0, -2); // Remove last 2 characters
+}
+
 // Helper function to format time to 12-hour format
 function formatTime(timeString) {
     if (!timeString) {
@@ -201,7 +210,8 @@ async function createAnswerSheet(doc, data) {
     }
     
     for (const student of data.students) {
-        await createPage(doc, student, true, `https://www.shorthandonlineexam.in/student_info/${student.seatNo}`);
+        // Use the original seatNo for QR code URL (which contains the full student_id)
+        await createPage(doc, student, true, `https://www.shorthandonlineexam.in/student_info/${student.originalSeatNo}`);
         doc.addPage();
         await createPage(doc, student, false);
         if (student !== data.students[data.students.length - 1]) {
@@ -304,7 +314,8 @@ const generateAnswerSheets = async(doc, center, batchNo, student_id, departmentI
             examDate: examDate,
             start_time: formattedStartTime, // Now in 12-hour format
             students: response.map(student => ({
-                seatNo: student.student_id?.toString() || '',
+                seatNo: stripLastTwoDigits(student.student_id?.toString() || ''), // Strip last two digits for display
+                originalSeatNo: student.student_id?.toString() || '', // Keep original for QR code
                 name: student.fullname || '',
                 subject: getTextBeforePlus(student.subject_name),
                 photoBase64: student.base64 || " "
