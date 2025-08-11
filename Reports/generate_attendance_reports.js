@@ -123,9 +123,9 @@ function createAttendanceReport(doc, data) {
     const headerRowHeight = 30;
     const pageBreakThreshold = 700;
 
-    // Removed 'SIGN\n(uploaded)' column and redistributed widths to maintain same total width (520px)
+    // Added 'SIGNATURE' column after 'PHOTO\n(uploaded)' and adjusted widths
     const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGNATURE'];
-    const columnWidths = [40, 80, 200, 80, 70, 50]; // Total: 520px (same as before)
+    const columnWidths = [40, 80, 180, 80, 70, 70]; // Total: 520px, reduced NAME column by 20px to accommodate SIGNATURE
 
     function drawTableHeaders(yPosition) {
         let xPosition = tableLeft;
