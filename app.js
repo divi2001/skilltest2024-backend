@@ -1,3 +1,5 @@
+// app.js
+// This file is the main entry point for the application.
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
