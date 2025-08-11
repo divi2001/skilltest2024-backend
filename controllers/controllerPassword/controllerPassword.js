@@ -27,7 +27,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
 
 exports.getControllerPassForCenter = async (req, res) => {
     const centerCode = req.session.centerId;
-    const { batchNo, departmentId } = req.body; // Add departmentId filter
+    const { departmentId } = req.body; // Add departmentId filter
 
     console.log("CenterCode: " + centerCode);
     console.log("Department Filter: " + departmentId);
