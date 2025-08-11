@@ -54,7 +54,7 @@ function formatTime(timeString) {
 async function getData(center, batchNo) {
     try {
         // console.log(center, batchNo);
-        const query = 'SELECT s.student_id , d.departmentName ,  d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
+        const query = 'SELECT s.student_id , d.departmentName , d.departmentExam,  d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
         const response = await connection.query(query, [batchNo, center]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
@@ -87,7 +87,7 @@ function addHeader(doc, data) {
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025', 110, doc.y + 5, {
+        .text(data.departmentExam, 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
@@ -279,6 +279,7 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
             examTime: formattedExamTime, // Now in 12-hour format
             seatNumbers: response.map(student => stripLastTwoDigits(student.student_id.toString())), // Strip last two digits
             departmentName: response[0].departmentName,
+            departmentExam: response[0].departmentExam,
             departmentLogo: response[0].logo
         };
 
