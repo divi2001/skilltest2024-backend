@@ -123,9 +123,9 @@ function createAttendanceReport(doc, data) {
     const headerRowHeight = 30;
     const pageBreakThreshold = 700;
 
-    // Added 'SIGNATURE' column after 'PHOTO\n(uploaded)' and adjusted widths
-    const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGNATURE'];
-    const columnWidths = [40, 80, 180, 80, 70, 70]; // Total: 520px, reduced NAME column by 20px to accommodate SIGNATURE
+    // Added 'SIGN\n(uploaded)' column after PHOTO column
+    const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE'];
+    const columnWidths = [40, 70, 180, 70, 60, 60, 40]; // Total: 520px (redistributed to accommodate new column)
 
     function drawTableHeaders(yPosition) {
         let xPosition = tableLeft;
@@ -209,8 +209,32 @@ function createAttendanceReport(doc, data) {
             }
             xPosition += columnWidths[4];
 
-            // SIGNATURE (empty space for manual signature)
+            // SIGN (uploaded) - New column for uploaded signature
             doc.rect(xPosition, yPosition, columnWidths[5], rowHeight).stroke();
+            if (student.signatureBase64) {
+                try {
+                    doc.image(Buffer.from(student.signatureBase64, 'base64'), xPosition + 2, yPosition + 2, {
+                        fit: [columnWidths[5] - 4, rowHeight - 4],
+                        align: 'center',
+                        valign: 'center'
+                    });
+                } catch (error) {
+                    console.error(`Error loading signature for student ${student.seatNo}:`, error);
+                    doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                        width: columnWidths[5],
+                        align: 'center'
+                    });
+                }
+            } else {
+                doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                    width: columnWidths[5],
+                    align: 'center'
+                });
+            }
+            xPosition += columnWidths[5];
+
+            // SIGNATURE (empty space for manual signature)
+            doc.rect(xPosition, yPosition, columnWidths[6], rowHeight).stroke();
 
             yPosition += rowHeight;
             studentsOnCurrentPage++;
@@ -269,7 +293,8 @@ function createAttendanceReport(doc, data) {
 const getData = async(center, batchNo, departmentId) => {
     try {
         console.log(center, batchNo);
-        const query = 'SELECT s.fullname, s.student_id, s.base64, sub.subject_name_short, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+        // Updated query to include signature field - assuming it's named 'signature' in the database
+        const query = 'SELECT s.fullname, s.student_id, s.base64, s.signature, sub.subject_name_short, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
         const response = await connection.query(query, [center, batchNo, departmentId]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
         const batchData = await connection.query(batchquery, [batchNo, departmentId]);
@@ -344,7 +369,8 @@ const AttendanceReport = async(doc, center, batchNo, departmentId) => {
                     seatNo: stripLastTwoDigits(student.student_id.toString()), // Strip last two digits
                     name: student.fullname,
                     subject: student.subject_name_short,
-                    photoBase64: student.base64
+                    photoBase64: student.base64,
+                    signatureBase64: student.signature // Added signature field
                 }
             }),
             departmentName: response[0]?.departmentName || 'GCC Examination',
