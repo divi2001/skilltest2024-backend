@@ -137,7 +137,14 @@ createAttendanceTable();
 
 exports.getStudentsTrack = async (req, res) => {
     console.log('Starting getStudentsTrack function');
-    const { batchNo } = req.params;
+    let { batchNo } = req.params;
+    
+    // Handle "all" batches case - treat as no batch filter
+    if (batchNo === "all") {
+        batchNo = null; // This will make the batch filter be ignored
+        console.log("All batches requested - ignoring batch filter");
+    }
+    
     const examCenterCode = req.session.centerId;
     let { subject_name, loginStatus, batchDate, exam_type, departmentId } = req.query;
 
@@ -203,7 +210,7 @@ exports.getStudentsTrack = async (req, res) => {
             return res.status(404).json({message: 'No students with selected department found for this center'});
         }
         
-        // Step 3: Check if batch number exists (if provided)
+        // Step 3: Check if batch number exists (only if batchNo is provided and not null)
         if (batchNo) {
             const batchQuery = `SELECT COUNT(*) as count FROM students WHERE center = ? AND batchNo = ? AND departmentId IN (${departmentPlaceholders})`;
             const [batchResult] = await connection.query(batchQuery, [examCenterCode, batchNo, ...targetDepartmentIds]);
@@ -213,16 +220,27 @@ exports.getStudentsTrack = async (req, res) => {
                 console.log(`No students found for batch: ${batchNo} in center: ${examCenterCode}`);
                 return res.status(404).json({message: `No students found for batch: ${batchNo}`});
             }
+        } else {
+            console.log("No specific batch filter applied - will get all batches");
         }
         
         // Step 4: Check if subject exists (if provided)
         if (subject_name) {
-            const subjectQuery = `
+            let subjectQuery = `
                 SELECT COUNT(*) as count 
                 FROM students s
                 JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
                 WHERE s.center = ? AND sub.subject_name = ? AND s.departmentId IN (${departmentPlaceholders})`;
-            const [subjectResult] = await connection.query(subjectQuery, [examCenterCode, subject_name, ...targetDepartmentIds]);
+            
+            let subjectParams = [examCenterCode, subject_name, ...targetDepartmentIds];
+            
+            // Add batch filter to subject check if batchNo is specified
+            if (batchNo) {
+                subjectQuery += ` AND s.batchNo = ?`;
+                subjectParams.push(batchNo);
+            }
+            
+            const [subjectResult] = await connection.query(subjectQuery, subjectParams);
             console.log(`Students with subject ${subject_name} for center ${examCenterCode}:`, subjectResult[0].count);
             
             if (subjectResult[0].count === 0) {
@@ -239,6 +257,7 @@ exports.getStudentsTrack = async (req, res) => {
         
         let queryParams = [examCenterCode, ...targetDepartmentIds];
         
+        // Only add batch condition if batchNo is not null
         if (batchNo) {
             studentsConditionQuery += ` AND s.batchNo = ?`;
             queryParams.push(batchNo);
@@ -293,26 +312,42 @@ exports.getStudentsTrack = async (req, res) => {
         console.log("Checking each join separately...");
         
         // Check subjectsdb join
-        const subjectsJoinQuery = `
+        let subjectsJoinQuery = `
             SELECT COUNT(*) as count 
             FROM students s
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
             WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
-        const [subjectsJoinResult] = await connection.query(subjectsJoinQuery, [examCenterCode, ...targetDepartmentIds]);
+        
+        let subjectsJoinParams = [examCenterCode, ...targetDepartmentIds];
+        
+        if (batchNo) {
+            subjectsJoinQuery += ` AND s.batchNo = ?`;
+            subjectsJoinParams.push(batchNo);
+        }
+        
+        const [subjectsJoinResult] = await connection.query(subjectsJoinQuery, subjectsJoinParams);
         console.log("Results after subjectsdb join:", subjectsJoinResult[0].count);
         
         // Check audiologs join
-        const audioJoinQuery = `
+        let audioJoinQuery = `
             SELECT COUNT(*) as count 
             FROM students s
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
             LEFT JOIN audiologs a ON s.student_id = a.student_id
             WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
-        const [audioJoinResult] = await connection.query(audioJoinQuery, [examCenterCode, ...targetDepartmentIds]);
+        
+        let audioJoinParams = [examCenterCode, ...targetDepartmentIds];
+        
+        if (batchNo) {
+            audioJoinQuery += ` AND s.batchNo = ?`;
+            audioJoinParams.push(batchNo);
+        }
+        
+        const [audioJoinResult] = await connection.query(audioJoinQuery, audioJoinParams);
         console.log("Results after audiologs join:", audioJoinResult[0].count);
         
         // Check studentlogs join
-        const logsJoinQuery = `
+        let logsJoinQuery = `
             SELECT COUNT(*) as count 
             FROM students s
             LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId
@@ -327,7 +362,15 @@ exports.getStudentsTrack = async (req, res) => {
                     student_id
             ) sl ON s.student_id = sl.student_id
             WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
-        const [logsJoinResult] = await connection.query(logsJoinQuery, [examCenterCode, ...targetDepartmentIds]);
+        
+        let logsJoinParams = [examCenterCode, ...targetDepartmentIds];
+        
+        if (batchNo) {
+            logsJoinQuery += ` AND s.batchNo = ?`;
+            logsJoinParams.push(batchNo);
+        }
+        
+        const [logsJoinResult] = await connection.query(logsJoinQuery, logsJoinParams);
         console.log("Results after studentlogs join:", logsJoinResult[0].count);
         
         // Step 7: Final full query with all conditions
@@ -397,6 +440,7 @@ exports.getStudentsTrack = async (req, res) => {
         // Prepare final query parameters
         let finalQueryParams = [...targetDepartmentIds, examCenterCode];
         
+        // Only add batchNo if it's not null
         if (batchNo) finalQueryParams.push(batchNo);
         if (subject_name) finalQueryParams.push(subject_name);
         if (batchDate) {

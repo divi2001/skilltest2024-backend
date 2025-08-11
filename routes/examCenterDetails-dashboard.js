@@ -11,7 +11,7 @@ const {getCenterBatchNumbers} = require('../controllers/examcenter');
 router.get('/get-center-centerpass', examCenterController.getExamCenter);
 router.get('/get-center-details', examCenter.getExamCenterDetails);
 router.get('/get-pdfs', examCenterFunc.getPdfFromExamCenterDb);
-router.post('/get-controller-pass', getControllerPassForCenter);
+router.get('/get-controller-pass', getControllerPassForCenter);
 router.post('/get-batch-controller-password',getBatchwiseControllerPassForCenter);
 router.get('/get-pcregistration', getPcRegistrations);
 router.get('/get-current-student-details',getCurrentStudentDetails);

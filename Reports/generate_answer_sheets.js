@@ -211,7 +211,7 @@ async function createAnswerSheet(doc, data) {
     
     for (const student of data.students) {
         // Use the original seatNo for QR code URL (which contains the full student_id)
-        await createPage(doc, student, true, `https://www.shorthandonlineexam.in/student_info/${student.originalSeatNo}`);
+        await createPage(doc, student, true, `http://localhost:3000/student_info/${student.originalSeatNo}`);
         doc.addPage();
         await createPage(doc, student, false);
         if (student !== data.students[data.students.length - 1]) {
