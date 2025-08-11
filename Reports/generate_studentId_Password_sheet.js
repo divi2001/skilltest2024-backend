@@ -106,7 +106,7 @@ function addHeader(doc, data) {
 
     doc.moveDown();
     const yPosition = doc.y-8;
-    const fontSize = 12;
+    const fontSize = 10;
     const spacer = '\u00A0\u00A0';
     doc.fontSize(fontSize).font('Helvetica');
 
