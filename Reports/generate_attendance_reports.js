@@ -66,7 +66,7 @@ function createAttendanceReport(doc , data) {
     const pageBreakThreshold = 700;
 
     const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE'];
-    const columnWidths = [40, 60, 170, 60, 60, 60, 70];
+    const columnWidths = [40, 65, 170, 60, 60, 60, 65];
 
     function drawTableHeaders(yPosition) {
         let xPosition = tableLeft;
