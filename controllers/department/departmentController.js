@@ -5,41 +5,47 @@ const { decrypt } = require("../../config/encrypt");
 const moment = require('moment-timezone');
 
 exports.departementLogin = async (req, res) => {
-    console.log("Trying Department admin login");
-    const { departmentId, password } = req.body;
-    console.log(req.body);
-    const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
-
     try {
-        const [results] = await connection.query(departmentdbQuery, [departmentId]);
-        console.log(results);
-        if (results.length > 0) {
-            const admin = results[0];
-            console.log("data: "+admin);
-            console.log(admin)
-            let decryptedStoredPassword = await decrypt(admin.departmentPassword);
-            console.log(decryptedStoredPassword);
-            try {
-                // console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
-            } catch (error) {
-                console.log(error);
-            }
-
-            if ( decryptedStoredPassword === password) {
-                // Set institute session
-                req.session.departmentId = admin.departmentId;
-                console.log("Logged in successfully as an department admin!")
-                res.status(200).send({ "message": 'Logged in successfully as an department admin!' });
-            } else {
-                res.status(401).send('Invalid credentials for center admin');
-            }
-        } else {
-            res.status(404).send({ "message": 'department not found' });
+        const { departmentId, password } = req.body;
+        
+        if (!departmentId || !password) {
+            return res.status(400).send({ "message": "Department ID and password are required" });
         }
+
+        const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE login_id = ?';
+        const [results] = await connection.query(departmentdbQuery, [departmentId]);
+
+        if (results.length === 0) {
+            return res.status(404).send({ 
+                "message": 'Department not found',
+                "details": `No department found with ID: ${departmentId}`
+            });
+        }
+
+        const admin = results[0];
+        const decryptedStoredPassword = await decrypt(admin.departmentPassword);
+
+        if (decryptedStoredPassword === password) {
+            req.session.departmentId = admin.departmentId;
+            return res.status(200).send({ 
+                "message": 'Logged in successfully as a department admin!',
+                "loginId": admin.login_id
+            });
+        }
+
+        return res.status(401).send({ 
+            "message": 'Invalid credentials',
+            "details": 'Password does not match'
+        });
+
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Department login error:', err);
+        return res.status(500).send({ 
+            "message": "Internal server error",
+            "details": err.message
+        });
     }
-}
+};
 
 // CRITICAL FIX: Send raw datetime strings to frontend without timezone conversion
 function formatDate(dateString) {

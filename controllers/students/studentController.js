@@ -68,20 +68,20 @@ exports.loginStudent = async (req, res) => {
             return res.status(404).send('invalid credentials 2');
         }
 
-        // const batchStatus = batchResults[0].batchstatus;
+        const batchStatus = batchResults[0].batchstatus;
 
-        // if (batchStatus !== 1) {
-        //     return res.status(401).send('invalid credentials 3');
-        // }
+        if (batchStatus !== 1) {
+            return res.status(401).send('invalid credentials 3');
+        }
 
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
         const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
         // console.log(registrations)
 
-        // if (registrations.length===0) {
-        //     return res.status(401).send('pc not registered');
-        // }
+        if (registrations.length===0) {
+            return res.status(401).send('pc not registered');
+        }
 
         let decryptedStoredPassword, decryptedStoredPassword1;
         try {
