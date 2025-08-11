@@ -300,12 +300,18 @@ const AttendanceReport = async(doc,center,batchNo) => {
         examDate: examDate,
         examTime: batchInfo.start_time,
         students: response.map(student => {
+            // Strip last two digits from student_id
+            const originalStudentId = student.student_id.toString();
+            const strippedStudentId = originalStudentId.length > 2 ? 
+                originalStudentId.slice(0, -2) : 
+                originalStudentId;
+            
             return {
-                seatNo: student.student_id.toString(),
+                seatNo: strippedStudentId,
                 name: student.fullname,
                 subject: student.subject_name_short,
                 photoBase64: student.base64,
-                signBase64:student.sign_base64,  // Using the same path for both photo and sign
+                signBase64:student.sign_base64,
             }
         }),
         departmentName:response[0].departmentName,
