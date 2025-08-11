@@ -88,7 +88,7 @@ exports.getControllerPassForCenter = async (req, res) => {
                     console.log(`  Center: ${result.center}`);
 
                     console.log(`  Controller Password: ${result.controller_pass}`);
-                    controller_pass_decrypted = decrypt(result.controller_pass);
+                    controller_pass_decrypted = (result.controller_pass);
                     console.log(`  Controller Password Decrypted : ${controller_pass_decrypted}`);
                     console.log(`  Start Time: ${result.Start_time}`);
                     console.log(`  Batch Date: ${result.batchdate}`);
