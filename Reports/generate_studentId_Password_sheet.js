@@ -65,7 +65,7 @@ async function getData(center, batchNo) {
 
         // console.log(batchData[0].start_time, batchData[0].batchdate);
 
-        const query = 'SELECT s.student_id, s.password , d.departmentName , d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ?';
+        const query = 'SELECT s.student_id, s.password , d.departmentName , d.departmentExam, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ?';
         const [results] = await connection.query(query, [center, batchNo]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
@@ -294,6 +294,7 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
             examTime: formattedExamTime, // Now in 12-hour format
             students: response,
             departmentName: Data.departmentName,
+            departmentExam: Data.departmentExam,
             departmentLogo: Data.logo
         };
 

@@ -52,7 +52,7 @@ async function createBlankAnswerSheet(doc,data)  {
       
       // Function to create a page
       function createPage(doc, isFirstPage) {
-        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025');
+        createHeader(doc, data.departmentName, data.departmentExam);
         
         let startY = headerHeight;
       
@@ -94,7 +94,7 @@ async function createBlankAnswerSheet(doc,data)  {
 async function getData(center, batchNo) {
   try {
       // console.log(center, batchNo);
-      const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
+      const query = 'SELECT s.student_id , d.departmentName , d.departmentExam, d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
       const response = await connection.query(query, [batchNo, center]);
       
       return { 
@@ -118,7 +118,8 @@ async function generateBlankAnswerSheet(doc, center, batchNo) {
 
       const data = {
     
-          departmentName : response[0].departmentName
+          departmentName : response[0].departmentName,
+          departmentExam : response[0].departmentExam
       };
 
       createBlankAnswerSheet(doc, data);
