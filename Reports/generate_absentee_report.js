@@ -123,7 +123,7 @@ function checkDownloadAllowed3DaysBefore(batchDate) {
     // - Positive if batch date is in future
     // - 0 if batch date is today
     // - Negative if batch date is in past
-    return differenceInDays >= -1 && differenceInDays <= 4;
+    return differenceInDays <= 3;
 }
 
 function checkDownloadAllowedStudentLoginPass(batchDate) {

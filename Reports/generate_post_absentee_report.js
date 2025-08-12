@@ -76,7 +76,7 @@ function checkDownloadAllowed(batchDate) {
     const differenceInDays = batchMoment.diff(today, 'days');
     console.log(differenceInDays);
     // Allow download if it's the day of the batch or one day before
-    return differenceInDays <= 1 && differenceInDays >= 0  ;
+    return differenceInDays <= 3;
 }
 
 function checkDownloadAllowedStudentLoginPass(batchDate) {

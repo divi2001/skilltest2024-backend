@@ -70,7 +70,7 @@ function checkDownloadAllowed3Days(batchDate) {
     console.log('Difference in Days:', differenceInDays);
     
     // Return true if current date is within 3 days before batch date (including batch date)
-    return differenceInDays >= -1 && differenceInDays <= 4;
+    return differenceInDays <= 3;
 }
 
 // Helper function to get batch data and check download permission
