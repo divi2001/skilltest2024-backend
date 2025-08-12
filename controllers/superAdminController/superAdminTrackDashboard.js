@@ -11,24 +11,20 @@ function convertDateFormat(dateString) {
     return moment.tz(`${day}/${month}/${year}`, 'YYYY-MM-DD', 'Asia/Kolkata').toDate();
 }
 exports.getAllStudentsTrack = async (req,res) => {
-    // console.log('Starting getStudentsTrack function');
     const adminId = req.params.adminid;
-    // console.log(adminId);
-    // if(!adminId) return res.status(404).json({"message":"Admin is not logged in!!"});
-    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type , departmentId } = req.query;
-    // console.log("Exam center code:", departmentId);
-    // console.log("Batch no:", batchNo);
-    // console.log("Subject:", subject_name);
-    // console.log("Login status:", loginStatus);
-    // console.log("exam type:" , exam_type);
-    // console.log("Center no:", center);
-    // console.log("Original Batch date:", batchDate);
-    // console.log("Department Id:", departmentId);
-
-    // if (!departmentId) {
-    //     console.log('department admin is not logged in');
-    //     return res.status(404).json({"message":"Center admin is not logged in"});
-    // }
+    
+    // Change from req.query to req.body
+    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type , departmentId } = req.body;
+    
+    console.log("Received filters from req.body:", {
+        batchNo,
+        subject_name,
+        loginStatus,
+        exam_type,
+        center,
+        batchDate,
+        departmentId
+    });
 
     const queryParams = [];
     let query = `SELECT 
@@ -41,12 +37,11 @@ exports.getAllStudentsTrack = async (req,res) => {
     s.courseId,
     s.loggedin,
     s.batchNo,
-    s.batchdate,
+    DATE_FORMAT(s.batchdate, '%Y-%m-%d') as batchdate,
     s.done,
     s.Reporting_Time,
     s.start_time,
     s.end_time,
-    s.batchdate,
     s.IsShorthand,
     s.IsTypewriting,
     s.departmentId,
@@ -89,59 +84,73 @@ LEFT JOIN (
 ) sl ON s.student_id = sl.student_id
 WHERE 1=1`;
 
-    if (batchNo) {
+    // Apply filters with proper validation
+    if (batchNo && batchNo.toString().trim() !== '') {
         query += ' AND s.batchNo = ?';
-        queryParams.push(batchNo);
-    } 
+        queryParams.push(batchNo.toString().trim());
+        console.log("✅ Applied batchNo filter:", batchNo.toString().trim());
+    }
 
-    if (subject_name) {
+    if (subject_name && subject_name.toString().trim() !== '') {
         query += ' AND sub.subject_name = ?';
-        queryParams.push(subject_name);
+        queryParams.push(subject_name.toString().trim());
+        console.log("✅ Applied subject filter:", subject_name.toString().trim());
     }
 
-    if (center) {
+    if (center && center.toString().trim() !== '') {
         query += ' AND s.center = ?';
-        queryParams.push(center);
+        queryParams.push(center.toString().trim());
+        console.log("✅ Applied center filter:", center.toString().trim());
     }
 
-    if (loginStatus) {
+    if (loginStatus && loginStatus.toString().trim() !== '') {
         if (loginStatus === 'loggedin') {
             query += ' AND s.loggedin = 1';
         } else if (loginStatus === 'loggedout') {
             query += ' AND s.loggedin = 0';
         }
+        console.log("✅ Applied loginStatus filter:", loginStatus);
     }
 
-    if(departmentId){
+    if (departmentId && departmentId.toString().trim() !== '') {
         query += ' AND s.departmentId = ?';
-        queryParams.push(departmentId);
+        queryParams.push(departmentId.toString().trim());
+        console.log("✅ Applied departmentId filter:", departmentId.toString().trim());
     }
 
-    if(exam_type){
-        if(exam_type ==='shorthand'){
-            query+= ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0'
+    if (exam_type && exam_type.toString().trim() !== '') {
+        if (exam_type === 'shorthand') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
+        } else if (exam_type === 'typewriting') {
+            query += ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0';
+        } else if (exam_type === 'both') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1';
         }
-        else if (exam_type === 'typewriting'){
-            query+=' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
-        }
-        else if(exam_type === 'both'){
-            query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
-        }
+        console.log("✅ Applied exam_type filter:", exam_type);
     }
 
-    if (batchDate) {
-        batchDate = convertDateFormat(batchDate);
-        console.log("Formatted Batch date:", batchDate);
-        query += ' AND s.batchdate = ?';
-        queryParams.push(batchDate);
+    if (batchDate && batchDate.toString().trim() !== '') {
+        const inputDate = batchDate.toString().trim();
+        console.log("Processing batchDate:", inputDate);
+        
+        query += ' AND DATE(s.batchdate) = ?';
+        
+        let formattedDate = inputDate;
+        if (inputDate.includes('/')) {
+            const [day, month, year] = inputDate.split('/');
+            formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        
+        queryParams.push(formattedDate);
+        console.log("✅ Applied batchDate filter:", formattedDate);
     }
 
-    // console.log('Final query:', query);
-    // console.log('Query parameters:', queryParams);
+    console.log('🔍 Final query:', query);
+    console.log('🔍 Query parameters:', queryParams);
 
     try {
         const [results] = await connection.query(query, queryParams);
-        // console.log('Query result:', results);
+        console.log(`✅ Query returned ${results.length} results`);
 
         if (results.length > 0) {
             const studentTrackDTOs = results.map(result => {
@@ -167,7 +176,7 @@ WHERE 1=1`;
                     result.feedback_time,
                     result.subject_name,
                     result.subject_name_short,
-                    formatDate(result.batchdate),
+                    result.batchdate,
                     result.departmentId,
                     result.trial_passage_time,
                     result.typing_passage_time
@@ -179,18 +188,12 @@ WHERE 1=1`;
                 return studentTrack;
             });
 
-            results.forEach(result => {
-                if (result.batchdate) {
-                    result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
-                }
-            });
-
             res.status(200).json(studentTrackDTOs);
         } else {
             res.status(404).json({message: 'No records found!'});
         }
     } catch (err) {
-        console.error("Database query error:", err);
+        console.error("❌ Database query error:", err);
         res.status(500).json({message: err.message});
     }
 }
@@ -220,11 +223,11 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         // First, get all subject IDs and names
         const [subjects] = await connection.query('SELECT subjectId, subject_name FROM subjectsdb');
 
-        // Construct dynamic parts of the query
+        // FIXED: Count DISTINCT students per subject
         const subjectCounts = subjects.map(sub => `
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_count,
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_logged_in,
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_completed
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} THEN s.student_id END) AS subject_${sub.subjectId}_count,
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN s.student_id END) AS subject_${sub.subjectId}_logged_in,
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN s.student_id END) AS subject_${sub.subjectId}_completed
         `).join(', ');
 
         const subjectNames = subjects.map(sub => 
@@ -239,7 +242,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             COUNT(DISTINCT s.student_id) AS total_students, 
             COUNT(DISTINCT CASE WHEN sl.login = TRUE THEN s.student_id END) AS logged_in_students,
             COUNT(DISTINCT CASE WHEN sl.feedback_time IS NOT NULL THEN s.student_id END) AS completed_student, 
-            b.start_time, 
+            MIN(b.start_time) AS start_time,
             s.batchdate,
             ${subjectCounts},
             ${subjectNames}
@@ -250,13 +253,14 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         WHERE 
             1=1 ${filter}
         GROUP BY  
-            s.batchNo, b.start_time, s.batchdate, s.center, s.departmentId
+            s.batchNo, s.batchdate, s.center, s.departmentId
         ORDER BY 
-            s.batchNo, s.center, s.departmentId ;
+            s.batchNo, s.center, s.departmentId;
     `;
 
         const [results] = await connection.query(query, queryParams);
-        console.log(results);
+        console.log('Query results:', results);
+        
         // Convert date and time to Kolkata timezone
         results.forEach(result => {
             if (result.batchdate) {
@@ -267,9 +271,9 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             result.subjects = subjects.map(sub => ({
                 id: sub.subjectId,
                 name: result[`subject_${sub.subjectId}_name`],
-                count: result[`subject_${sub.subjectId}_count`],
-                loggedIn: result[`subject_${sub.subjectId}_logged_in`],
-                completed: result[`subject_${sub.subjectId}_completed`]
+                count: parseInt(result[`subject_${sub.subjectId}_count`]) || 0,  // Convert to integer
+                loggedIn: parseInt(result[`subject_${sub.subjectId}_logged_in`]) || 0,  // Convert to integer
+                completed: parseInt(result[`subject_${sub.subjectId}_completed`]) || 0  // Convert to integer
             }));
 
             // Remove individual subject fields
@@ -287,4 +291,3 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         res.status(500).json({ "message": "Internal Server Error!!" });
     }
 };
-
