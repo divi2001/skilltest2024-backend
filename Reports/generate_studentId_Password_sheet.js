@@ -52,21 +52,19 @@ function formatTime(timeString) {
     return timeStr;
 }
 
-async function getData(center, batchNo) {
+async function getData(center, batchNo, departmentId) {
     try {
-        // console.log(batchNo, center);
-
-        const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const [batchData] = await connection.query(batchQuery, [batchNo]);
+        // Modified query to include departmentId in the WHERE clause for batchdb
+        const batchQuery = 'SELECT batchdate, start_time, departmentId FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const [batchData] = await connection.query(batchQuery, [batchNo, departmentId]);
 
         if (!batchData || batchData.length === 0) {
-            throw new Error("Batch not found");
+            throw new Error("Batch not found for the specified department");
         }
 
-        // console.log(batchData[0].start_time, batchData[0].batchdate);
-
-        const query = 'SELECT s.student_id, s.password , d.departmentName , d.departmentExam, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ?';
-        const [results] = await connection.query(query, [center, batchNo]);
+        // Modified query to include departmentId in the WHERE clause for students
+        const query = 'SELECT s.student_id, s.password , d.departmentName , d.departmentExam, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+        const [results] = await connection.query(query, [center, batchNo, departmentId]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
             student_id: String(row.student_id),
@@ -76,9 +74,9 @@ async function getData(center, batchNo) {
 
         return { 
             response: decryptedResults, 
-            departmentName:results[0].departmentName,
-            departmentExam:results[0].departmentExam,
-            logo:results[0].logo,
+            departmentName: results[0]?.departmentName,
+            departmentExam: results[0]?.departmentExam,
+            logo: results[0]?.logo,
             batchData: batchData
         };
     } catch (error) {
@@ -231,7 +229,7 @@ function createSeatingArrangementReport(doc, data) {
     }
 }
 
-function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
+function checkDownloadAllowedStudentLoginPass(startTime, batchDate, departmentId) {
     // Set the timezone to Kolkata
     const kolkataZone = 'Asia/Kolkata';
 
@@ -253,6 +251,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
 
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
     
+    console.log('Department ID:', departmentId);
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
     console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
@@ -263,9 +262,9 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     return differenceInMinutes <= 105;
 }
 
-async function generateStudentIdPasswordPdf(doc, center, batchNo) {
+async function generateStudentIdPasswordPdf(doc, center, batchNo, departmentId) {
     try {
-        const Data = await getData(center, batchNo);
+        const Data = await getData(center, batchNo, departmentId);
         console.log(Data);
 
         const response = Data.response;
@@ -280,8 +279,8 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
         
-        // Uncomment the following lines if you want to check download allowance
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time, batchInfo.batchdate)) {
+        // Check download allowance with departmentId
+        if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time, batchInfo.batchdate, departmentId)) {
             throw new Error("Download not allowed at this time");
         }
 

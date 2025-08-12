@@ -389,7 +389,7 @@ exports.generateSeatingArrangement = async (req,res) => {
     }
 }
 
-function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
+function checkDownloadAllowedStudentLoginPass(startTime, batchDate, departmentId) {
     // Set the timezone to Kolkata
     const kolkataZone = 'Asia/Kolkata';
 
@@ -411,6 +411,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
 
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
     
+    console.log('Department ID:', departmentId);
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
     console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
@@ -422,28 +423,28 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
 }
 
 exports.generateStudentId_Password = async (req, res) => {
-    const { batchNo,departmentId } = req.body;
+    const { batchNo, departmentId } = req.body;
     const center = req.session.centerId; 
-    console.log(batchNo, center);
+    console.log(batchNo, center, departmentId);
 
     try {
-        // First, get the batch data
-        const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? and departmentId = ?';
-        const [batchData] = await connection.query(batchQuery, [batchNo,departmentId]);
+        // First, get the batch data with departmentId
+        const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const [batchData] = await connection.query(batchQuery, [batchNo, departmentId]);
 
         if (!batchData || batchData.length === 0) {
             return res.status(404).json({ "message": "Batch not found" });
         }
 
         // Check if download is allowed
-        console.log(batchData[0].start_time,batchData[0].batchdate)
-        if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
+        console.log(batchData[0].start_time, batchData[0].batchdate, departmentId);
+        if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time, batchData[0].batchdate, departmentId)) {
             return res.status(403).json({ "message": "Download not allowed at this time" });
         }
  
-        // If download is allowed, proceed with getting student data
-        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';
-        const [results] = await connection.query(query, [center, batchNo]);
+        // If download is allowed, proceed with getting student data (include departmentId)
+        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ? AND departmentId = ?';
+        const [results] = await connection.query(query, [center, batchNo, departmentId]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
             Seat_no: String(row.student_id),
@@ -473,7 +474,7 @@ exports.generateStudentId_Password = async (req, res) => {
     }
 }
 
-exports.generateStudentIdPasswordPdf =async (req,res) => {
+exports.generateStudentIdPasswordPdf = async (req, res) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.pdf');
     res.setHeader('Content-Transfer-Encoding', 'binary');
@@ -486,7 +487,7 @@ exports.generateStudentIdPasswordPdf =async (req,res) => {
         margin: 50
     });
     
-    const {batchNo,departmentId} = req.body;
+    const {batchNo, departmentId} = req.body;
     const center = req.session.centerId;
     // Use a Promise to handle the PDF generation
     const pdfPromise = new Promise((resolve, reject) => {
@@ -496,7 +497,7 @@ exports.generateStudentIdPasswordPdf =async (req,res) => {
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
 
-        generateStudentIdPasswordPdf(doc,center,batchNo,departmentId).then(() => {
+        generateStudentIdPasswordPdf(doc, center, batchNo, departmentId).then(() => {
             doc.end();
         }).catch((error) => {
             console.error("Error generating report:", error);
