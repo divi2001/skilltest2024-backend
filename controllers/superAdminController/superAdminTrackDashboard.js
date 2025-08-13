@@ -10,6 +10,7 @@ function convertDateFormat(dateString) {
     const [day, month, year] = dateString.split('/');
     return moment.tz(`${day}/${month}/${year}`, 'YYYY-MM-DD', 'Asia/Kolkata').toDate();
 }
+
 exports.getAllStudentsTrack = async (req,res) => {
     const adminId = req.params.adminid;
     
@@ -48,16 +49,16 @@ exports.getAllStudentsTrack = async (req,res) => {
     a.trial,
     a.passageA,
     a.passageB,
-    sl.loginTime,
+    DATE_FORMAT(sl.loginTime, '%d/%m/%Y %h:%i %p') as loginTime,
     sl.login,
-    sl.trial_time,
-    sl.audio1_time,
-    sl.passage1_time,
-    sl.audio2_time,
-    sl.passage2_time,
-    sl.trial_passage_time,
-    sl.typing_passage_time,
-    sl.feedback_time
+    DATE_FORMAT(sl.trial_time, '%d/%m/%Y %h:%i %p') as trial_time,
+    DATE_FORMAT(sl.audio1_time, '%d/%m/%Y %h:%i %p') as audio1_time,
+    DATE_FORMAT(sl.passage1_time, '%d/%m/%Y %h:%i %p') as passage1_time,
+    DATE_FORMAT(sl.audio2_time, '%d/%m/%Y %h:%i %p') as audio2_time,
+    DATE_FORMAT(sl.passage2_time, '%d/%m/%Y %h:%i %p') as passage2_time,
+    DATE_FORMAT(sl.trial_passage_time, '%d/%m/%Y %h:%i %p') as trial_passage_time,
+    DATE_FORMAT(sl.typing_passage_time, '%d/%m/%Y %h:%i %p') as typing_passage_time,
+    DATE_FORMAT(sl.feedback_time, '%d/%m/%Y %h:%i %p') as feedback_time
 FROM
     students s
 LEFT JOIN
@@ -65,22 +66,25 @@ LEFT JOIN
 LEFT JOIN
     audiologs a ON s.student_id = a.student_id
 LEFT JOIN (
-    SELECT
+    SELECT DISTINCT
         student_id,
-        MAX(loginTime) as loginTime,
-        MAX(login) as login,
-        MAX(trial_time) as trial_time,
-        MAX(audio1_time) as audio1_time,
-        MAX(passage1_time) as passage1_time,
-        MAX(audio2_time) as audio2_time,
-        MAX(passage2_time) as passage2_time,
-        MAX(trial_passage_time) as trial_passage_time,
-        MAX(typing_passage_time) as typing_passage_time,
-        MAX(feedback_time) as feedback_time
+        loginTime,
+        login,
+        trial_time,
+        audio1_time,
+        passage1_time,
+        audio2_time,
+        passage2_time,
+        trial_passage_time,
+        typing_passage_time,
+        feedback_time
     FROM
-        studentlogs
-    GROUP BY
-        student_id
+        studentlogs sl1
+    WHERE loginTime = (
+        SELECT MAX(loginTime) 
+        FROM studentlogs sl2 
+        WHERE sl2.student_id = sl1.student_id
+    )
 ) sl ON s.student_id = sl.student_id
 WHERE 1=1`;
 
@@ -159,7 +163,7 @@ WHERE 1=1`;
                     result.center,
                     result.fullname,
                     result.batchNo,
-                    result.loginTime,
+                    result.loginTime,          // Now as formatted string
                     result.login,
                     result.done,
                     result.Reporting_Time,
@@ -168,18 +172,18 @@ WHERE 1=1`;
                     result.trial,
                     result.passageA,
                     result.passageB,
-                    result.trial_time,
-                    result.audio1_time,
-                    result.passage1_time,
-                    result.audio2_time,
-                    result.passage2_time,
-                    result.feedback_time,
+                    result.trial_time,         // Now as formatted string
+                    result.audio1_time,        // Now as formatted string
+                    result.passage1_time,      // Now as formatted string
+                    result.audio2_time,        // Now as formatted string
+                    result.passage2_time,      // Now as formatted string
+                    result.feedback_time,      // Now as formatted string
                     result.subject_name,
                     result.subject_name_short,
                     result.batchdate,
                     result.departmentId,
-                    result.trial_passage_time,
-                    result.typing_passage_time
+                    result.trial_passage_time, // Now as formatted string
+                    result.typing_passage_time // Now as formatted string
                 );
                 
                 if (typeof studentTrack.fullname === 'string') {

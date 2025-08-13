@@ -79,16 +79,16 @@ exports.getControllerPassForCenter = async (req, res) => {
 
             if (filteredResults.length > 0) {
                 console.log("===== CONTROLLER PASSWORDS WILL BE RETURNED =====");
-                let controller_pass_decrypted;
+                
                 filteredResults.forEach((result, index) => {
                     console.log(`Filtered Batch ${index + 1}:`);
                     console.log(`  BatchNo: ${result.batchNo}`);
                     console.log(`  DepartmentId: ${result.departmentId}`);
                     console.log(`  Department: ${result.departmentName}`);
                     console.log(`  Center: ${result.center}`);
-
                     console.log(`  Controller Password: ${result.controller_pass}`);
-                    controller_pass_decrypted = (result.controller_pass);
+                    
+                    const controller_pass_decrypted = (result.controller_pass);
                     console.log(`  Controller Password Decrypted : ${controller_pass_decrypted}`);
                     console.log(`  Start Time: ${result.Start_time}`);
                     console.log(`  Batch Date: ${result.batchdate}`);
@@ -97,6 +97,8 @@ exports.getControllerPassForCenter = async (req, res) => {
 
                 const controllerPassDto = filteredResults.map(result => {
                     const formattedBatchDate = moment(result.batchdate).format('YYYY-MM-DD');
+                    const controller_pass_decrypted = (result.controller_pass); // Decrypt for each individual result
+                    
                     return {
                         ...new ControllerPasswordDTO(
                             result.center,
@@ -108,7 +110,7 @@ exports.getControllerPassForCenter = async (req, res) => {
                         ),
                         departmentId: result.departmentId,
                         departmentName: result.departmentName,
-                        batchDate: formattedBatchDate  // Added batch date
+                        batchDate: formattedBatchDate
                     };
                 });
 
