@@ -286,30 +286,24 @@ const AttendanceReport = async(doc, center, batchNo, departmentId) => {
         throw new Error("Download not allowed at this time");
     }
 
-    const data = {
-        centerCode: center,
-        batch: batchNo,
-        examDate: examDate,
-        examTime: batchInfo.start_time,
-        students: response.map(student => {
-            // Strip last two digits from student_id
-            const originalStudentId = student.student_id.toString();
-            const strippedStudentId = originalStudentId.length > 2 ? 
-                originalStudentId.slice(0, -2) : 
-                originalStudentId;
-            
-            return {
-                seatNo: strippedStudentId,
-                name: student.fullname,
-                subject: student.subject_name_short,
-                photoBase64: student.base64,
-                signBase64: student.sign_base64,
-            }
-        }),
-        departmentName: response[0].departmentName,
-        departmentExam: response[0].departmentExam,
-        departmentLogo: response[0].logo
-    }
+const data = {
+    centerCode: center,
+    batch: batchNo,
+    examDate: examDate,
+    examTime: batchInfo.start_time,
+    students: response.map(student => {
+        return {
+            seatNo: student.student_id.toString(),
+            name: student.fullname,
+            subject: student.subject_name_short,
+            photoBase64: student.base64,
+            signBase64: student.sign_base64,
+        }
+    }),
+    departmentName: response[0].departmentName,
+    departmentExam: response[0].departmentExam,
+    departmentLogo: response[0].logo
+}
     createAttendanceReport(doc, data);
 }
 
