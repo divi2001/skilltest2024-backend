@@ -21,7 +21,7 @@ exports.getAllBatches = async (req, res) => {
 };
 
 exports.updateBatchStatus = async (req, res) => {
-    const { batchNo, status } = req.body;
+    const { batchNo, status, departmentId } = req.body;
     console.log(req.body)
     if (!batchNo || typeof status !== 'boolean') {
         return res.status(400).json({
@@ -31,8 +31,8 @@ exports.updateBatchStatus = async (req, res) => {
     }
 
     try {
-        const query = 'UPDATE batchdb SET batchstatus = ? WHERE batchNo = ?';
-        const [result] = await connection.execute(query, [status, batchNo]);
+        const query = 'UPDATE batchdb SET batchstatus = ? WHERE batchNo = ? AND departmentId = ?';
+        const [result] = await connection.execute(query, [status, batchNo, departmentId]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({
