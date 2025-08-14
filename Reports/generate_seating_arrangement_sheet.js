@@ -3,10 +3,7 @@ const moment = require('moment-timezone'); // Make sure to install and import mo
 
 // Helper function to strip last two digits from student ID
 function stripLastTwoDigits(studentId) {
-    const idStr = studentId.toString();
-    if (idStr.length <= 2) {
-        return idStr; // Return as is if length is 2 or less
-    }
+
     return studentId; // Remove last 2 characters
 }
 
@@ -51,25 +48,19 @@ function formatTime(timeString) {
     return timeStr;
 }
 
-async function getData(center, batchNo) {
+const getData = async(center, batchNo, departmentId) => {
     try {
-        // console.log(center, batchNo);
-        const query = 'SELECT s.student_id , d.departmentName , d.departmentExam,  d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
-        const response = await connection.query(query, [batchNo, center]);
-        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const batchData = await connection.query(batchquery, [batchNo]);
-        // console.log(response[0], batchData[0]);
-
-        // Check if download is allowed
-        // const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
+        console.log(center, batchNo, departmentId);
+        const query = 'SELECT s.fullname, s.student_id, s.base64, s.sign_base64, sub.subject_name_short, d.departmentName, d.departmentExam, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+        const response = await connection.query(query, [center, batchNo, departmentId]);
         
-        // if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
-       
+        // Modified batch query to include departmentId
+        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const batchData = await connection.query(batchquery, [batchNo, departmentId]);
         
         return { 
             response: response[0], 
             batchData: batchData[0], 
-            // isDownloadAllowed 
         };
     } catch (error) {
         console.error('Error in getData:', error);
@@ -249,9 +240,9 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     return differenceInMinutes <= 105;
 }
 
-async function generateSeatingArrangementReport(doc, center, batchNo) {
+async function generateSeatingArrangementReport(doc, center, batchNo, departmentId) {
     try {
-        const Data = await getData(center, batchNo);
+        const Data = await getData(center, batchNo, departmentId);
         console.log(Data);
 
         const response = Data.response;
