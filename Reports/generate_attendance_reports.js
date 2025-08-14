@@ -261,11 +261,11 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Get current date in Kolkata timezone
     const nowKolkata = moment().tz(kolkataZone).startOf('day');
 
-    // Calculate the date 1 day before the batch date
-    const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
+    // Calculate the date 3 days before the batch date
+    const threeDaysBefore = batchDateKolkata.clone().subtract(3, 'days');
 
-    // Check if current date is after or equal to 1 day before the batch date
-    return nowKolkata.isSameOrAfter(oneDayBefore);
+    // Check if current date is after or equal to 3 days before the batch date
+    return nowKolkata.isSameOrAfter(threeDaysBefore);
 }
 
 const AttendanceReport = async(doc, center, batchNo, departmentId) => {
