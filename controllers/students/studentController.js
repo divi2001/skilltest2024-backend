@@ -60,9 +60,10 @@ exports.loginStudent = async (req, res) => {
         }
 
         const batchNo = student.batchNo;
+        const department = student.departmentId
 
-        const checkBatchStatusQuery = 'SELECT batchstatus FROM batchdb WHERE batchNo = ?';
-        const [batchResults] = await connection.query(checkBatchStatusQuery, [batchNo]);
+        const checkBatchStatusQuery = 'SELECT batchstatus FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const [batchResults] = await connection.query(checkBatchStatusQuery, [batchNo, department]);
 
         if (batchResults.length === 0) {
             return res.status(404).send('invalid credentials 2');

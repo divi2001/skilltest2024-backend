@@ -231,28 +231,26 @@ function createAttendanceReport(doc , data) {
     const afterSummaryY = addCenteredSummaryTable(finalYPosition, data.students.length);
 }
 
-const getData = async(center , batchNo) => {
+const getData = async(center, batchNo, departmentId) => {
     try {
-        console.log(center,batchNo)
-        const query = 'SELECT s.fullname, s.student_id, s.base64 ,s.sign_base64, sub.subject_name_short, d.departmentName, d.departmentExam, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
-        const response = await connection.query(query,[center,batchNo]);
-        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const batchData = await connection.query(batchquery, [batchNo]);
-        // console.log(batchData[0].batchdate);
-        // if(!checkDownloadAllowedStudentLoginPass(batchData[0].batchdate)) {
-        //     return res.status(403).json({ "message": "Download not allowed at this time" });
-        // }
+        console.log(center, batchNo, departmentId);
+        const query = 'SELECT s.fullname, s.student_id, s.base64, s.sign_base64, sub.subject_name_short, d.departmentName, d.departmentExam, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+        const response = await connection.query(query, [center, batchNo, departmentId]);
+        
+        // Modified batch query to include departmentId
+        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const batchData = await connection.query(batchquery, [batchNo, departmentId]);
         
         return { 
             response: response[0], 
             batchData: batchData[0], 
-            //  
         };
     } catch (error) {
         console.error('Error in getData:', error);
         throw error;
     }
 }
+
 function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Set the timezone to Kolkata
     const kolkataZone = 'Asia/Kolkata';
@@ -266,18 +264,12 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Calculate the date 1 day before the batch date
     const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
 
-    // console.log('Batch Date (UTC):', batchDate);
-    // console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    // console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
-    // console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
-
     // Check if current date is after or equal to 1 day before the batch date
     return nowKolkata.isSameOrAfter(oneDayBefore);
 }
 
-const AttendanceReport = async(doc,center,batchNo) => {
-    const Data = await getData(center, batchNo);
-    // console.log(Data);
+const AttendanceReport = async(doc, center, batchNo, departmentId) => {
+    const Data = await getData(center, batchNo, departmentId);
 
     const response = Data.response;
     if (!Array.isArray(response) || response.length === 0) {
@@ -311,14 +303,14 @@ const AttendanceReport = async(doc,center,batchNo) => {
                 name: student.fullname,
                 subject: student.subject_name_short,
                 photoBase64: student.base64,
-                signBase64:student.sign_base64,
+                signBase64: student.sign_base64,
             }
         }),
-        departmentName:response[0].departmentName,
-        departmentExam:response[0].departmentExam,
-        departmentLogo:response[0].logo
+        departmentName: response[0].departmentName,
+        departmentExam: response[0].departmentExam,
+        departmentLogo: response[0].logo
     }
-    createAttendanceReport(doc,data);
+    createAttendanceReport(doc, data);
 }
 
 module.exports = {AttendanceReport};
