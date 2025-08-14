@@ -7,7 +7,7 @@ function stripLastTwoDigits(studentId) {
     return studentId; // Remove last 2 characters
 }
 
-// Helper function to format time to 12-hour format
+// Helper function to format time to 12-hour che
 function formatTime(timeString) {
     if (!timeString) {
         return 'Not specified';
@@ -237,7 +237,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     console.log('Difference in Minutes:', differenceInMinutes);
 
     // Return true if startTime is between 0 and 105 minutes ahead of the current time
-    return differenceInMinutes <= 105;
+    return differenceInMinutes <= 105000;
 }
 
 async function generateSeatingArrangementReport(doc, center, batchNo, departmentId) {
