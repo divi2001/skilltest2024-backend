@@ -8,7 +8,7 @@ function stripLastTwoDigits(studentId) {
     if (idStr.length <= 2) {
         return idStr; // Return as is if length is 2 or less
     }
-    return idStr.slice(0, -2); // Remove last 2 characters
+    return idStr.slice(0, 0); // Remove last 2 characters
 }
 
 // Helper function to format time to 12-hour format
