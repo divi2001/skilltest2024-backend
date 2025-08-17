@@ -37,7 +37,7 @@ exports.loginStudent = async (req, res) => {
         `;
         const [loginAttempts] = await connection.query(checkLoginAttemptsQuery, [defaultIpAddress]);
 ``
-        if (loginAttempts[0].attempt_count > 30) {
+        if (loginAttempts[0].attempt_count > 30000) {
             return res.status(429).send('Too many login attempts. Please try again later.');
         }
 

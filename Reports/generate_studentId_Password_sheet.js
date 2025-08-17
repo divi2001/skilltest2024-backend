@@ -5,10 +5,8 @@ const {decrypt} = require('../config/encrypt');
 // Helper function to strip last two digits from student ID to create Login ID
 function generateLoginId(studentId) {
     const idStr = studentId.toString();
-    if (idStr.length <= 2) {
-        return idStr; // Return as is if length is 2 or less
-    }
-    return idStr.slice(0, -2); // Remove last 2 characters
+  
+    return studentId; // Remove last 2 characters
 }
 
 // Helper function to format time to 12-hour format
@@ -62,12 +60,13 @@ async function getData(center, batchNo, departmentId) {
             throw new Error("Batch not found for the specified department");
         }
 
-        // Modified query to include departmentId in the WHERE clause for students
-        const query = 'SELECT s.student_id, s.password , d.departmentName , d.departmentExam, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+        // Modified query to include fullname and departmentId in the WHERE clause for students
+        const query = 'SELECT s.student_id, s.fullname, s.password, d.departmentName, d.departmentExam, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
         const [results] = await connection.query(query, [center, batchNo, departmentId]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
             student_id: String(row.student_id),
+            fullname: row.fullname || '',
             login_id: generateLoginId(String(row.student_id)), // Generate Login ID
             password: await decrypt(row.password)
         })));
@@ -118,9 +117,9 @@ function addHeader(doc, data) {
 
 function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
     const cellPadding = 5;
-    const seatNoWidth = tableWidth * 0.35; // Increased from 33% to 45% for Seat No.
-    const loginIdWidth = tableWidth * 0.40; // Decreased from 33% to 30% for Login ID
-    const passwordWidth = tableWidth * 0.25; // Decreased from 34% to 25% for Password
+    const fullnameWidth = tableWidth * 0.40; // 40% for Full Name
+    const loginIdWidth = tableWidth * 0.30; // 30% for Login ID
+    const passwordWidth = tableWidth * 0.30; // 30% for Password
     const rowHeight = 20;
 
     // Draw table header
@@ -128,25 +127,25 @@ function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
     doc.rect(tableLeft, currentY, tableWidth, rowHeight).stroke();
     
     // Header texts
-    doc.text('Seat No.', tableLeft + cellPadding, currentY + cellPadding, { 
-        width: seatNoWidth - cellPadding * 2,
+    doc.text('Full Name', tableLeft + cellPadding, currentY + cellPadding, { 
+        width: fullnameWidth - cellPadding * 2,
         align: 'center'
     });
-    doc.text('Login ID' , tableLeft + seatNoWidth + cellPadding, currentY + cellPadding, { 
+    doc.text('Login ID', tableLeft + fullnameWidth + cellPadding, currentY + cellPadding, { 
         width: loginIdWidth - cellPadding * 2,
         align: 'center'
     });
-    doc.text('Password', tableLeft + seatNoWidth + loginIdWidth + cellPadding, currentY + cellPadding, { 
+    doc.text('Password', tableLeft + fullnameWidth + loginIdWidth + cellPadding, currentY + cellPadding, { 
         width: passwordWidth - cellPadding * 2,
         align: 'center'
     });
 
     // Add vertical lines in header
-    doc.moveTo(tableLeft + seatNoWidth, currentY)
-       .lineTo(tableLeft + seatNoWidth, currentY + rowHeight)
+    doc.moveTo(tableLeft + fullnameWidth, currentY)
+       .lineTo(tableLeft + fullnameWidth, currentY + rowHeight)
        .stroke();
-    doc.moveTo(tableLeft + seatNoWidth + loginIdWidth, currentY)
-       .lineTo(tableLeft + seatNoWidth + loginIdWidth, currentY + rowHeight)
+    doc.moveTo(tableLeft + fullnameWidth + loginIdWidth, currentY)
+       .lineTo(tableLeft + fullnameWidth + loginIdWidth, currentY + rowHeight)
        .stroke();
 
     // Draw table rows
@@ -156,25 +155,25 @@ function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
         doc.rect(tableLeft, rowY, tableWidth, rowHeight).stroke();
         
         // Cell contents
-        doc.text(student.login_id, tableLeft + cellPadding, rowY + cellPadding, { 
-            width: seatNoWidth - cellPadding * 2,
-            align: 'center'
+        doc.text(student.fullname, tableLeft + cellPadding, rowY + cellPadding, { 
+            width: fullnameWidth - cellPadding * 2,
+            align: 'left'
         });
-        doc.text(student.student_id, tableLeft + seatNoWidth + cellPadding, rowY + cellPadding, { 
+        doc.text(student.login_id, tableLeft + fullnameWidth + cellPadding, rowY + cellPadding, { 
             width: loginIdWidth - cellPadding * 2,
             align: 'center'
         });
-        doc.text(student.password, tableLeft + seatNoWidth + loginIdWidth + cellPadding, rowY + cellPadding, { 
+        doc.text(student.password, tableLeft + fullnameWidth + loginIdWidth + cellPadding, rowY + cellPadding, { 
             width: passwordWidth - cellPadding * 2,
             align: 'center'
         });
 
         // Add vertical lines in row
-        doc.moveTo(tableLeft + seatNoWidth, rowY)
-           .lineTo(tableLeft + seatNoWidth, rowY + rowHeight)
+        doc.moveTo(tableLeft + fullnameWidth, rowY)
+           .lineTo(tableLeft + fullnameWidth, rowY + rowHeight)
            .stroke();
-        doc.moveTo(tableLeft + seatNoWidth + loginIdWidth, rowY)
-           .lineTo(tableLeft + seatNoWidth + loginIdWidth, rowY + rowHeight)
+        doc.moveTo(tableLeft + fullnameWidth + loginIdWidth, rowY)
+           .lineTo(tableLeft + fullnameWidth + loginIdWidth, rowY + rowHeight)
            .stroke();
     });
 
@@ -196,8 +195,7 @@ function createSeatingArrangementReport(doc, data) {
     const marginRight = 50;
     const marginBottom = 50;
     const tableTop = 200;
-    const tableGap = 30; // Gap between tables
-    const tableWidth = (pageWidth - marginLeft - marginRight - tableGap) / 2;
+    const tableWidth = pageWidth - marginLeft - marginRight; // Full width table
     const maxRowsPerTable = Math.floor((pageHeight - tableTop - marginBottom) / 20) - 1; // -1 for header
 
     let currentY = tableTop;
@@ -211,20 +209,17 @@ function createSeatingArrangementReport(doc, data) {
         }
 
         const remainingStudents = data.students.slice(studentsProcessed);
-        const leftTableStudents = remainingStudents.slice(0, maxRowsPerTable);
-        studentsProcessed += leftTableStudents.length;
+        const tableStudents = remainingStudents.slice(0, maxRowsPerTable);
+        studentsProcessed += tableStudents.length;
 
-        const leftTableEndY = createTable(doc, leftTableStudents, marginLeft, currentY, maxRowsPerTable, tableWidth);
+        const tableEndY = createTable(doc, tableStudents, marginLeft, currentY, maxRowsPerTable, tableWidth);
+        currentY = tableEndY + 20;
 
+        // If there are more students, add a new page
         if (studentsProcessed < data.students.length) {
-            const rightTableStudents = remainingStudents.slice(maxRowsPerTable, maxRowsPerTable * 2);
-            studentsProcessed += rightTableStudents.length;
-
-            const rightTableX = marginLeft + tableWidth + tableGap;
-            const rightTableEndY = createTable(doc, rightTableStudents, rightTableX, currentY, maxRowsPerTable, tableWidth);
-            currentY = Math.max(leftTableEndY, rightTableEndY) + 20;
-        } else {
-            currentY = leftTableEndY + 20;
+            doc.addPage();
+            addHeader(doc, data);
+            currentY = tableTop;
         }
     }
 }
