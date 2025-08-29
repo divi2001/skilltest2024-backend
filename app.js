@@ -31,22 +31,29 @@ const PORT = 3004;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// CORS configuration 
+// CORS configuration
 const corsOptions = {
-  origin: ['*', 'http://localhost:3001', 'http://192.168.1.102:3002/'],// Your frontend URL
+  origin: [
+    'http://localhost:3000',    // ✅ React frontend
+    'http://localhost:3001',
+    'http://192.168.1.102:3002',
+    'http://3.109.1.101:3000',
+    'http://3.109.1.101:3001',
+    'http://3.109.1.101:3002'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
-}
+};
 
-// Use CORS with the above options
 app.use(cors(corsOptions));
+
 
 app.use(cors({
   origin: ['*', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'https://www.shorthandonlineexam.in', 'http://65.0.124.197:5000','http://65.0.124.197:5000/api/compare'],
   credentials: true
-}));
+}));  
 
 app.use(session({
   secret: 'divis@GeYT',
