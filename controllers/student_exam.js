@@ -421,9 +421,9 @@ exports.updatePassageFinalLogs = async (req, res) => {
     }
 
     const findStudentQuery = `SELECT center, batchNo FROM students WHERE student_id = ?`;
-    const findAudioLogQuery = `SELECT * FROM finalPassageSubmit WHERE student_id = ?`;
-    const updateAudioLogQuery = `UPDATE finalPassageSubmit SET ${passage_type} = ? WHERE student_id = ?`;
-    const insertAudioLogQuery = `INSERT INTO finalPassageSubmit (student_id, ${passage_type}) VALUES (?, ?)`;
+    const findAudioLogQuery = `SELECT * FROM finalpassagesubmit WHERE student_id = ?`;
+    const updateAudioLogQuery = `UPDATE finalpassagesubmit SET ${passage_type} = ? WHERE student_id = ?`;
+    const insertAudioLogQuery = `INSERT INTO finalpassagesubmit (student_id, ${passage_type}) VALUES (?, ?)`;
 
     try {
         // Query the database to get examCenterCode and batchNo
@@ -574,7 +574,7 @@ exports.getPassageFinalLogs = async (req, res) => {
         return res.status(400).send('Valid passage type is required');
     }
 
-    const findPassageLogQuery = `SELECT ${passage_type} FROM finalPassageSubmit WHERE student_id = ?`;
+    const findPassageLogQuery = `SELECT ${passage_type} FROM finalpassagesubmit WHERE student_id = ?`;
 
     try {
         const [rows] = await connection.query(findPassageLogQuery, [studentId]);
@@ -867,7 +867,7 @@ exports.getPassageProgress = async (req, res) => {
     }
   
     try {
-      const query = 'SELECT passageA FROM finalPassageSubmit WHERE student_id = ?';
+      const query = 'SELECT passageA FROM finalpassagesubmit WHERE student_id = ?';
       const [rows] = await connection.query(query, [studentId]);
   
       if (rows.length === 0) {
@@ -894,7 +894,7 @@ exports.getPassageProgress = async (req, res) => {
     }
   
     try {
-        const query = 'SELECT passageB FROM finalPassageSubmit WHERE student_id = ?';
+        const query = 'SELECT passageB FROM finalpassagesubmit WHERE student_id = ?';
         const [rows] = await connection.query(query, [studentId]);
   
         if (rows.length === 0) {

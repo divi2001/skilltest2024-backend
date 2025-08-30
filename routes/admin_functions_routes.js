@@ -21,8 +21,8 @@ router.post('/audio-logs',isAuthenticatedAdmin, adminFunctionController.updateAn
 // Route for manageTextLogs
 router.post('/text-logs',isAuthenticatedAdmin, adminFunctionController.manageTextLogs);
 
-// Route for manageFinalPassageSubmit
-router.post('/final-passage-submit',isAuthenticatedAdmin, adminFunctionController.manageFinalPassageSubmit);
+// Route for managefinalpassagesubmit
+router.post('/final-passage-submit',isAuthenticatedAdmin, adminFunctionController.managefinalpassagesubmit);
 
 // Route for manageTypingPassageLogs
 router.post('/typing-passage-logs',isAuthenticatedAdmin, adminFunctionController.manageTypingPassageLogs);

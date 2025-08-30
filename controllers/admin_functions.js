@@ -373,7 +373,7 @@ exports.manageTextLogs = async (req, res) => {
 };
 
 
-exports.manageFinalPassageSubmit = async (req, res) => {
+exports.managefinalpassagesubmit = async (req, res) => {
     const { studentId, passageA, passageB, reset } = req.body;
 
     if (!studentId) {
@@ -382,7 +382,7 @@ exports.manageFinalPassageSubmit = async (req, res) => {
 
     try {
         if (reset) {
-            const deleteQuery = 'DELETE FROM finalPassageSubmit WHERE student_id = ?';
+            const deleteQuery = 'DELETE FROM finalpassagesubmit WHERE student_id = ?';
             const [deleteResult] = await connection.query(deleteQuery, [studentId]);
 
             if (deleteResult.affectedRows === 0) {
@@ -406,7 +406,7 @@ exports.manageFinalPassageSubmit = async (req, res) => {
 
         if (updateFields.length > 0) {
             const updateQuery = `
-                INSERT INTO finalPassageSubmit (student_id, passageA, passageB)
+                INSERT INTO finalpassagesubmit (student_id, passageA, passageB)
                 VALUES (?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                 ${updateFields.join(', ')}
@@ -415,7 +415,7 @@ exports.manageFinalPassageSubmit = async (req, res) => {
             await connection.query(updateQuery, queryParams);
         }
 
-        const retrieveQuery = 'SELECT * FROM finalPassageSubmit WHERE student_id = ?';
+        const retrieveQuery = 'SELECT * FROM finalpassagesubmit WHERE student_id = ?';
         const [logs] = await connection.query(retrieveQuery, [studentId]);
 
         if (logs.length === 0) {
@@ -424,7 +424,7 @@ exports.manageFinalPassageSubmit = async (req, res) => {
 
         res.json({
             message: `Successfully managed final passage submit for student ID ${studentId}`,
-            finalPassageSubmit: logs[0]
+            finalpassagesubmit: logs[0]
         });
     } catch (err) {
         console.error('Failed to manage final passage submit:', err);
@@ -764,7 +764,7 @@ exports.getStudentData = async (req, res) => {
         let shorthandPassageQuery = `select tl.texta AS passage_a_log , tl.textb as passage_b_log , tl.mina , tl.minb , fps.passageA  AS final_passageA ,fps.passageB  AS final_passageB FROM 
                                        students s
                                        LEFT JOIN textlogs tl ON s.student_id = tl.student_id
-                                       LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
+                                       LEFT JOIN finalpassagesubmit fps ON s.student_id = fps.student_id
                                        where s.student_id = ?;`;
         let typingPassageQuery = `select tpl.passage AS typing_passage_log ,tp.passage AS final_typing_passage,tpl.time FROM 
                                        students s

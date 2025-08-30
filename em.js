@@ -9,9 +9,9 @@ exports.updatePassageFinalLogs = async (req, res) => {
         return res.status(400).send('Student ID is required');
     }
 
-    const findLogQuery = `SELECT * FROM finalPassageSubmit WHERE student_id = ?`;
-    const updateLogQuery = `UPDATE finalPassageSubmit SET question1 = ?, question2 = ?, question3 = ? WHERE student_id = ?`;
-    const insertLogQuery = `INSERT INTO finalPassageSubmit (student_id, question1, question2, question3) VALUES (?, ?, ?, ?)`;
+    const findLogQuery = `SELECT * FROM finalpassagesubmit WHERE student_id = ?`;
+    const updateLogQuery = `UPDATE finalpassagesubmit SET question1 = ?, question2 = ?, question3 = ? WHERE student_id = ?`;
+    const insertLogQuery = `INSERT INTO finalpassagesubmit (student_id, question1, question2, question3) VALUES (?, ?, ?, ?)`;
 
     try {
         const [rows] = await connection.query(findLogQuery, [studentId]);

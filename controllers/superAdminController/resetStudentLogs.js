@@ -36,7 +36,7 @@ exports.resetStudentProgress = async (req, res) => {
             `UPDATE exam_stages SET TypingPassageA = 0, ShorthandSummary = 0, ThankYou = 0 WHERE StudentId = ?;`
         ],
         finalShorthandPassageA: [
-            `UPDATE finalPassageSubmit SET passageA = NULL WHERE student_id = ?;`,
+            `UPDATE finalpassagesubmit SET passageA = NULL WHERE student_id = ?;`,
             `UPDATE exam_stages SET TypingPassageA = 0, ShorthandSummary = 0, ThankYou = 0 WHERE StudentId = ?;`
         ],
         audioShorthandB: [
@@ -48,7 +48,7 @@ exports.resetStudentProgress = async (req, res) => {
             `UPDATE exam_stages SET TypingPassageB = 0, ThankYou = 0 WHERE StudentId = ?;`
         ],
         finalShorthandPassageB: [
-            `UPDATE finalPassageSubmit SET passageB = NULL WHERE student_id = ?;`,
+            `UPDATE finalpassagesubmit SET passageB = NULL WHERE student_id = ?;`,
             `UPDATE exam_stages SET TypingPassageB = 0, ShorthandSummaryB = 0, ThankYou = 0 WHERE StudentId = ?;`
         ],
         trialPassageTyping: [

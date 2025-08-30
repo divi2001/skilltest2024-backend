@@ -173,7 +173,7 @@ const schema = {
         textb: 'LONGTEXT',
         created_at: 'TIMESTAMP'
     },
-    finalPassageSubmit: {
+    finalpassagesubmit: {
         student_id: 'BIGINT',
         passageA: 'LONGTEXT',
         passageB: 'LONGTEXT',
