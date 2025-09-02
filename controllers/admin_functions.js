@@ -1,48 +1,28 @@
 const connection = require('../config/db1');
 const moment = require('moment-timezone');
 const { encrypt, decrypt } = require('../config/encrypt');
-
+const mysql = require('mysql2/promise');
 exports.loginadmin = async (req, res) => {
     const { userId, password } = req.body;
     console.log('Login attempt - UserID:', userId);
 
     const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
 
-    let dm = encrypt(password);
-    console.log('Encrypted stored password:', dm);
-
     try {
         const [results] = await connection.query(query1, [userId]);
-        console.log(results)
+        console.log(results);
 
         if (results.length > 0) {
             const admin = results[0];
             console.log('Admin found in database:', admin.adminid);
 
-            let decryptedStoredPassword;
-            try {
-                decryptedStoredPassword = decrypt(admin.password);
-                console.log('Decrypted stored password: ', decryptedStoredPassword);
-                // decryptedStoredPassword = (admin.password);
-                console.log('Stored password:', decryptedStoredPassword);
-                console.log('Provided password:', password);
-            } catch (error) {
-                console.error('Error decrypting stored password:', error);
-                res.status(500).send('Error decrypting stored password');
-                return;
-            }
+            // Direct comparison since database has plain text password
+            const storedPassword = admin.password;
+            
+            console.log('Stored password:', storedPassword);
+            console.log('Provided password:', password);
 
-            // Ensure both passwords are treated as strings
-            const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
-            const providedPasswordStr = String(password).trim();
-
-            console.log('Comparing passwords:');
-            console.log('Stored (after trim):', decryptedStoredPasswordStr);
-
-            console.log('Provided (after trim):', providedPasswordStr);
-            console.log('Passwords match:', decryptedStoredPasswordStr === providedPasswordStr);
-
-            if (decryptedStoredPasswordStr === providedPasswordStr) {
+            if (storedPassword === password) {
                 console.log('Login successful for admin:', admin.adminid);
                 req.session.adminid = admin.adminid;
                 res.send('Logged in successfully as an admin!');
@@ -60,7 +40,7 @@ exports.loginadmin = async (req, res) => {
     }
 };
 
-const mysql = require('mysql2/promise');
+
 
 exports.fetchTableData = async (req, res) => {
     console.log("Fetching table data for admin");
@@ -755,8 +735,8 @@ const formatDate = (date) => {
     if (!date) return null;
     return moment(date).tz('Asia/Kolkata').format('YYYY-MM-DD hh:mm:ss A')
 }
-exports.getStudentData = async (req, res) => {
 
+exports.getStudentData = async (req, res) => {
     const { student_id } = req.body;
     console.log(student_id);
     try {
@@ -777,14 +757,25 @@ exports.getStudentData = async (req, res) => {
 
         const [shorthandPassage] = await connection.query(shorthandPassageQuery, [student_id]);
         const [studentResults] = await connection.query(studentQuery, [student_id]);
-        const [typingPassage] = await connection.query(typingPassageQuery, [student_id]);
+        
+        // Handle typingPassage query separately with error handling
+        let typingPassage = [];
+        try {
+            const [typingPassageResult] = await connection.query(typingPassageQuery, [student_id]);
+            typingPassage = typingPassageResult;
+        } catch (typingError) {
+            console.log('Typing passage query failed, ignoring:', typingError.message);
+            // typingPassage remains empty array
+        }
+        
         const [audioLogs] = await connection.query(audioLogsQuery, [student_id]);
         const [examStages] = await connection.query(examStagesQuery, [student_id]);
         const [studentLogs] = await connection.query(studentLogsQuery, [student_id]);
-        // console.log(results);
+        
         if (studentResults.length === 0) {
             return res.status(404).json({ "Message": "No Student Found for this id!!!" })
         }
+        
         console.log(studentLogs);
         studentLogs[0].loginTime = formatDate(studentLogs[0].loginTime);
         studentLogs[0].trial_time = formatDate(studentLogs[0].trial_time);
@@ -796,17 +787,19 @@ exports.getStudentData = async (req, res) => {
         studentLogs[0].typing_passage_time = formatDate(studentLogs[0].typing_passage_time);
         studentLogs[0].feedback_time = formatDate(studentLogs[0].feedback_time);
 
-
         studentResults[0].batchdate = formatDate(studentResults[0].batchdate);
-        typingPassage[0].time = formatDate(typingPassage[0].time);
+        
+        // Only format time if typingPassage has data
+        if (typingPassage.length > 0 && typingPassage[0].time) {
+            typingPassage[0].time = formatDate(typingPassage[0].time);
+        }
+        
         res.status(201).json({ shorthandPassage, typingPassage, studentResults, audioLogs, examStages, studentLogs });
     } catch (error) {
         console.error('Database query error:', error);
         res.status(500).send('Internal server error');
     }
-
 }
-
 exports.getAttendaceReports = async (req, res) => {
     const { center, batch } = req.query;
     try {
