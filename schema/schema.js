@@ -31,7 +31,8 @@ const schema = {
         disability: 'BOOLEAN'
     },
     subjectsdb: {
-        subjectId: 'INT PRIMARY KEY',
+        subjectId: 'INT',
+        examType: "ENUM('GCC', 'SKILL')",  // Composite key part 2
         courseId: 'INT',
         subject_name: 'VARCHAR(100)',
         subject_name_short: 'VARCHAR(50)',
@@ -39,8 +40,8 @@ const schema = {
         passage_timer: 'INT',
         demo_timer: 'INT',
         disability_passage_timer: 'INT',
-        typing_timer: "INT",
-        disability_typing_timer: 'INT'
+        typing_timer: 'INT',
+        disability_typing_timer: 'INT',
     },
     departmentdb: {
         departmentId: 'INT PRIMARY KEY',
@@ -104,9 +105,10 @@ const schema = {
         mac_address: 'LONGTEXT NOT NULL'
     },
     audiodb: {
-        id: 'INT PRIMARY KEY',
-        subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        id: 'INT PRIMARY KEY AUTO_INCREMENT',
+        subjectId: 'INT',
         qset: 'INT',
+        departmentId: 'INT',
         code_a: 'VARCHAR(10)',
         code_b: 'VARCHAR(10)',
         code_t: 'VARCHAR(10)',
