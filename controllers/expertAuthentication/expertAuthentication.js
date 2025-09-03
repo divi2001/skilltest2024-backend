@@ -111,14 +111,25 @@ exports.getPassagesByStudentId = async (req, res) => {
     if(expertId === 8){
         try {
             const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id, subjectId, qset
-                FROM expertreviewlog 
-                WHERE student_id = ?
+                SELECT 
+                    erl.passageA, 
+                    erl.passageB, 
+                    erl.ansPassageA, 
+                    erl.ansPassageB, 
+                    erl.student_id, 
+                    erl.subjectId, 
+                    erl.qset,
+                    s.departmentId,
+                    d.examType
+                FROM expertreviewlog erl
+                LEFT JOIN students s ON erl.student_id = s.student_id
+                LEFT JOIN departmentdb d ON s.departmentId = d.departmentId
+                WHERE erl.student_id = ?
             `;
             const [results] = await connection.query(query, [studentId]);
     
             if (results.length > 0) {
-                console.log("Assigned student_id:", results[0].student_id);
+                console.log(`Assigned student_id: ${results[0].student_id}, ExamType: ${results[0].examType}, DepartmentId: ${results[0].departmentId}`);
                 res.status(200).json({ ...results[0], expertId }); // Include expertId in the response
             } else {
                 res.status(404).json({ error: 'No assigned passages found' });
@@ -131,14 +142,27 @@ exports.getPassagesByStudentId = async (req, res) => {
     else if(expertId === 100 || expertId === 101){
         try {
             const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id, subjectId, qset, QPA, QPB
-                FROM modreviewlog 
-                WHERE student_id = ?
+                SELECT 
+                    mrl.passageA, 
+                    mrl.passageB, 
+                    mrl.ansPassageA, 
+                    mrl.ansPassageB, 
+                    mrl.student_id, 
+                    mrl.subjectId, 
+                    mrl.qset, 
+                    mrl.QPA, 
+                    mrl.QPB,
+                    s.departmentId,
+                    d.examType
+                FROM modreviewlog mrl
+                LEFT JOIN students s ON mrl.student_id = s.student_id
+                LEFT JOIN departmentdb d ON s.departmentId = d.departmentId
+                WHERE mrl.student_id = ?
             `;
             const [results] = await connection.query(query, [studentId]);
 
             if (results.length > 0) {
-                console.log("Assigned student_id:", results[0].student_id);
+                console.log(`Assigned student_id: ${results[0].student_id}, ExamType: ${results[0].examType}, DepartmentId: ${results[0].departmentId}`);
                 res.status(200).json({ ...results[0], expertId }); // Include expertId in the response
             } else {
                 res.status(404).json({ error: 'No assigned passages found' });
@@ -159,7 +183,9 @@ exports.getStudentPassages = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
     const expertId = req.session.expertId;
-    const { subjectId, qset, studentId } = req.params;
+    const { subjectId, qset, studentId, departmentId } = req.params; // Added departmentId
+
+    console.log(`DepartmentId from URL: ${departmentId}`);
 
     if(expertId === 8){
         try {
@@ -173,7 +199,7 @@ exports.getStudentPassages = async (req, res) => {
     
             if (results.length > 0) {
                 console.log("Fetched student_id:", results[0].student_id);
-                res.status(200).json(results[0]);
+                res.status(200).json({...results[0], departmentId}); // Include departmentId in response
             } else {
                 res.status(404).json({ error: 'No passages found for this student' });
             }
@@ -194,7 +220,7 @@ exports.getStudentPassages = async (req, res) => {
     
             if (results.length > 0) {
                 console.log("Fetched student_id:", results[0].student_id);
-                res.status(200).json(results[0]);
+                res.status(200).json({...results[0], departmentId}); // Include departmentId in response
             } else {
                 res.status(404).json({ error: 'No passages found for this student' });
             }
@@ -215,7 +241,7 @@ exports.getStudentPassages = async (req, res) => {
     
             if (results.length > 0) {
                 console.log("Fetched student_id:", results[0].student_id);
-                res.status(200).json(results[0]);
+                res.status(200).json({...results[0], departmentId}); // Include departmentId in response
             } else {
                 res.status(404).json({ error: 'No passages found for this student' });
             }
