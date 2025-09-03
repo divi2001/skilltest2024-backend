@@ -1,4 +1,4 @@
-// StudentSpecific.js
+// controllers/expertAuthentication/studentSpecific.js
 const connection = require('../../config/db1');
 const moment = require('moment-timezone');
 
@@ -28,7 +28,10 @@ exports.getAllSubjects = async (req, res) => {
         subjectsQuery = `
             SELECT DISTINCT
                 s.subjectId,
-                s.subject_name
+                s.subject_name,
+                st.departmentId,
+                d.departmentName,
+                d.examType
             FROM 
                 subjectsdb s
             JOIN 
@@ -38,10 +41,10 @@ exports.getAllSubjects = async (req, res) => {
             WHERE 
                 d.departmentStatus = 1
             ORDER BY 
-                s.subjectId;
+                s.subjectId, st.departmentId;
         `;
     } else {
-        // Original query for paper_check and super_mod
+        // Updated query for paper_check and super_mod to include departmentId and examType
         subjectsQuery = `
             SELECT 
                 s.subjectId, 
@@ -55,7 +58,9 @@ exports.getAllSubjects = async (req, res) => {
                     THEN m.student_id 
                 END) AS incomplete_count,
                 COUNT(DISTINCT m.student_id) AS total_count,
-                st.departmentId
+                st.departmentId,
+                d.departmentName,
+                d.examType
             FROM 
                 subjectsdb s
             LEFT JOIN 
@@ -74,9 +79,12 @@ exports.getAllSubjects = async (req, res) => {
                 s.passage_timer, 
                 s.demo_timer, 
                 st.departmentId, 
-                d.departmentName
+                d.departmentName,
+                d.examType
             HAVING 
-                incomplete_count > 0;
+                incomplete_count > 0
+            ORDER BY 
+                s.subjectId, st.departmentId;
         `;
     }
 
@@ -88,13 +96,13 @@ exports.getAllSubjects = async (req, res) => {
             [results] = await connection.query(subjectsQuery, [req.session.expertId]);
         }
         
-        // Console log the subjects and their student counts
+        // Console log the subjects with department information
         console.log("Subjects available for expert:");
         results.forEach(subject => {
             if (paper_mod === 1) {
-                console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}`);
+                console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}, Department: ${subject.departmentName} (ID: ${subject.departmentId}), ExamType: ${subject.examType}`);
             } else {
-                console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}, Incomplete Count: ${subject.incomplete_count}, Total Count: ${subject.total_count}`);
+                console.log(`Subject ID: ${subject.subjectId}, Name: ${subject.subject_name}, Department: ${subject.departmentName} (ID: ${subject.departmentId}), ExamType: ${subject.examType}, Incomplete Count: ${subject.incomplete_count}, Total Count: ${subject.total_count}`);
             }
         });
 
@@ -111,6 +119,7 @@ exports.getQSetsForSubject = async (req, res) => {
     }
 
     const { subjectId } = req.params;
+    const { departmentId } = req.query; // Get departmentId from query parameters
     const expertId = req.session.expertId;
 
     const paper_check = req.session.paper_check;
@@ -129,50 +138,104 @@ exports.getQSetsForSubject = async (req, res) => {
 
     try {
         if (paper_mod === 1) {
-            qsetQuery = `
-                SELECT DISTINCT
-                    a.qset
-                FROM 
-                    audiodb a
-                JOIN 
-                    students st ON a.subjectId = st.subjectsId
-                JOIN 
-                    departmentdb d ON st.departmentId = d.departmentId
-                WHERE 
-                    a.subjectId = ?
-                    AND d.departmentStatus = 1
-                ORDER BY 
-                    a.qset
-            `;
-            const [qsetResults] = await connection.query(qsetQuery, [subjectId]);
+            if (departmentId) {
+                qsetQuery = `
+                    SELECT DISTINCT
+                        a.qset
+                    FROM 
+                        audiodb a
+                    JOIN 
+                        students st ON a.subjectId = st.subjectsId
+                    JOIN 
+                        departmentdb d ON st.departmentId = d.departmentId
+                    WHERE 
+                        a.subjectId = ?
+                        AND st.departmentId = ?
+                        AND d.departmentStatus = 1
+                    ORDER BY 
+                        a.qset
+                `;
+                const [qsetResults] = await connection.query(qsetQuery, [subjectId, departmentId]);
+                
+                console.log(`QSets for subject ${subjectId}, department ${departmentId} from audiodb:`);
+                qsetResults.forEach(qset => {
+                    console.log(`QSet: ${qset.qset}`);
+                });
 
-            console.log(`QSets for subject ${subjectId} from audiodb:`);
-            qsetResults.forEach(qset => {
-                console.log(`QSet: ${qset.qset}`);
-            });
+                res.status(200).json(qsetResults);
+            } else {
+                // Original query without department filtering
+                qsetQuery = `
+                    SELECT DISTINCT
+                        a.qset
+                    FROM 
+                        audiodb a
+                    JOIN 
+                        students st ON a.subjectId = st.subjectsId
+                    JOIN 
+                        departmentdb d ON st.departmentId = d.departmentId
+                    WHERE 
+                        a.subjectId = ?
+                        AND d.departmentStatus = 1
+                    ORDER BY 
+                        a.qset
+                `;
+                const [qsetResults] = await connection.query(qsetQuery, [subjectId]);
 
-            res.status(200).json(qsetResults);
+                console.log(`QSets for subject ${subjectId} from audiodb:`);
+                qsetResults.forEach(qset => {
+                    console.log(`QSet: ${qset.qset}`);
+                });
+
+                res.status(200).json(qsetResults);
+            }
         } else {
-            qsetQuery = `
-                SELECT 
-                    qset, 
-                    COUNT(DISTINCT CASE WHEN subm_done IS NULL OR subm_done = 0 THEN student_id END) as incomplete_count,
-                    COUNT(DISTINCT student_id) as total_count
-                FROM ${tableName} 
-                WHERE subjectId = ?
-                AND expertId = ?
-                GROUP BY qset
-                HAVING incomplete_count > 0
-                ORDER BY qset
-            `;
-            const [qsetResults] = await connection.query(qsetQuery, [subjectId, expertId]);
+            if (departmentId) {
+                qsetQuery = `
+                    SELECT 
+                        ${tableName}.qset, 
+                        COUNT(DISTINCT CASE WHEN ${tableName}.subm_done IS NULL OR ${tableName}.subm_done = 0 THEN ${tableName}.student_id END) as incomplete_count,
+                        COUNT(DISTINCT ${tableName}.student_id) as total_count
+                    FROM ${tableName} 
+                    JOIN students s ON ${tableName}.student_id = s.student_id
+                    WHERE ${tableName}.subjectId = ?
+                    AND ${tableName}.expertId = ?
+                    AND s.departmentId = ?
+                    GROUP BY ${tableName}.qset
+                    HAVING incomplete_count > 0
+                    ORDER BY ${tableName}.qset
+                `;
+                const [qsetResults] = await connection.query(qsetQuery, [subjectId, expertId, departmentId]);
 
-            console.log(`QSets for subject ${subjectId} and expert ${expertId} with student counts:`);
-            qsetResults.forEach(qset => {
-                console.log(`QSet: ${qset.qset}, Incomplete Count: ${qset.incomplete_count}, Total Count: ${qset.total_count}`);
-            });
+                console.log(`QSets for subject ${subjectId}, department ${departmentId} and expert ${expertId} with student counts:`);
+                qsetResults.forEach(qset => {
+                    console.log(`QSet: ${qset.qset}, Incomplete Count: ${qset.incomplete_count}, Total Count: ${qset.total_count}`);
+                });
 
-            res.status(200).json(qsetResults);
+                res.status(200).json(qsetResults);
+            } else {
+                // Original query without department filtering
+                qsetQuery = `
+                    SELECT 
+                        qset, 
+                        COUNT(DISTINCT CASE WHEN subm_done IS NULL OR subm_done = 0 THEN student_id END) as incomplete_count,
+                        COUNT(DISTINCT student_id) as total_count
+                    FROM ${tableName} 
+                    WHERE subjectId = ?
+                    AND expertId = ?
+                    GROUP BY qset
+                    HAVING incomplete_count > 0
+                    ORDER BY qset
+                `;
+                const [qsetResults] = await connection.query(qsetQuery, [subjectId, expertId]);
+
+                console.log(`QSets for subject ${subjectId} and expert ${expertId} with student counts:`);
+                qsetResults.forEach(qset => {
+                    console.log(`QSet: ${qset.qset}, Incomplete Count: ${qset.incomplete_count}, Total Count: ${qset.total_count}`);
+                });
+
+                res.status(200).json(qsetResults);
+            }
         }
     } catch (err) {
         console.error("Error fetching qsets:", err);
@@ -186,7 +249,7 @@ exports.getExpertAssignedPassages = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset } = req.params;
+    const { subjectId, qset, departmentId } = req.params;
     const expertId = req.session.expertId;
 
     const paper_check = req.session.paper_check;
@@ -214,31 +277,33 @@ exports.getExpertAssignedPassages = async (req, res) => {
             const [results] = await connection.query(query, [subjectId, qset]);
 
             if (results.length > 0) {
-                console.log(`Fetched passages for subject ${subjectId}, qset ${qset} from audiodb`);
+                console.log(`Fetched passages for subject ${subjectId}, qset ${qset}, department ${departmentId} from audiodb`);
                 res.status(200).json({
                     subjectId: results[0].subjectId,
                     qset: results[0].qset,
                     passageA: results[0].textPassageA,
-                    passageB: results[0].textPassageB
+                    passageB: results[0].textPassageB,
+                    departmentId: departmentId
                 });
             } else {
                 res.status(404).json({ error: 'No passages found' });
             }
         } else {
             query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id
+                SELECT ${tableName}.passageA, ${tableName}.passageB, ${tableName}.ansPassageA, ${tableName}.ansPassageB, ${tableName}.student_id, s.departmentId
                 FROM ${tableName} 
-                WHERE subjectId = ? AND qset = ? AND expertId = ?
-                ORDER BY loggedin DESC
+                JOIN students s ON ${tableName}.student_id = s.student_id
+                WHERE ${tableName}.subjectId = ? AND ${tableName}.qset = ? AND ${tableName}.expertId = ? AND s.departmentId = ?
+                ORDER BY ${tableName}.loggedin DESC
                 LIMIT 1
             `;
-            const [results] = await connection.query(query, [subjectId, qset, expertId]);
+            const [results] = await connection.query(query, [subjectId, qset, expertId, departmentId]);
 
             if (results.length > 0) {
-                console.log("Assigned student_id:", results[0].student_id);
+                console.log(`Assigned student_id: ${results[0].student_id}, departmentId: ${results[0].departmentId}`);
                 res.status(200).json(results[0]);
             } else {
-                res.status(404).json({ error: 'No assigned passages found' });
+                res.status(404).json({ error: 'No assigned passages found for this department' });
             }
         }
     } catch (err) {
@@ -256,10 +321,11 @@ exports.assignStudentForQSet = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset } = req.params;
+    // Get departmentId and examType from URL path parameters
+    const { subjectId, qset, departmentId, examType } = req.params;
     const expertId = req.session.expertId;
 
-    console.log(`Parameters: subjectId=${subjectId}, qset=${qset}, expertId=${expertId}`);
+    console.log(`Parameters: subjectId=${subjectId}, qset=${qset}, departmentId=${departmentId}, examType=${examType}, expertId=${expertId}`);
 
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
@@ -270,7 +336,12 @@ exports.assignStudentForQSet = async (req, res) => {
     // Check paper_mod condition first
     if (paper_mod === 1) {
         console.log("paper_mod is 1, returning qset details without assigning student");
-        return res.status(200).json({ qset, paper_mod });
+        return res.status(200).json({ 
+            qset, 
+            paper_mod, 
+            departmentId: departmentId || null, 
+            examType: examType || null 
+        });
     }
 
     let tableName;
@@ -294,35 +365,104 @@ exports.assignStudentForQSet = async (req, res) => {
         await conn.beginTransaction();
         console.log("Transaction begun");
 
-        // Check if the expert already has an active assignment
+        // Updated queries to include departmentId filtering
         let checkExistingAssignmentQuery;
         if (tableName === 'expertreviewlog') {
-            checkExistingAssignmentQuery = `
-                SELECT student_id, loggedin, status, subm_done, subm_time
-                FROM ${tableName} 
-                WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done IS NULL OR subm_done = 0)
-                LIMIT 1
-            `;
+            if (departmentId && departmentId !== 'undefined' && departmentId !== 'null') {
+                checkExistingAssignmentQuery = `
+                    SELECT 
+                        erl.student_id, 
+                        erl.loggedin, 
+                        erl.status, 
+                        erl.subm_done, 
+                        erl.subm_time,
+                        s.departmentId,
+                        d.examType
+                    FROM ${tableName} erl
+                    JOIN students s ON erl.student_id = s.student_id
+                    JOIN departmentdb d ON s.departmentId = d.departmentId
+                    WHERE erl.subjectId = ? AND erl.qset = ? AND erl.expertId = ? AND s.departmentId = ? AND (erl.subm_done IS NULL OR erl.subm_done = 0)
+                    LIMIT 1
+                `;
+            } else {
+                checkExistingAssignmentQuery = `
+                    SELECT 
+                        erl.student_id, 
+                        erl.loggedin, 
+                        erl.status, 
+                        erl.subm_done, 
+                        erl.subm_time,
+                        s.departmentId,
+                        d.examType
+                    FROM ${tableName} erl
+                    JOIN students s ON erl.student_id = s.student_id
+                    JOIN departmentdb d ON s.departmentId = d.departmentId
+                    WHERE erl.subjectId = ? AND erl.qset = ? AND erl.expertId = ? AND (erl.subm_done IS NULL OR erl.subm_done = 0)
+                    LIMIT 1
+                `;
+            }
         } else {
-            checkExistingAssignmentQuery = `
-                SELECT student_id, loggedin, status, subm_done, subm_time, QPA, QPB
-                FROM ${tableName} 
-                WHERE subjectId = ? AND qset = ? AND expertId = ? AND (subm_done IS NULL OR subm_done = 0)
-                LIMIT 1
-            `;
+            if (departmentId && departmentId !== 'undefined' && departmentId !== 'null') {
+                checkExistingAssignmentQuery = `
+                    SELECT 
+                        mrl.student_id, 
+                        mrl.loggedin, 
+                        mrl.status, 
+                        mrl.subm_done, 
+                        mrl.subm_time, 
+                        mrl.QPA, 
+                        mrl.QPB,
+                        s.departmentId,
+                        d.examType
+                    FROM ${tableName} mrl
+                    JOIN students s ON mrl.student_id = s.student_id
+                    JOIN departmentdb d ON s.departmentId = d.departmentId
+                    WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND s.departmentId = ? AND (mrl.subm_done IS NULL OR mrl.subm_done = 0)
+                    LIMIT 1
+                `;
+            } else {
+                checkExistingAssignmentQuery = `
+                    SELECT 
+                        mrl.student_id, 
+                        mrl.loggedin, 
+                        mrl.status, 
+                        mrl.subm_done, 
+                        mrl.subm_time, 
+                        mrl.QPA, 
+                        mrl.QPB,
+                        s.departmentId,
+                        d.examType
+                    FROM ${tableName} mrl
+                    JOIN students s ON mrl.student_id = s.student_id
+                    JOIN departmentdb d ON s.departmentId = d.departmentId
+                    WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND (mrl.subm_done IS NULL OR mrl.subm_done = 0)
+                    LIMIT 1
+                `;
+            }
         }
+
         console.log("Checking existing assignment query:", checkExistingAssignmentQuery);
-        const [existingAssignment] = await conn.query(checkExistingAssignmentQuery, [subjectId, qset, expertId]);
+        
+        let queryParams;
+        if (departmentId && departmentId !== 'undefined' && departmentId !== 'null') {
+            queryParams = [subjectId, qset, expertId, departmentId];
+        } else {
+            queryParams = [subjectId, qset, expertId];
+        }
+        
+        const [existingAssignment] = await conn.query(checkExistingAssignmentQuery, queryParams);
         console.log("Existing assignment result:", existingAssignment);
 
-        let student_id, loggedin, status, subm_done, subm_time, QPA, QPB;
+        let student_id, loggedin, status, subm_done, subm_time, QPA, QPB, finalExamType, finalDepartmentId;
 
         if (existingAssignment.length > 0) {
             console.log("Existing active assignment found");
-            ({ student_id, loggedin, status, subm_done, subm_time } = existingAssignment[0]);
+            ({ student_id, loggedin, status, subm_done, subm_time, departmentId: finalDepartmentId, examType: finalExamType } = existingAssignment[0]);
             if (tableName === 'modreviewlog') {
                 ({ QPA, QPB } = existingAssignment[0]);
             }
+
+            console.log(`Existing assignment - Student ID: ${student_id}, DepartmentId: ${finalDepartmentId}, ExamType: ${finalExamType}`);
 
             // Update the existing assignment
             const updateAssignmentQuery = `
@@ -337,26 +477,50 @@ exports.assignStudentForQSet = async (req, res) => {
             subm_time = null;
         } else {
             console.log("No existing active assignment, assigning new student");
-            // Assign a new student that is not already assigned to any expert
-            const assignNewStudentQuery = `
-                UPDATE ${tableName} 
-                SET expertId = ?, loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL
-                WHERE subjectId = ? AND qset = ? AND expertId IS NULL AND student_id IS NOT NULL
-                LIMIT 1
-            `;
-            const [assignResult] = await conn.query(assignNewStudentQuery, [expertId, subjectId, qset]);
-
-            if (assignResult.affectedRows > 0) {
-                // Fetch the new assignment details
-                const [newAssignment] = await conn.query(checkExistingAssignmentQuery, [subjectId, qset, expertId]);
-                ({ student_id, loggedin, status, subm_done, subm_time } = newAssignment[0]);
-                if (tableName === 'modreviewlog') {
-                    ({ QPA, QPB } = newAssignment[0]);
+            
+            // Updated assign new student query to include department filtering
+            let assignNewStudentQuery;
+            if (departmentId && departmentId !== 'undefined' && departmentId !== 'null') {
+                assignNewStudentQuery = `
+                    UPDATE ${tableName} 
+                    JOIN students s ON ${tableName}.student_id = s.student_id
+                    SET ${tableName}.expertId = ?, ${tableName}.loggedin = NOW(), ${tableName}.status = 1, ${tableName}.subm_done = 0, ${tableName}.subm_time = NULL
+                    WHERE ${tableName}.subjectId = ? AND ${tableName}.qset = ? AND ${tableName}.expertId IS NULL AND ${tableName}.student_id IS NOT NULL AND s.departmentId = ?
+                    LIMIT 1
+                `;
+                const [assignResult] = await conn.query(assignNewStudentQuery, [expertId, subjectId, qset, departmentId]);
+                
+                if (assignResult.affectedRows > 0) {
+                    const [newAssignment] = await conn.query(checkExistingAssignmentQuery, queryParams);
+                    ({ student_id, loggedin, status, subm_done, subm_time, departmentId: finalDepartmentId, examType: finalExamType } = newAssignment[0]);
+                    if (tableName === 'modreviewlog') {
+                        ({ QPA, QPB } = newAssignment[0]);
+                    }
+                    console.log(`New assignment - Student ID: ${student_id}, DepartmentId: ${finalDepartmentId}, ExamType: ${finalExamType}`);
+                } else {
+                    await conn.rollback();
+                    return res.status(400).json({ error: `No available students for this QSet in department ${departmentId}. All students are already assigned.` });
                 }
             } else {
-                // No available students
-                await conn.rollback();
-                return res.status(400).json({ error: 'No available students for this QSet. All students are already assigned.' });
+                assignNewStudentQuery = `
+                    UPDATE ${tableName} 
+                    SET expertId = ?, loggedin = NOW(), status = 1, subm_done = 0, subm_time = NULL
+                    WHERE subjectId = ? AND qset = ? AND expertId IS NULL AND student_id IS NOT NULL
+                    LIMIT 1
+                `;
+                const [assignResult] = await conn.query(assignNewStudentQuery, [expertId, subjectId, qset]);
+                
+                if (assignResult.affectedRows > 0) {
+                    const [newAssignment] = await conn.query(checkExistingAssignmentQuery, queryParams);
+                    ({ student_id, loggedin, status, subm_done, subm_time, departmentId: finalDepartmentId, examType: finalExamType } = newAssignment[0]);
+                    if (tableName === 'modreviewlog') {
+                        ({ QPA, QPB } = newAssignment[0]);
+                    }
+                    console.log(`New assignment - Student ID: ${student_id}, DepartmentId: ${finalDepartmentId}, ExamType: ${finalExamType}`);
+                } else {
+                    await conn.rollback();
+                    return res.status(400).json({ error: 'No available students for this QSet. All students are already assigned.' });
+                }
             }
         }
 
@@ -370,28 +534,58 @@ exports.assignStudentForQSet = async (req, res) => {
             if (subm_time) {
                 subm_time = moment(subm_time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
             }
-            return res.status(200).json({ qset, student_id, loggedin, status, subm_done, subm_time });
+            
+            console.log(`Assignment completed for expertId: ${expertId}, student_id: ${student_id}, departmentId: ${finalDepartmentId}, examType: ${finalExamType}`);
+            return res.status(200).json({ 
+                qset, 
+                student_id, 
+                loggedin, 
+                status, 
+                subm_done, 
+                subm_time, 
+                departmentId: finalDepartmentId, 
+                examType: finalExamType 
+            });
         }
         else if(super_mod === 1){
             console.log("super_mod is 1, proceeding with QPA and QPB check");
             if (!QPA || !QPB) {
                 console.log("QPA or QPB not filled, fetching ignore lists");
-                // Fetch ignore lists only if QPA or QPB is not filled
-                const fetchIgnoreListsQuery = `
-                    SELECT Q${qset}PA as QPA, Q${qset}PB as QPB
-                    FROM modqsetdb
-                    WHERE subjectId = ?
-                `;
-                const [ignoreListsResult] = await conn.query(fetchIgnoreListsQuery, [subjectId]);
-    
-                if (ignoreListsResult.length === 0) {
-                    await conn.rollback();
-                    return res.status(404).json({ error: 'Ignore lists not found for this subject and qset' });
+                
+                // Updated fetchIgnoreListsQuery to include departmentId
+                let fetchIgnoreListsQuery;
+                if (finalDepartmentId) {
+                    fetchIgnoreListsQuery = `
+                        SELECT Q${qset}PA as QPA, Q${qset}PB as QPB
+                        FROM modqsetdb
+                        WHERE subjectId = ? AND departmentId = ?
+                    `;
+                    const [ignoreListsResult] = await conn.query(fetchIgnoreListsQuery, [subjectId, finalDepartmentId]);
+                    
+                    if (ignoreListsResult.length === 0) {
+                        await conn.rollback();
+                        return res.status(404).json({ error: `Ignore lists not found for this subject and qset in department ${finalDepartmentId}` });
+                    }
+                    
+                    QPA = QPA || ignoreListsResult[0].QPA;
+                    QPB = QPB || ignoreListsResult[0].QPB;
+                } else {
+                    fetchIgnoreListsQuery = `
+                        SELECT Q${qset}PA as QPA, Q${qset}PB as QPB
+                        FROM modqsetdb
+                        WHERE subjectId = ?
+                    `;
+                    const [ignoreListsResult] = await conn.query(fetchIgnoreListsQuery, [subjectId]);
+                    
+                    if (ignoreListsResult.length === 0) {
+                        await conn.rollback();
+                        return res.status(404).json({ error: 'Ignore lists not found for this subject and qset' });
+                    }
+                    
+                    QPA = QPA || ignoreListsResult[0].QPA;
+                    QPB = QPB || ignoreListsResult[0].QPB;
                 }
-    
-                QPA = QPA || ignoreListsResult[0].QPA;
-                QPB = QPB || ignoreListsResult[0].QPB;
-    
+
                 // Update the modreviewlog with the ignore lists only if they were not filled
                 const updateIgnoreListsQuery = `
                     UPDATE modreviewlog
@@ -409,8 +603,21 @@ exports.assignStudentForQSet = async (req, res) => {
             if (subm_time) {
                 subm_time = moment(subm_time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
             }
-            console.log("Sending response:", { qset, student_id, loggedin, status, subm_done, subm_time, QPA, QPB });
-            res.status(200).json({ qset, student_id, loggedin, status, subm_done, subm_time, QPA, QPB });            
+            
+            console.log(`Assignment completed for expertId: ${expertId}, student_id: ${student_id}, departmentId: ${finalDepartmentId}, examType: ${finalExamType}`);
+            console.log("Sending response:", { qset, student_id, loggedin, status, subm_done, subm_time, QPA, QPB, departmentId: finalDepartmentId, examType: finalExamType });
+            res.status(200).json({ 
+                qset, 
+                student_id, 
+                loggedin, 
+                status, 
+                subm_done, 
+                subm_time, 
+                QPA, 
+                QPB, 
+                departmentId: finalDepartmentId, 
+                examType: finalExamType 
+            });            
         }
 
     } catch (err) {
@@ -424,13 +631,13 @@ exports.assignStudentForQSet = async (req, res) => {
 };
 
 // Ignore list management routes
-// 1. Get ignorelist functions
+// 1. Updated getIgnoreList function
 exports.getIgnoreList = async (req, res) => {
     if (!req.session.expertId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset, activePassage } = req.body;
+    const { subjectId, qset, activePassage, departmentId } = req.body;
     const expertId = req.session.expertId;
 
     const paper_check = req.session.paper_check;
@@ -445,8 +652,8 @@ exports.getIgnoreList = async (req, res) => {
     }
 
     // Input validation
-    if (!subjectId || !qset || !activePassage) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!subjectId || !qset || !activePassage || !departmentId) {
+        return res.status(400).json({ error: 'Missing required parameters (subjectId, qset, activePassage, departmentId)' });
     }
 
     if (paper_check === 1 || paper_mod === 1){ 
@@ -456,15 +663,15 @@ exports.getIgnoreList = async (req, res) => {
             const query = `
                 SELECT ${columnName} AS ignoreList
                 FROM ${tableName}
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
             `;
             
-            const [results] = await connection.query(query, [subjectId]);
+            const [results] = await connection.query(query, [subjectId, departmentId]);
             
             if (results.length > 0 && results[0].ignoreList) {
-                // Split the ignore list string into an array
                 const ignoreList = results[0].ignoreList.split(',').map(item => item.trim());
-                console.log(ignoreList)
+                console.log(`Fetched ignore list for subjectId: ${subjectId}, departmentId: ${departmentId}, qset: ${qset}, activePassage: ${activePassage}`);
+                console.log(ignoreList);
                 res.status(200).json({ ignoreList });
             } else {
                 res.status(404).json({ error: 'No ignore list found' });
@@ -474,29 +681,28 @@ exports.getIgnoreList = async (req, res) => {
             res.status(500).json({ error: 'Error fetching ignore list' });
         }
     }
-    else if (super_mod === 1){ //Fetching ignore list from QPA and QPB columns for Stage 3
+    else if (super_mod === 1){ 
         try {
             const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
             
             const query = `
-                SELECT ${columnName} AS ignoreList, student_id
-                FROM modreviewlog
-                WHERE subjectId = ? AND qset = ? AND expertId = ?
-                ORDER BY loggedin DESC
+                SELECT mrl.${columnName} AS ignoreList, mrl.student_id, s.departmentId
+                FROM modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND s.departmentId = ?
+                ORDER BY mrl.loggedin DESC
                 LIMIT 1
             `;
             
-            const [results] = await connection.query(query, [subjectId, qset, expertId]);
+            const [results] = await connection.query(query, [subjectId, qset, expertId, departmentId]);
     
             if (results.length > 0) {
                 const { ignoreList, student_id } = results[0];
                 
                 if (ignoreList) {
-                    // Split the ignore list string into an array
                     const ignoreListArray = ignoreList.split(',').map(item => item.trim());
                     
-                    console.log(`Fetched ignore list for expertId: ${expertId}, student_id: ${student_id}, subjectId: ${subjectId}, qset: ${qset}, activePassage: ${activePassage}`);
-                    console.log(`Table: modreviewlog, Column: ${columnName}`);
+                    console.log(`Fetched ignore list for expertId: ${expertId}, student_id: ${student_id}, subjectId: ${subjectId}, departmentId: ${departmentId}, qset: ${qset}, activePassage: ${activePassage}`);
                     console.log(`Ignore list: ${ignoreListArray.join(', ')}`);
                     
                     res.status(200).json({ 
@@ -505,6 +711,7 @@ exports.getIgnoreList = async (req, res) => {
                             expertId,
                             student_id,
                             subjectId,
+                            departmentId,
                             qset,
                             activePassage,
                             table: 'modreviewlog',
@@ -512,14 +719,13 @@ exports.getIgnoreList = async (req, res) => {
                         }
                     });
                 } else {
-                    console.log(`No ignore list found for expertId: ${expertId}, student_id: ${student_id}, subjectId: ${subjectId}, qset: ${qset}, activePassage: ${activePassage}`);
-                    console.log(`Table: modreviewlog, Column: ${columnName}`);
                     res.status(404).json({ 
                         error: 'No ignore list found',
                         debug: {
                             expertId,
                             student_id,
                             subjectId,
+                            departmentId,
                             qset,
                             activePassage,
                             table: 'modreviewlog',
@@ -528,13 +734,12 @@ exports.getIgnoreList = async (req, res) => {
                     });
                 }
             } else {
-                console.log(`No record found for expertId: ${expertId}, subjectId: ${subjectId}, qset: ${qset}`);
-                console.log(`Table: modreviewlog, Column: ${columnName}`);
                 res.status(404).json({ 
                     error: 'No record found',
                     debug: {
                         expertId,
                         subjectId,
+                        departmentId,
                         qset,
                         activePassage,
                         table: 'modreviewlog',
@@ -553,67 +758,131 @@ exports.getIgnoreList = async (req, res) => {
     }
 };
 
+// 2. Updated getStudentIgnoreList function
 exports.getStudentIgnoreList = async (req, res) => {
+    console.log("=== getStudentIgnoreList function called ===");
+    console.log("Session expertId:", req.session.expertId);
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+
     if (!req.session.expertId) {
+        console.log("❌ Unauthorized: No expertId in session");
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset, activePassage, studentId } = req.body;
+    const { subjectId, qset, activePassage, studentId, departmentId } = req.body;
     const expertId = req.session.expertId;
 
     // Input validation
-    if (!subjectId || !qset || !activePassage || !studentId) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!subjectId || !qset || !activePassage || !studentId || !departmentId) {
+        const missingParams = [];
+        if (!subjectId) missingParams.push('subjectId');
+        if (!qset) missingParams.push('qset');
+        if (!activePassage) missingParams.push('activePassage');
+        if (!studentId) missingParams.push('studentId');
+        if (!departmentId) missingParams.push('departmentId');
+        
+        console.log(`❌ Missing required parameters: ${missingParams.join(', ')}`);
+        return res.status(400).json({ 
+            error: 'Missing required parameters',
+            missing: missingParams
+        });
     }
 
-    if (expertId === 8){
+    console.log(`Processing for expertId: ${expertId}, subjectId: ${subjectId}, departmentId: ${departmentId}, studentId: ${studentId}, qset: ${qset}, activePassage: ${activePassage}`);
+
+    if (expertId === 8) {
+        console.log("📋 Processing with qsetdb table (expertId = 8)");
         try {
             const columnName = `Q${qset}P${activePassage}`;
+            console.log(`Using column: ${columnName}`);
             
             const query = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
             `;
             
-            const [results] = await connection.query(query, [subjectId]);
+            console.log(`Executing query: ${query} with params: [${subjectId}, ${departmentId}]`);
+            
+            const [results] = await connection.query(query, [subjectId, departmentId]);
+            console.log(`Query returned ${results.length} results`);
 
-            if (results.length > 0 && results[0].ignoreList) {
-                // Split the ignore list string into an array
-                const ignoreList = results[0].ignoreList.split(',').map(item => item.trim());
-                console.log(ignoreList)
-                res.status(200).json({ ignoreList });
+            if (results.length > 0) {
+                console.log(`First result: ${JSON.stringify(results[0])}`);
+                
+                if (results[0].ignoreList) {
+                    const ignoreList = results[0].ignoreList.split(',').map(item => item.trim());
+                    console.log(`✅ Fetched ignore list for subjectId: ${subjectId}, departmentId: ${departmentId}`);
+                    console.log(`📋 Ignore list content: ${ignoreList.join(', ')}`);
+                    console.log(`👥 Number of students in ignore list: ${ignoreList.length}`);
+                    
+                    res.status(200).json({ 
+                        ignoreList,
+                        debug: {
+                            source: 'qsetdb',
+                            column: columnName,
+                            count: ignoreList.length
+                        }
+                    });
+                } else {
+                    console.log(`⚠️  Column ${columnName} exists but is NULL or empty`);
+                    res.status(200).json({ 
+                        ignoreList: [],
+                        debug: {
+                            source: 'qsetdb',
+                            column: columnName,
+                            status: 'column_exists_but_null'
+                        }
+                    });
+                }
             } else {
-                res.status(404).json({ error: 'No ignore list found' });
+                console.log(`❌ No records found in qsetdb for subjectId: ${subjectId}, departmentId: ${departmentId}`);
+                res.status(404).json({ 
+                    error: 'No ignore list found',
+                    debug: {
+                        source: 'qsetdb',
+                        queryParams: { subjectId, departmentId }
+                    }
+                });
             }
         } catch (err) {
-            console.error("Error fetching ignore list:", err);
-            res.status(500).json({ error: 'Error fetching ignore list' });
+            console.error("❌ Error fetching ignore list from qsetdb:", err);
+            res.status(500).json({ 
+                error: 'Error fetching ignore list',
+                details: err.message 
+            });
         }
     }
-    else if(expertId === 100 || expertId === 101){
+    else if (expertId === 100 || expertId === 101) {
+        console.log("📋 Processing with modreviewlog table (expertId = 100 or 101)");
         try {
             const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
+            console.log(`Using column: ${columnName}`);
             
             const query = `
-                SELECT ${columnName} AS ignoreList, student_id
-                FROM modreviewlog
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
-                ORDER BY loggedin DESC
+                SELECT mrl.${columnName} AS ignoreList, mrl.student_id, s.departmentId
+                FROM modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ? AND s.departmentId = ?
+                ORDER BY mrl.loggedin DESC
                 LIMIT 1
             `;
             
-            const [results] = await connection.query(query, [subjectId, qset, studentId]);
-    
+            console.log(`Executing query: ${query} with params: [${subjectId}, ${qset}, ${studentId}, ${departmentId}]`);
+            
+            const [results] = await connection.query(query, [subjectId, qset, studentId, departmentId]);
+            console.log(`Query returned ${results.length} results`);
+
             if (results.length > 0) {
                 const { ignoreList, student_id } = results[0];
+                console.log(`Found record for student_id: ${student_id}`);
+                console.log(`Raw ignoreList value: '${ignoreList}'`);
                 
-                // Convert ignoreList to array if it exists, otherwise set to empty array
                 const ignoreListArray = ignoreList ? ignoreList.split(',').map(item => item.trim()) : [];
                 
-                console.log(`Fetched ignore list for expertId: ${expertId}, student_id: ${student_id}, subjectId: ${subjectId}, qset: ${qset}, activePassage: ${activePassage}`);
-                console.log(`Table: modreviewlog, Column: ${columnName}`);
-                console.log(`Ignore list: ${ignoreListArray.join(', ')}`);
+                console.log(`✅ Fetched ignore list for expertId: ${expertId}, student_id: ${student_id}`);
+                console.log(`📋 Ignore list content: ${ignoreListArray.join(', ')}`);
+                console.log(`👥 Number of students in ignore list: ${ignoreListArray.length}`);
                 
                 res.status(200).json({ 
                     ignoreList: ignoreListArray,
@@ -621,46 +890,70 @@ exports.getStudentIgnoreList = async (req, res) => {
                         expertId,
                         student_id,
                         subjectId,
+                        departmentId,
                         qset,
                         activePassage,
                         table: 'modreviewlog',
-                        column: columnName
+                        column: columnName,
+                        count: ignoreListArray.length,
+                        rawValue: ignoreList
                     }
                 });
             } else {
-                console.log(`No record found for expertId: ${expertId}, subjectId: ${subjectId}, qset: ${qset}`);
-                console.log(`Table: modreviewlog, Column: ${columnName}`);
+                console.log(`❌ No records found in modreviewlog for the given criteria`);
+                console.log(`Checking if student exists in students table...`);
+                
+                // Additional check to see if student exists
+                const studentCheckQuery = `SELECT * FROM students WHERE student_id = ? AND departmentId = ?`;
+                const [studentResults] = await connection.query(studentCheckQuery, [studentId, departmentId]);
+                
+                console.log(`Student exists check: ${studentResults.length > 0 ? 'YES' : 'NO'}`);
+                
                 res.status(404).json({ 
                     error: 'No record found',
                     debug: {
                         expertId,
                         subjectId,
+                        departmentId,
                         qset,
                         activePassage,
+                        studentId,
+                        studentExists: studentResults.length > 0,
                         table: 'modreviewlog',
                         column: columnName
                     }
                 });
             }
         } catch (err) {
-            console.error("Error fetching ignore list:", err);
-            res.status(500).json({ error: 'Error fetching ignore list' });
+            console.error("❌ Error fetching ignore list from modreviewlog:", err);
+            res.status(500).json({ 
+                error: 'Error fetching ignore list',
+                details: err.message 
+            });
         }
+    } else {
+        console.log(`❌ Unhandled expertId: ${expertId}`);
+        res.status(400).json({ 
+            error: 'Unsupported expertId',
+            expertId: expertId 
+        });
     }
+    
+    console.log("=== getStudentIgnoreList function completed ===");
 };
 
-// 2. Get addToIgnoreList functions
+// 3. Updated addToIgnoreList function
 exports.addToIgnoreList = async (req, res) => {
     if (!req.session.expertId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset, activePassage, newWord } = req.body;
+    const { subjectId, qset, activePassage, newWord, departmentId } = req.body;
     const expertId = req.session.expertId;
 
     // Input validation
-    if (!subjectId || !qset || !activePassage || !newWord) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!subjectId || !qset || !activePassage || !newWord || !departmentId) {
+        return res.status(400).json({ error: 'Missing required parameters (subjectId, qset, activePassage, newWord, departmentId)' });
     }
 
     const paper_check = req.session.paper_check;
@@ -684,39 +977,36 @@ exports.addToIgnoreList = async (req, res) => {
     
             const columnName = `Q${qset}P${activePassage}`;
             
-            // First, fetch the current ignore list
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
                 FROM ${tableName}
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
                 FOR UPDATE
             `;
             
-            const [results] = await conn.query(selectQuery, [subjectId]);
+            const [results] = await conn.query(selectQuery, [subjectId, departmentId]);
     
             let currentIgnoreList = [];
             if (results.length > 0 && results[0].ignoreList) {
               currentIgnoreList = results[0].ignoreList.split(',').map(item => item.trim());
             }
     
-            // Add the new word if it's not already in the list
             if (!currentIgnoreList.includes(newWord)) {
                 currentIgnoreList.unshift(newWord);
-              }
+            }
     
-            // Join the list back into a comma-separated string
             const updatedIgnoreList = currentIgnoreList.join(', ');
     
-            // Update the database with the new ignore list
             const updateQuery = `
                 UPDATE ${tableName}
                 SET ${columnName} = ?
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
             `;
     
-            await conn.query(updateQuery, [updatedIgnoreList, subjectId]);
+            await conn.query(updateQuery, [updatedIgnoreList, subjectId, departmentId]);
             
             await conn.commit();
+            console.log(`Word added to ignore list for subjectId: ${subjectId}, departmentId: ${departmentId}, qset: ${qset}, activePassage: ${activePassage}`);
             console.log(currentIgnoreList);
     
             res.status(200).json({ message: 'Word added to ignore list', ignoreList: currentIgnoreList });
@@ -735,17 +1025,17 @@ exports.addToIgnoreList = async (req, res) => {
     
             const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
             
-            // First, fetch the current ignore list
             const selectQuery = `
-                SELECT ${columnName} AS ignoreList, student_id
-                FROM modreviewlog
-                WHERE subjectId = ? AND qset = ? AND expertId = ?
-                ORDER BY loggedin DESC
+                SELECT mrl.${columnName} AS ignoreList, mrl.student_id, s.departmentId
+                FROM modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND s.departmentId = ?
+                ORDER BY mrl.loggedin DESC
                 LIMIT 1
                 FOR UPDATE
             `;
             
-            const [results] = await conn.query(selectQuery, [subjectId, qset, expertId]);
+            const [results] = await conn.query(selectQuery, [subjectId, qset, expertId, departmentId]);
     
             let currentIgnoreList = [];
             let student_id = null;
@@ -756,27 +1046,23 @@ exports.addToIgnoreList = async (req, res) => {
                 student_id = results[0].student_id;
             }
     
-            // Add the new word if it's not already in the list
             if (!currentIgnoreList.includes(newWord)) {
                 currentIgnoreList.unshift(newWord);
-                console.log(`Word added: ${newWord}`);
-                console.log(`Table updated: modreviewlog`);
-                console.log(`Column updated: ${columnName}`);
+                console.log(`Word added: ${newWord} for departmentId: ${departmentId}`);
             } else {
-                console.log(`Word "${newWord}" already exists in the ignore list. No changes made.`);
+                console.log(`Word "${newWord}" already exists in the ignore list for departmentId: ${departmentId}. No changes made.`);
             }
     
-            // Join the list back into a comma-separated string
             const updatedIgnoreList = currentIgnoreList.join(', ');
     
-            // Update the database with the new ignore list
             const updateQuery = `
-                UPDATE modreviewlog
-                SET ${columnName} = ?
-                WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ?
+                UPDATE modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                SET mrl.${columnName} = ?
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND mrl.student_id = ? AND s.departmentId = ?
             `;
     
-            await conn.query(updateQuery, [updatedIgnoreList, subjectId, qset, expertId, student_id]);
+            await conn.query(updateQuery, [updatedIgnoreList, subjectId, qset, expertId, student_id, departmentId]);
             
             await conn.commit();
     
@@ -787,6 +1073,7 @@ exports.addToIgnoreList = async (req, res) => {
                     expertId,
                     student_id,
                     subjectId,
+                    departmentId,
                     qset,
                     activePassage,
                     table: 'modreviewlog',
@@ -801,18 +1088,18 @@ exports.addToIgnoreList = async (req, res) => {
             if (conn) conn.release();
         }
     }
-
 };
 
+// 4. Updated addToStudentIgnoreList function
 exports.addToStudentIgnoreList = async (req, res) => {
     console.log("Received data:", req.body);
-    const { activePassage, newWord, subjectId, qset, studentId } = req.body;
+    const { activePassage, newWord, subjectId, qset, studentId, departmentId } = req.body;
     const expertId = req.session.expertId;
 
     // Input validation
-    if (!subjectId || !qset || !activePassage || !newWord || !studentId) {
-        console.log("Missing parameters:", { subjectId, qset, activePassage, newWord });
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!subjectId || !qset || !activePassage || !newWord || !studentId || !departmentId) {
+        console.log("Missing parameters:", { subjectId, qset, activePassage, newWord, studentId, departmentId });
+        return res.status(400).json({ error: 'Missing required parameters (subjectId, qset, activePassage, newWord, studentId, departmentId)' });
     }
 
     let conn;
@@ -824,39 +1111,36 @@ exports.addToStudentIgnoreList = async (req, res) => {
     
             const columnName = `Q${qset}P${activePassage}`;
             
-            // First, fetch the current ignore list
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
                 FOR UPDATE
             `;
             
-            const [results] = await conn.query(selectQuery, [subjectId]);
+            const [results] = await conn.query(selectQuery, [subjectId, departmentId]);
     
             let currentIgnoreList = [];
             if (results.length > 0 && results[0].ignoreList) {
               currentIgnoreList = results[0].ignoreList.split(',').map(item => item.trim());
             }
     
-            // Add the new word if it's not already in the list
             if (!currentIgnoreList.includes(newWord)) {
                 currentIgnoreList.unshift(newWord);
-              }
+            }
     
-            // Join the list back into a comma-separated string
             const updatedIgnoreList = currentIgnoreList.join(', ');
     
-            // Update the database with the new ignore list
             const updateQuery = `
                 UPDATE qsetdb
                 SET ${columnName} = ?
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
             `;
     
-            await conn.query(updateQuery, [updatedIgnoreList, subjectId]);
+            await conn.query(updateQuery, [updatedIgnoreList, subjectId, departmentId]);
             
             await conn.commit();
+            console.log(`Word added to student ignore list for subjectId: ${subjectId}, departmentId: ${departmentId}, studentId: ${studentId}`);
             console.log(currentIgnoreList);
     
             res.status(200).json({ message: 'Word added to ignore list', ignoreList: currentIgnoreList });
@@ -875,17 +1159,17 @@ exports.addToStudentIgnoreList = async (req, res) => {
     
             const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
             
-            // First, fetch the current ignore list
             const selectQuery = `
-                SELECT ${columnName} AS ignoreList, student_id
-                FROM modreviewlog
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
-                ORDER BY loggedin DESC
+                SELECT mrl.${columnName} AS ignoreList, mrl.student_id, s.departmentId
+                FROM modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ? AND s.departmentId = ?
+                ORDER BY mrl.loggedin DESC
                 LIMIT 1
                 FOR UPDATE
             `;
             
-            const [results] = await conn.query(selectQuery, [subjectId, qset, studentId]);
+            const [results] = await conn.query(selectQuery, [subjectId, qset, studentId, departmentId]);
     
             let currentIgnoreList = [];
             let student_id = null;
@@ -896,27 +1180,23 @@ exports.addToStudentIgnoreList = async (req, res) => {
                 student_id = results[0].student_id;
             }
     
-            // Add the new word if it's not already in the list
             if (!currentIgnoreList.includes(newWord)) {
                 currentIgnoreList.unshift(newWord);
-                console.log(`Word added: ${newWord}`);
-                console.log(`Table updated: modreviewlog`);
-                console.log(`Column updated: ${columnName}`);
+                console.log(`Word added: ${newWord} for departmentId: ${departmentId}, studentId: ${studentId}`);
             } else {
-                console.log(`Word "${newWord}" already exists in the ignore list. No changes made.`);
+                console.log(`Word "${newWord}" already exists in the ignore list for departmentId: ${departmentId}, studentId: ${studentId}. No changes made.`);
             }
     
-            // Join the list back into a comma-separated string
             const updatedIgnoreList = currentIgnoreList.join(', ');
     
-            // Update the database with the new ignore list
             const updateQuery = `
-                UPDATE modreviewlog
-                SET ${columnName} = ?
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
+                UPDATE modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                SET mrl.${columnName} = ?
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ? AND s.departmentId = ?
             `;
     
-            await conn.query(updateQuery, [updatedIgnoreList, subjectId, qset, student_id]);
+            await conn.query(updateQuery, [updatedIgnoreList, subjectId, qset, student_id, departmentId]);
             
             await conn.commit();
     
@@ -927,6 +1207,7 @@ exports.addToStudentIgnoreList = async (req, res) => {
                     expertId,
                     student_id,
                     subjectId,
+                    departmentId,
                     qset,
                     activePassage,
                     table: 'modreviewlog',
@@ -942,24 +1223,24 @@ exports.addToStudentIgnoreList = async (req, res) => {
         }
     }
     else{
-        console.log("Stage parameters inaccesible");
-        return res.status(403).json({error: 'Stage parameters inaccesible'})
+        console.log("Stage parameters inaccessible");
+        return res.status(403).json({error: 'Stage parameters inaccessible'})
     }
 };
 
-// 3. Get addToIgnoreList functions
+// 5. Updated removeFromIgnoreList function
 exports.removeFromIgnoreList = async (req, res) => {
     if (!req.session.expertId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    console.log("remove from Ignore List called")
-    const { subjectId, qset, activePassage, wordToRemove } = req.body;
+    console.log("remove from Ignore List called");
+    const { subjectId, qset, activePassage, wordToRemove, departmentId } = req.body;
     const expertId = req.session.expertId;
 
     // Input validation
-    if (!subjectId || !qset || !activePassage || !wordToRemove) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!subjectId || !qset || !activePassage || !wordToRemove || !departmentId) {
+        return res.status(400).json({ error: 'Missing required parameters (subjectId, qset, activePassage, wordToRemove, departmentId)' });
     }
  
     const paper_check = req.session.paper_check;
@@ -983,15 +1264,14 @@ exports.removeFromIgnoreList = async (req, res) => {
     
             const columnName = `Q${qset}P${activePassage}`;
             
-            // First, fetch the current ignore list
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
                 FROM ${tableName} 
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
                 FOR UPDATE
             `;
             
-            const [results] = await conn.query(selectQuery, [subjectId]);
+            const [results] = await conn.query(selectQuery, [subjectId, departmentId]);
     
             if (results.length === 0 || !results[0].ignoreList) {
                 await conn.rollback();
@@ -1000,22 +1280,20 @@ exports.removeFromIgnoreList = async (req, res) => {
     
             let currentIgnoreList = results[0].ignoreList.split(',').map(item => item.trim());
     
-            // Remove the word from the list
             currentIgnoreList = currentIgnoreList.filter(word => word.toLowerCase() !== wordToRemove.toLowerCase());
     
-            // Join the list back into a comma-separated string
             const updatedIgnoreList = currentIgnoreList.join(', ');
     
-            // Update the database with the new ignore list
             const updateQuery = `
                 UPDATE ${tableName}
                 SET ${columnName} = ?
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
             `;
     
-            await conn.query(updateQuery, [updatedIgnoreList, subjectId]);
+            await conn.query(updateQuery, [updatedIgnoreList, subjectId, departmentId]);
             
             await conn.commit();
+            console.log(`Word removed from ignore list for subjectId: ${subjectId}, departmentId: ${departmentId}, qset: ${qset}, activePassage: ${activePassage}`);
     
             res.status(200).json({ message: 'Word removed from ignore list', ignoreList: currentIgnoreList });
         } catch (err) {
@@ -1033,17 +1311,17 @@ exports.removeFromIgnoreList = async (req, res) => {
     
             const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
             
-            // First, fetch the current ignore list
             const selectQuery = `
-                SELECT ${columnName} AS ignoreList, student_id
-                FROM modreviewlog
-                WHERE subjectId = ? AND qset = ? AND expertId = ?
-                ORDER BY loggedin DESC
+                SELECT mrl.${columnName} AS ignoreList, mrl.student_id, s.departmentId
+                FROM modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND s.departmentId = ?
+                ORDER BY mrl.loggedin DESC
                 LIMIT 1
                 FOR UPDATE
             `;
             
-            const [results] = await conn.query(selectQuery, [subjectId, qset, expertId]);
+            const [results] = await conn.query(selectQuery, [subjectId, qset, expertId, departmentId]);
     
             if (results.length === 0 || !results[0].ignoreList) {
                 await conn.rollback();
@@ -1053,29 +1331,25 @@ exports.removeFromIgnoreList = async (req, res) => {
             let currentIgnoreList = results[0].ignoreList.split(',').map(item => item.trim());
             const student_id = results[0].student_id;
     
-            // Remove the word from the list
             const initialLength = currentIgnoreList.length;
             currentIgnoreList = currentIgnoreList.filter(word => word.toLowerCase() !== wordToRemove.toLowerCase());
     
             if (currentIgnoreList.length < initialLength) {
-                console.log(`Word removed: ${wordToRemove}`);
-                console.log(`Table updated: modreviewlog`);
-                console.log(`Column updated: ${columnName}`);
+                console.log(`Word removed: ${wordToRemove} for departmentId: ${departmentId}`);
             } else {
-                console.log(`Word "${wordToRemove}" not found in the ignore list. No changes made.`);
+                console.log(`Word "${wordToRemove}" not found in the ignore list for departmentId: ${departmentId}. No changes made.`);
             }
     
-            // Join the list back into a comma-separated string
             const updatedIgnoreList = currentIgnoreList.join(', ');
     
-            // Update the database with the new ignore list
             const updateQuery = `
-                UPDATE modreviewlog
-                SET ${columnName} = ?
-                WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ?
+                UPDATE modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                SET mrl.${columnName} = ?
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND mrl.student_id = ? AND s.departmentId = ?
             `;
     
-            await conn.query(updateQuery, [updatedIgnoreList, subjectId, qset, expertId, student_id]);
+            await conn.query(updateQuery, [updatedIgnoreList, subjectId, qset, expertId, student_id, departmentId]);
             
             await conn.commit();
     
@@ -1086,6 +1360,7 @@ exports.removeFromIgnoreList = async (req, res) => {
                     expertId,
                     student_id,
                     subjectId,
+                    departmentId,
                     qset,
                     activePassage,
                     table: 'modreviewlog',
@@ -1102,13 +1377,14 @@ exports.removeFromIgnoreList = async (req, res) => {
     }
 };
 
+// 6. Updated removeFromStudentIgnoreList function
 exports.removeFromStudentIgnoreList = async (req, res) => {
-    const { subjectId, qset, activePassage, wordToRemove, studentId } = req.body;
+    const { subjectId, qset, activePassage, wordToRemove, studentId, departmentId } = req.body;
     const expertId = req.session.expertId;
 
     // Input validation
-    if (!subjectId || !qset || !activePassage || !wordToRemove) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!subjectId || !qset || !activePassage || !wordToRemove || !studentId || !departmentId) {
+        return res.status(400).json({ error: 'Missing required parameters (subjectId, qset, activePassage, wordToRemove, studentId, departmentId)' });
     }
 
     let conn;
@@ -1119,15 +1395,14 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
     
             const columnName = `Q${qset}P${activePassage}`;
             
-            // First, fetch the current ignore list
             const selectQuery = `
                 SELECT ${columnName} AS ignoreList
                 FROM qsetdb 
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
                 FOR UPDATE
             `;
             
-            const [results] = await conn.query(selectQuery, [subjectId]);
+            const [results] = await conn.query(selectQuery, [subjectId, departmentId]);
     
             if (results.length === 0 || !results[0].ignoreList) {
                 await conn.rollback();
@@ -1136,22 +1411,20 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
     
             let currentIgnoreList = results[0].ignoreList.split(',').map(item => item.trim());
     
-            // Remove the word from the list
             currentIgnoreList = currentIgnoreList.filter(word => word.toLowerCase() !== wordToRemove.toLowerCase());
     
-            // Join the list back into a comma-separated string
             const updatedIgnoreList = currentIgnoreList.join(', ');
     
-            // Update the database with the new ignore list
             const updateQuery = `
                 UPDATE qsetdb
                 SET ${columnName} = ?
-                WHERE subjectId = ?
+                WHERE subjectId = ? AND departmentId = ?
             `;
     
-            await conn.query(updateQuery, [updatedIgnoreList, subjectId]);
+            await conn.query(updateQuery, [updatedIgnoreList, subjectId, departmentId]);
             
             await conn.commit();
+            console.log(`Word removed from student ignore list for subjectId: ${subjectId}, departmentId: ${departmentId}, studentId: ${studentId}`);
     
             res.status(200).json({ message: 'Word removed from ignore list', ignoreList: currentIgnoreList });
         } catch (err) {
@@ -1169,17 +1442,17 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
     
             const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
             
-            // First, fetch the current ignore list
             const selectQuery = `
-                SELECT ${columnName} AS ignoreList, student_id
-                FROM modreviewlog
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
-                ORDER BY loggedin DESC
+                SELECT mrl.${columnName} AS ignoreList, mrl.student_id, s.departmentId
+                FROM modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ? AND s.departmentId = ?
+                ORDER BY mrl.loggedin DESC
                 LIMIT 1
                 FOR UPDATE
             `;
             
-            const [results] = await conn.query(selectQuery, [subjectId, qset, studentId]);
+            const [results] = await conn.query(selectQuery, [subjectId, qset, studentId, departmentId]);
     
             if (results.length === 0 || !results[0].ignoreList) {
                 await conn.rollback();
@@ -1189,29 +1462,25 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
             let currentIgnoreList = results[0].ignoreList.split(',').map(item => item.trim());
             const student_id = results[0].student_id;
     
-            // Remove the word from the list
             const initialLength = currentIgnoreList.length;
             currentIgnoreList = currentIgnoreList.filter(word => word.toLowerCase() !== wordToRemove.toLowerCase());
     
             if (currentIgnoreList.length < initialLength) {
-                console.log(`Word removed: ${wordToRemove}`);
-                console.log(`Table updated: modreviewlog`);
-                console.log(`Column updated: ${columnName}`);
+                console.log(`Word removed: ${wordToRemove} for departmentId: ${departmentId}, studentId: ${studentId}`);
             } else {
-                console.log(`Word "${wordToRemove}" not found in the ignore list. No changes made.`);
+                console.log(`Word "${wordToRemove}" not found in the ignore list for departmentId: ${departmentId}, studentId: ${studentId}. No changes made.`);
             }
     
-            // Join the list back into a comma-separated string
             const updatedIgnoreList = currentIgnoreList.join(', ');
     
-            // Update the database with the new ignore list
             const updateQuery = `
-                UPDATE modreviewlog
-                SET ${columnName} = ?
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
+                UPDATE modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                SET mrl.${columnName} = ?
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ? AND s.departmentId = ?
             `;
     
-            await conn.query(updateQuery, [updatedIgnoreList, subjectId, qset, student_id]);
+            await conn.query(updateQuery, [updatedIgnoreList, subjectId, qset, student_id, departmentId]);
             
             await conn.commit();
     
@@ -1222,6 +1491,7 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
                     expertId,
                     student_id,
                     subjectId,
+                    departmentId,
                     qset,
                     activePassage,
                     table: 'modreviewlog',
@@ -1236,45 +1506,45 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
             if (conn) conn.release();
         }
     }
-
 };
 
-// 4. Clear ignore list
+// 7. Updated clearIgnoreList function
 exports.clearIgnoreList = async (req, res) => {
     if (!req.session.expertId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset, activePassage } = req.body;
+    const { subjectId, qset, activePassage, departmentId } = req.body;
     const expertId = req.session.expertId;
 
     // Input validation
-    if (!subjectId || !qset || !activePassage) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!subjectId || !qset || !activePassage || !departmentId) {
+        return res.status(400).json({ error: 'Missing required parameters (subjectId, qset, activePassage, departmentId)' });
     }
 
     try {
         const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
         
         const query = `
-            UPDATE modreviewlog
-            SET ${columnName} = NULL
-            WHERE subjectId = ? AND qset = ? AND expertId = ?
-            ORDER BY loggedin DESC
+            UPDATE modreviewlog mrl
+            JOIN students s ON mrl.student_id = s.student_id
+            SET mrl.${columnName} = NULL
+            WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND s.departmentId = ?
+            ORDER BY mrl.loggedin DESC
             LIMIT 1
         `;
         
-        const [result] = await connection.query(query, [subjectId, qset, expertId]);
+        const [result] = await connection.query(query, [subjectId, qset, expertId, departmentId]);
 
         if (result.affectedRows > 0) {
-            console.log(`Cleared ignore list for expertId: ${expertId}, subjectId: ${subjectId}, qset: ${qset}, activePassage: ${activePassage}`);
-            console.log(`Table: modreviewlog, Column: ${columnName}`);
+            console.log(`Cleared ignore list for expertId: ${expertId}, subjectId: ${subjectId}, departmentId: ${departmentId}, qset: ${qset}, activePassage: ${activePassage}`);
             
             res.status(200).json({ 
                 message: 'Ignore list cleared successfully',
                 debug: {
                     expertId,
                     subjectId,
+                    departmentId,
                     qset,
                     activePassage,
                     table: 'modreviewlog',
@@ -1282,13 +1552,12 @@ exports.clearIgnoreList = async (req, res) => {
                 }
             });
         } else {
-            console.log(`No record found to clear for expertId: ${expertId}, subjectId: ${subjectId}, qset: ${qset}`);
-            console.log(`Table: modreviewlog, Column: ${columnName}`);
             res.status(404).json({ 
                 error: 'No record found to clear',
                 debug: {
                     expertId,
                     subjectId,
+                    departmentId,
                     qset,
                     activePassage,
                     table: 'modreviewlog',
@@ -1302,17 +1571,18 @@ exports.clearIgnoreList = async (req, res) => {
     }
 };
 
+// 8. Updated clearStudentIgnoreList function
 exports.clearStudentIgnoreList = async (req, res) => {
     if (!req.session.expertId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset, activePassage, studentId } = req.body;
+    const { subjectId, qset, activePassage, studentId, departmentId } = req.body;
     const expertId = req.session.expertId;
 
     // Input validation
-    if (!subjectId || !qset || !activePassage || !studentId) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!subjectId || !qset || !activePassage || !studentId || !departmentId) {
+        return res.status(400).json({ error: 'Missing required parameters (subjectId, qset, activePassage, studentId, departmentId)' });
     } 
 
     if (expertId === 100){
@@ -1320,24 +1590,26 @@ exports.clearStudentIgnoreList = async (req, res) => {
             const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
             
             const query = `
-                UPDATE modreviewlog
-                SET ${columnName} = NULL
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
-                ORDER BY loggedin DESC
+                UPDATE modreviewlog mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                SET mrl.${columnName} = NULL
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ? AND s.departmentId = ?
+                ORDER BY mrl.loggedin DESC
                 LIMIT 1
             `;
             
-            const [result] = await connection.query(query, [subjectId, qset, studentId]);
+            const [result] = await connection.query(query, [subjectId, qset, studentId, departmentId]);
     
             if (result.affectedRows > 0) {
-                console.log(`Cleared ignore list for expertId: ${expertId}, subjectId: ${subjectId}, qset: ${qset}, activePassage: ${activePassage}`);
-                console.log(`Table: modreviewlog, Column: ${columnName}`);
+                console.log(`Cleared student ignore list for expertId: ${expertId}, subjectId: ${subjectId}, departmentId: ${departmentId}, studentId: ${studentId}, qset: ${qset}, activePassage: ${activePassage}`);
                 
                 res.status(200).json({ 
                     message: 'Ignore list cleared successfully',
                     debug: {
                         expertId,
                         subjectId,
+                        departmentId,
+                        studentId,
                         qset,
                         activePassage,
                         table: 'modreviewlog',
@@ -1345,13 +1617,13 @@ exports.clearStudentIgnoreList = async (req, res) => {
                     }
                 });
             } else {
-                console.log(`No record found to clear for expertId: ${expertId}, subjectId: ${subjectId}, qset: ${qset}`);
-                console.log(`Table: modreviewlog, Column: ${columnName}`);
                 res.status(404).json({ 
                     error: 'No record found to clear',
                     debug: {
                         expertId,
                         subjectId,
+                        departmentId,
+                        studentId,
                         qset,
                         activePassage,
                         table: 'modreviewlog',
@@ -1366,60 +1638,118 @@ exports.clearStudentIgnoreList = async (req, res) => {
     }
 };
 
-
+// this function fetches model answer audio for a given subjectId and qset
 exports.modelAnswerAudio = async(req, res) => {
     if (!req.session.expertId){
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset } = req.params;
+    const { subjectId, qset, departmentId } = req.params;
 
     let conn;
 
     try{
         conn = await connection.getConnection();
 
-        audioQuery = `select subjectId, qset, passage1, passage2 from audiodb where subjectId = ? and qset = ?;`
+        // Updated query to include departmentId filtering if provided
+        let audioQuery;
+        let queryParams;
+        
+        if (departmentId) {
+            audioQuery = `
+                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2 
+                FROM audiodb a
+                JOIN students s ON a.subjectId = s.subjectsId
+                WHERE a.subjectId = ? AND a.qset = ? AND s.departmentId = ?
+                LIMIT 1
+            `;
+            queryParams = [subjectId, qset, departmentId];
+        } else {
+            audioQuery = `
+                SELECT subjectId, qset, passage1, passage2 
+                FROM audiodb 
+                WHERE subjectId = ? AND qset = ?
+                LIMIT 1
+            `;
+            queryParams = [subjectId, qset];
+        }
 
-        const [audioResults] = await conn.query(audioQuery, [subjectId, qset])
+        const [audioResults] = await conn.query(audioQuery, queryParams);
         
         if (audioResults.length === 0) {
             return res.status(404).json({ error: 'No Audio found for this subject and qset' });
         }
 
+        console.log(`Fetched audio for subjectId: ${subjectId}, qset: ${qset}, departmentId: ${departmentId || 'all'}`);
         res.status(200).json(audioResults[0]);
     } catch (err) {
         console.error("Error fetching the audio", err);
         res.status(500).json({ error: 'Error fetching the audio' });
+    } finally {
+        if (conn) conn.release();
     }
-}
+};
 
 exports.modelAnswerAudioById = async(req, res) => {
     if (!req.session.expertId){
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset } = req.params;
+    const { subjectId, qset, studentId, departmentId } = req.params;
 
     let conn;
 
     try{
         conn = await connection.getConnection();
 
-        audioQuery = `select subjectId, qset, passage1, passage2 from audiodb where subjectId = ? and qset = ?;`
-
-        const [audioResults] = await conn.query(audioQuery, [subjectId, qset])
+        // Updated query to include departmentId and studentId filtering
+        let audioQuery;
+        let queryParams;
         
-        if (audioResults.length === 0) {
-            return res.status(404).json({ error: 'No Audio found for this subject and qset' });
+        if (departmentId && studentId) {
+            audioQuery = `
+                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2 
+                FROM audiodb a
+                JOIN students s ON a.subjectId = s.subjectsId
+                WHERE a.subjectId = ? AND a.qset = ? AND s.student_id = ? AND s.departmentId = ?
+                LIMIT 1
+            `;
+            queryParams = [subjectId, qset, studentId, departmentId];
+        } else if (studentId) {
+            audioQuery = `
+                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2 
+                FROM audiodb a
+                JOIN students s ON a.subjectId = s.subjectsId
+                WHERE a.subjectId = ? AND a.qset = ? AND s.student_id = ?
+                LIMIT 1
+            `;
+            queryParams = [subjectId, qset, studentId];
+        } else {
+            audioQuery = `
+                SELECT subjectId, qset, passage1, passage2 
+                FROM audiodb 
+                WHERE subjectId = ? AND qset = ?
+                LIMIT 1
+            `;
+            queryParams = [subjectId, qset];
         }
 
+        const [audioResults] = await conn.query(audioQuery, queryParams);
+        
+        if (audioResults.length === 0) {
+            return res.status(404).json({ error: 'No Audio found for this subject, qset, and student' });
+        }
+
+        console.log(`Fetched audio by ID for subjectId: ${subjectId}, qset: ${qset}, studentId: ${studentId}, departmentId: ${departmentId || 'all'}`);
         res.status(200).json(audioResults[0]);
     } catch (err) {
         console.error("Error fetching the audio", err);
         res.status(500).json({ error: 'Error fetching the audio' });
+    } finally {
+        if (conn) conn.release();
     }
-}
+};
+
 
 // Passage review submission function
 exports.submitPassageReview = async (req, res) => {
@@ -1427,7 +1757,7 @@ exports.submitPassageReview = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { subjectId, qset } = req.params;
+    const { subjectId, qset, departmentId } = req.params;
     const expertId = req.session.expertId;
 
     const paper_check = req.session.paper_check;
@@ -1442,7 +1772,7 @@ exports.submitPassageReview = async (req, res) => {
         tableName = 'modreviewlog';
     }
     else{
-        res.status(403).json({error: 'Stage parameters inaccesible in submitPassageReview'});
+        res.status(403).json({error: 'Stage parameters inaccessible in submitPassageReview'});
     }
 
     let conn;
@@ -1451,54 +1781,109 @@ exports.submitPassageReview = async (req, res) => {
         conn = await connection.getConnection();
         await conn.beginTransaction();
 
-        // First, fetch the current assignment for this expert
-        const fetchAssignmentQuery = `
-            SELECT student_id
-            FROM ${tableName}
-            WHERE subjectId = ? AND qset = ? AND expertId = ? AND status = 1 AND subm_done = 0
-            ORDER BY loggedin DESC
-            LIMIT 1
-        `;
-        const [assignmentResult] = await conn.query(fetchAssignmentQuery, [subjectId, qset, expertId]);
+        // Updated fetch assignment query to include departmentId filtering
+        let fetchAssignmentQuery;
+        if (departmentId) {
+            fetchAssignmentQuery = `
+                SELECT ${tableName}.student_id
+                FROM ${tableName}
+                JOIN students s ON ${tableName}.student_id = s.student_id
+                WHERE ${tableName}.subjectId = ? AND ${tableName}.qset = ? AND ${tableName}.expertId = ? AND ${tableName}.status = 1 AND ${tableName}.subm_done = 0 AND s.departmentId = ?
+                ORDER BY ${tableName}.loggedin DESC
+                LIMIT 1
+            `;
+            const [assignmentResult] = await conn.query(fetchAssignmentQuery, [subjectId, qset, expertId, departmentId]);
+            
+            if (assignmentResult.length === 0) {
+                await conn.rollback();
+                return res.status(404).json({ error: `No active assignment found for this expert in department ${departmentId}` });
+            }
 
-        if (assignmentResult.length === 0) {
-            await conn.rollback();
-            return res.status(404).json({ error: 'No active assignment found for this expert' });
+            const studentId = assignmentResult[0].student_id;
+
+            // Update the review log table for the specific student
+            const updateQuery = `
+                UPDATE ${tableName} 
+                JOIN students s ON ${tableName}.student_id = s.student_id
+                SET ${tableName}.subm_done = 1, ${tableName}.subm_time = NOW()
+                WHERE ${tableName}.subjectId = ? AND ${tableName}.qset = ? AND ${tableName}.expertId = ? AND ${tableName}.student_id = ? AND ${tableName}.status = 1 AND s.departmentId = ?
+            `;
+            const [updateResult] = await conn.query(updateQuery, [subjectId, qset, expertId, studentId, departmentId]);
+
+            if (updateResult.affectedRows === 0) {
+                await conn.rollback();
+                return res.status(404).json({ error: 'No matching record found to update' });
+            }
+
+            // Fetch the updated record
+            const selectQuery = `
+                SELECT ${tableName}.student_id, ${tableName}.subm_done, ${tableName}.subm_time, s.departmentId
+                FROM ${tableName}
+                JOIN students s ON ${tableName}.student_id = s.student_id
+                WHERE ${tableName}.subjectId = ? AND ${tableName}.qset = ? AND ${tableName}.expertId = ? AND ${tableName}.student_id = ? AND s.departmentId = ?
+            `;
+            const [results] = await conn.query(selectQuery, [subjectId, qset, expertId, studentId, departmentId]);
+
+            if (results.length === 0) {
+                await conn.rollback();
+                return res.status(404).json({ error: 'Updated record not found' });
+            }
+
+            await conn.commit();
+            if (results[0].subm_time) {
+                results[0].subm_time = moment(results[0].subm_time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+            }
+            
+            console.log(`Passage review submitted for expertId: ${expertId}, studentId: ${studentId}, departmentId: ${departmentId}`);
+            res.status(200).json(results[0]);
+        } else {
+            // Original logic without department filtering
+            fetchAssignmentQuery = `
+                SELECT student_id
+                FROM ${tableName}
+                WHERE subjectId = ? AND qset = ? AND expertId = ? AND status = 1 AND subm_done = 0
+                ORDER BY loggedin DESC
+                LIMIT 1
+            `;
+            const [assignmentResult] = await conn.query(fetchAssignmentQuery, [subjectId, qset, expertId]);
+
+            if (assignmentResult.length === 0) {
+                await conn.rollback();
+                return res.status(404).json({ error: 'No active assignment found for this expert' });
+            }
+
+            const studentId = assignmentResult[0].student_id;
+
+            const updateQuery = `
+                UPDATE ${tableName} 
+                SET subm_done = 1, subm_time = NOW()
+                WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ? AND status = 1
+            `;
+            const [updateResult] = await conn.query(updateQuery, [subjectId, qset, expertId, studentId]);
+
+            if (updateResult.affectedRows === 0) {
+                await conn.rollback();
+                return res.status(404).json({ error: 'No matching record found to update' });
+            }
+
+            const selectQuery = `
+                SELECT student_id, subm_done, subm_time
+                FROM ${tableName}
+                WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ?
+            `;
+            const [results] = await conn.query(selectQuery, [subjectId, qset, expertId, studentId]);
+
+            if (results.length === 0) {
+                await conn.rollback();
+                return res.status(404).json({ error: 'Updated record not found' });
+            }
+
+            await conn.commit();
+            if (results[0].subm_time) {
+                results[0].subm_time = moment(results[0].subm_time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+            }
+            res.status(200).json(results[0]);
         }
-
-        const studentId = assignmentResult[0].student_id;
-
-        // Update the modreviewlog table for the specific student
-        const updateQuery = `
-            UPDATE ${tableName} 
-            SET subm_done = 1, subm_time = NOW()
-            WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ? AND status = 1
-        `;
-        const [updateResult] = await conn.query(updateQuery, [subjectId, qset, expertId, studentId]);
-
-        if (updateResult.affectedRows === 0) {
-            await conn.rollback();
-            return res.status(404).json({ error: 'No matching record found to update' });
-        }
-
-        // Fetch the updated record
-        const selectQuery = `
-            SELECT student_id, subm_done, subm_time
-            FROM ${tableName}
-            WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ?
-        `;
-        const [results] = await conn.query(selectQuery, [subjectId, qset, expertId, studentId]);
-
-        if (results.length === 0) {
-            await conn.rollback();
-            return res.status(404).json({ error: 'Updated record not found' });
-        }
-
-        await conn.commit();
-        if (results[0].subm_time) {
-            results[0].subm_time = moment(results[0].subm_time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-        }
-        res.status(200).json(results[0]);
     } catch (err) {
         if (conn) await conn.rollback();
         console.error("Error submitting passage review:", err);
@@ -1507,6 +1892,3 @@ exports.submitPassageReview = async (req, res) => {
         if (conn) conn.release();
     }
 };
-
-
-

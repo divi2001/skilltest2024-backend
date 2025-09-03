@@ -10,13 +10,16 @@ exports.populateExpertReviewLog = async (req, res) => {
     COALESCE(fps.passageB, tl.textb, 'empty') AS passageB,
     s.subjectsId,
     s.qset,
+    s.departmentId,
     COALESCE(ad.textPassageA, 'empty') AS modelPassageA,
     COALESCE(ad.textPassageB, 'empty') AS modelPassageB
 FROM 
     students s
 LEFT JOIN finalPassageSubmit fps ON s.student_id = fps.student_id
 LEFT JOIN textlogs tl ON s.student_id = tl.student_id
-LEFT JOIN audiodb ad ON s.subjectsId = ad.subjectId AND s.qset = ad.qset
+LEFT JOIN audiodb ad ON s.subjectsId = ad.subjectId 
+    AND s.qset = ad.qset 
+    AND s.departmentId = ad.departmentId
 LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
 WHERE 
     s.departmentId = ?
@@ -57,7 +60,7 @@ ORDER BY s.student_id`;
                 await connection.execute(`
                     UPDATE expertreviewlog 
                     SET passageA = ?, passageB = ?, passageA_word_count = ?, passageB_word_count = ?, 
-                        ansPassageA = ?, ansPassageB = ?, subjectId = ?, qset = ?
+                        ansPassageA = ?, ansPassageB = ?, subjectId = ?, qset = ?, departmentId = ?
                     WHERE student_id = ?
                 `, [
                     row.passageA,
@@ -68,6 +71,7 @@ ORDER BY s.student_id`;
                     row.modelPassageB,
                     row.subjectsId,
                     row.qset,
+                    row.departmentId,
                     row.student_id
                 ]);
                 updated++;
@@ -76,8 +80,8 @@ ORDER BY s.student_id`;
                 await connection.execute(`
                     INSERT INTO expertreviewlog 
                     (student_id, passageA, passageB, passageA_word_count, passageB_word_count, 
-                    ansPassageA, ansPassageB, subjectId, qset)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ansPassageA, ansPassageB, subjectId, qset, departmentId)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `, [
                     row.student_id,
                     row.passageA,
@@ -87,7 +91,8 @@ ORDER BY s.student_id`;
                     row.modelPassageA,
                     row.modelPassageB,
                     row.subjectsId,
-                    row.qset
+                    row.qset,
+                    row.departmentId
                 ]);
                 inserted++;
             }
