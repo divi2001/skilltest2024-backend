@@ -31,7 +31,9 @@ exports.getAllSubjects = async (req, res) => {
                 s.subject_name,
                 st.departmentId,
                 d.departmentName,
-                d.examType
+                d.examType,
+                COUNT(DISTINCT st.student_id) as total_count,
+                COUNT(DISTINCT st.student_id) as incomplete_count
             FROM 
                 subjectsdb s
             JOIN 
@@ -40,11 +42,17 @@ exports.getAllSubjects = async (req, res) => {
                 departmentdb d ON st.departmentId = d.departmentId
             WHERE 
                 d.departmentStatus = 1
+            GROUP BY
+                s.subjectId,
+                s.subject_name,
+                st.departmentId,
+                d.departmentName,
+                d.examType
             ORDER BY 
                 s.subjectId, st.departmentId;
         `;
     } else {
-        // Updated query for paper_check and super_mod to include departmentId and examType
+        // Fixed query without held column references
         subjectsQuery = `
             SELECT 
                 s.subjectId, 
@@ -53,22 +61,24 @@ exports.getAllSubjects = async (req, res) => {
                 s.daily_timer, 
                 s.passage_timer, 
                 s.demo_timer,
+                st.departmentId,
+                d.departmentName,
+                d.examType,
                 COUNT(DISTINCT CASE 
                     WHEN m.subm_done IS NULL OR m.subm_done = 0 
                     THEN m.student_id 
                 END) AS incomplete_count,
-                COUNT(DISTINCT m.student_id) AS total_count,
-                st.departmentId,
-                d.departmentName,
-                d.examType
+                COUNT(DISTINCT m.student_id) AS total_count
             FROM 
                 subjectsdb s
-            LEFT JOIN 
-                ${tableName} m ON s.subjectId = m.subjectId AND m.expertId = ?
-            LEFT JOIN 
-                students st ON m.student_id = st.student_id
-            LEFT JOIN 
+            JOIN 
+                students st ON s.subjectId = st.subjectsId
+            JOIN 
                 departmentdb d ON st.departmentId = d.departmentId
+            LEFT JOIN 
+                ${tableName} m ON s.subjectId = m.subjectId 
+                    AND m.student_id = st.student_id 
+                    AND m.expertId = ?
             WHERE 
                 d.departmentStatus = 1
             GROUP BY 
@@ -1640,33 +1650,41 @@ exports.clearStudentIgnoreList = async (req, res) => {
 
 // this function fetches model answer audio for a given subjectId and qset
 exports.modelAnswerAudio = async(req, res) => {
+    console.log("modelAnswerAudio called with params:", req.params);
+    console.log("Session expertId:", req.session.expertId);
+
     if (!req.session.expertId){
+        console.log("Unauthorized access attempt - no expertId in session");
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { subjectId, qset, departmentId } = req.params;
+    console.log(`Extracted parameters - subjectId: ${subjectId}, qset: ${qset}, departmentId: ${departmentId || 'none'}`);
 
     let conn;
 
     try{
         conn = await connection.getConnection();
+        console.log("Database connection established");
 
-        // Updated query to include departmentId filtering if provided
+        // Updated query to include departmentId filtering on BOTH tables
         let audioQuery;
         let queryParams;
         
         if (departmentId) {
+            console.log("Using query with departmentId filter");
             audioQuery = `
-                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2 
+                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2, a.departmentId
                 FROM audiodb a
                 JOIN students s ON a.subjectId = s.subjectsId
-                WHERE a.subjectId = ? AND a.qset = ? AND s.departmentId = ?
+                WHERE a.subjectId = ? AND a.qset = ? AND a.departmentId = ? AND s.departmentId = ?
                 LIMIT 1
             `;
-            queryParams = [subjectId, qset, departmentId];
+            queryParams = [subjectId, qset, departmentId, departmentId];
         } else {
+            console.log("Using basic query without department filter");
             audioQuery = `
-                SELECT subjectId, qset, passage1, passage2 
+                SELECT subjectId, qset, passage1, passage2, departmentId
                 FROM audiodb 
                 WHERE subjectId = ? AND qset = ?
                 LIMIT 1
@@ -1674,50 +1692,95 @@ exports.modelAnswerAudio = async(req, res) => {
             queryParams = [subjectId, qset];
         }
 
+        console.log("Executing query:", audioQuery);
+        console.log("With parameters:", queryParams);
+
         const [audioResults] = await conn.query(audioQuery, queryParams);
+        console.log(`Query executed successfully. Found ${audioResults.length} results`);
         
         if (audioResults.length === 0) {
+            console.log("No audio results found for the given criteria");
             return res.status(404).json({ error: 'No Audio found for this subject and qset' });
         }
 
-        console.log(`Fetched audio for subjectId: ${subjectId}, qset: ${qset}, departmentId: ${departmentId || 'all'}`);
-        res.status(200).json(audioResults[0]);
+        const audioData = audioResults[0];
+        console.log("Audio data retrieved:", {
+            subjectId: audioData.subjectId,
+            qset: audioData.qset,
+            departmentId: audioData.departmentId, // Added for debugging
+            passage1: audioData.passage1,
+            passage2: audioData.passage2,
+            passage1Type: typeof audioData.passage1,
+            passage1Length: audioData.passage1 ? audioData.passage1.length : 0
+        });
+
+        // Detailed logging for passage1 value
+        console.log("=== PASSAGE1 DETAILED ANALYSIS ===");
+        console.log("passage1 value:", audioData.passage1);
+        console.log("passage1 is null:", audioData.passage1 === null);
+        console.log("passage1 is undefined:", audioData.passage1 === undefined);
+        console.log("passage1 is empty string:", audioData.passage1 === "");
+        console.log("passage1 data type:", typeof audioData.passage1);
+        
+        if (audioData.passage1) {
+            console.log("passage1 content length:", audioData.passage1.length);
+            console.log("passage1 first 100 characters:", audioData.passage1.substring(0, 100));
+        } else {
+            console.log("passage1 is falsy - may need to check database for correct values");
+        }
+        console.log("==================================");
+
+        console.log(`Successfully fetched audio for subjectId: ${subjectId}, qset: ${qset}, departmentId: ${departmentId || 'all'}`);
+        res.status(200).json(audioData);
     } catch (err) {
-        console.error("Error fetching the audio", err);
+        console.error("Error fetching the audio:", err.message);
+        console.error("Error stack:", err.stack);
+        console.error("Error details:", err);
         res.status(500).json({ error: 'Error fetching the audio' });
     } finally {
-        if (conn) conn.release();
+        if (conn) {
+            conn.release();
+            console.log("Database connection released");
+        }
     }
 };
 
 exports.modelAnswerAudioById = async(req, res) => {
+    console.log("modelAnswerAudio called with params:", req.params);
+    console.log("Session expertId:", req.session.expertId);
+
     if (!req.session.expertId){
+        console.log("Unauthorized access attempt - no expertId in session");
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { subjectId, qset, studentId, departmentId } = req.params;
+    console.log(`Extracted parameters - subjectId: ${subjectId}, qset: ${qset}, studentId: ${studentId || 'none'}, departmentId: ${departmentId || 'none'}`);
 
     let conn;
 
     try{
         conn = await connection.getConnection();
+        console.log("Database connection established");
 
-        // Updated query to include departmentId and studentId filtering
+        // Updated query to include departmentId filtering on BOTH tables
         let audioQuery;
         let queryParams;
         
         if (departmentId && studentId) {
+            console.log("Using query with both departmentId and studentId filters");
             audioQuery = `
-                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2 
+                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2, a.departmentId
                 FROM audiodb a
                 JOIN students s ON a.subjectId = s.subjectsId
-                WHERE a.subjectId = ? AND a.qset = ? AND s.student_id = ? AND s.departmentId = ?
+                WHERE a.subjectId = ? AND a.qset = ? AND a.departmentId = ? AND s.student_id = ? AND s.departmentId = ?
                 LIMIT 1
             `;
-            queryParams = [subjectId, qset, studentId, departmentId];
+            queryParams = [subjectId, qset, departmentId, studentId, departmentId];
         } else if (studentId) {
+            console.log("Using query with studentId filter only");
             audioQuery = `
-                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2 
+                SELECT DISTINCT a.subjectId, a.qset, a.passage1, a.passage2, a.departmentId
                 FROM audiodb a
                 JOIN students s ON a.subjectId = s.subjectsId
                 WHERE a.subjectId = ? AND a.qset = ? AND s.student_id = ?
@@ -1725,8 +1788,9 @@ exports.modelAnswerAudioById = async(req, res) => {
             `;
             queryParams = [subjectId, qset, studentId];
         } else {
+            console.log("Using basic query without student/department filters");
             audioQuery = `
-                SELECT subjectId, qset, passage1, passage2 
+                SELECT subjectId, qset, passage1, passage2, departmentId
                 FROM audiodb 
                 WHERE subjectId = ? AND qset = ?
                 LIMIT 1
@@ -1734,22 +1798,58 @@ exports.modelAnswerAudioById = async(req, res) => {
             queryParams = [subjectId, qset];
         }
 
+        console.log("Executing query:", audioQuery);
+        console.log("With parameters:", queryParams);
+
         const [audioResults] = await conn.query(audioQuery, queryParams);
+        console.log(`Query executed successfully. Found ${audioResults.length} results`);
         
         if (audioResults.length === 0) {
+            console.log("No audio results found for the given criteria");
             return res.status(404).json({ error: 'No Audio found for this subject, qset, and student' });
         }
 
-        console.log(`Fetched audio by ID for subjectId: ${subjectId}, qset: ${qset}, studentId: ${studentId}, departmentId: ${departmentId || 'all'}`);
-        res.status(200).json(audioResults[0]);
+        const audioData = audioResults[0];
+        console.log("Audio data retrieved:", {
+            subjectId: audioData.subjectId,
+            qset: audioData.qset,
+            departmentId: audioData.departmentId, // Added this for debugging
+            passage1: audioData.passage1,
+            passage2: audioData.passage2,
+            passage1Type: typeof audioData.passage1,
+            passage1Length: audioData.passage1 ? audioData.passage1.length : 0
+        });
+
+        // Detailed logging for passage1 value
+        console.log("=== PASSAGE1 DETAILED ANALYSIS ===");
+        console.log("passage1 value:", audioData.passage1);
+        console.log("passage1 is null:", audioData.passage1 === null);
+        console.log("passage1 is undefined:", audioData.passage1 === undefined);
+        console.log("passage1 is empty string:", audioData.passage1 === "");
+        console.log("passage1 data type:", typeof audioData.passage1);
+        
+        if (audioData.passage1) {
+            console.log("passage1 content length:", audioData.passage1.length);
+            console.log("passage1 first 100 characters:", audioData.passage1.substring(0, 100));
+        } else {
+            console.log("passage1 is falsy - may need to check database for correct values");
+        }
+        console.log("==================================");
+
+        console.log(`Successfully fetched audio for subjectId: ${subjectId}, qset: ${qset}`);
+        res.status(200).json(audioData);
     } catch (err) {
-        console.error("Error fetching the audio", err);
+        console.error("Error fetching the audio:", err.message);
+        console.error("Error stack:", err.stack);
+        console.error("Error details:", err);
         res.status(500).json({ error: 'Error fetching the audio' });
     } finally {
-        if (conn) conn.release();
+        if (conn) {
+            conn.release();
+            console.log("Database connection released");
+        }
     }
 };
-
 
 // Passage review submission function
 exports.submitPassageReview = async (req, res) => {
