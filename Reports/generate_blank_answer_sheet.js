@@ -4,10 +4,10 @@
 // This will print the Marathi text correctly in a UTF-8 capable console
 const connection = require("../config/db1");
 async function createBlankAnswerSheet(doc,data)  {
-      
       // Constants for layout
       const headerHeight = 85;
       const lineGap = 30;
+      const margin = 40; // Add this line to define margin
       
       // Function to create header
       function createHeader(doc, text1, text2) {
@@ -37,21 +37,22 @@ async function createBlankAnswerSheet(doc,data)  {
       function drawLines(doc, startY, endY, gap) {
         for (let y = startY; y <= endY; y += gap) {
           doc.moveTo(40, y)
-             .lineTo(doc.page.width - 40, y)
-             .stroke();
+            .lineTo(doc.page.width - 40, y)
+            .lineWidth(0.1)  // Thinner lines for writing
+            .stroke();
         }
       }
-      
-      // Function to draw a single line
-      function drawSingleLine(doc, y) {
-        doc.moveTo(40, y)
-           .lineTo(doc.page.width - 40, y)
-           .stroke();
-      }
+  // Function to draw a single line
+  function drawSingleLine(doc, y) {
+    doc.moveTo(40, y)
+      .lineTo(doc.page.width - 40, y)
+      .lineWidth(0.1)  // Thinner lines
+      .stroke();
+  }
       
       // Function to create a page
       function createPage(doc, isFirstPage) {
-        createHeader(doc, data.departmentName, 'Skill Test Computer Shorthand Examination April 2025');
+        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025');
         
         let startY = headerHeight;
       
@@ -87,6 +88,9 @@ async function createBlankAnswerSheet(doc,data)  {
       createPage(doc, false);
     
 }
+
+
+
 async function getData(center, batchNo) {
   try {
       // console.log(center, batchNo);

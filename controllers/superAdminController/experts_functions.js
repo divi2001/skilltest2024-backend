@@ -93,6 +93,7 @@ exports.insertExpert = async (req, res) => {
         res.status(500).json({ message: "Internal Server error" });
     }
 }
+
 exports.getStudentsforExperts = async (req, res) => {
     const { department ,subject, stage_1, stage_3 } = req.query;
     console.log(typeof department);
@@ -269,108 +270,198 @@ exports.assignExpertToStudents = async (req, res) => {
     }
 };
 
+// exports.assignedStudentsSummary = async (req, res) => {
+//     const { stage_1, stage_3 } = req.query;
+
+//     let tableName;
+//     if (!stage_1 && !stage_3) return res.status(400).json({ "message": "Please select a option" });
+//     if (stage_1) {
+//         tableName = "expertreviewlog";
+//     }
+//     if (stage_3) {
+//         tableName = "modreviewlog";
+//     }
+
+//     const query = `
+//         SELECT 
+//             e.expertId,
+//             e.expert_name,
+//             s.subjectId,
+//             s.subject_name,
+//             st.departmentId,
+//             erl.qset,
+//             COUNT(DISTINCT erl.student_id) AS expert_assigned_count,
+//             (SELECT COUNT(DISTINCT student_id) 
+//              FROM ${tableName} 
+//              WHERE qset = erl.qset AND subjectId = s.subjectId) AS total_students_in_qset,
+//             (SELECT COUNT(DISTINCT student_id) 
+//              FROM ${tableName} 
+//              WHERE qset = erl.qset AND subjectId = s.subjectId AND expertId IS NOT NULL) AS total_assigned_in_qset
+//         FROM 
+//             expertdb e
+//         JOIN ${tableName} erl ON e.expertId = erl.expertId
+//         JOIN subjectsdb s ON erl.subjectId = s.subjectId
+//         JOIN students st ON erl.student_id = st.student_id
+//         GROUP BY 
+//             e.expertId, e.expert_name, s.subjectId, s.subject_name, st.departmentId, erl.qset
+//         ORDER BY 
+//             st.departmentId, e.expertId, s.subjectId, erl.qset;
+//     `;
+
+//     try {
+//         const [results] = await connection.query(query);
+
+//         if (results.length === 0) {
+//             return res.status(200).json({
+//                 message: "No expert assignments found",
+//                 departments: []
+//             });
+//         }
+
+//         // Group the results by department, expert, subject, and qset
+//         const groupedAssignments = results.reduce((acc, row) => {
+//             if (!acc[row.departmentId]) {
+//                 acc[row.departmentId] = {
+//                     departmentId: row.departmentId,
+//                     experts: {}
+//                 };
+//             }
+
+//             if (!acc[row.departmentId].experts[row.expertId]) {
+//                 acc[row.departmentId].experts[row.expertId] = {
+//                     expertId: row.expertId,
+//                     expert_name: row.expert_name,
+//                     subjects: {}
+//                 };
+//             }
+
+//             if (!acc[row.departmentId].experts[row.expertId].subjects[row.subjectId]) {
+//                 acc[row.departmentId].experts[row.expertId].subjects[row.subjectId] = {
+//                     subjectId: row.subjectId,
+//                     subject_name: row.subject_name,
+//                     qsets: []
+//                 };
+//             }
+
+//             acc[row.departmentId].experts[row.expertId].subjects[row.subjectId].qsets.push({
+//                 qset: row.qset,
+//                 expert_assigned_count: row.expert_assigned_count,
+//                 total_students_in_qset: row.total_students_in_qset,
+//                 total_assigned_in_qset: row.total_assigned_in_qset
+//             });
+
+//             return acc;
+//         }, {});
+
+//         // Convert the grouped assignments to the desired array format
+//         const formattedAssignments = Object.values(groupedAssignments).map(department => ({
+//             ...department,
+//             experts: Object.values(department.experts).map(expert => ({
+//                 ...expert,
+//                 subjects: Object.values(expert.subjects)
+//             }))
+//         }));
+
+//         res.status(200).json({
+//             departments: formattedAssignments
+//         });
+
+//     } catch (error) {
+//         console.error('Error fetching expert assignment summary:', error);
+//         res.status(500).json({ message: "Internal Server error" });
+//     }
+// };
+
 exports.assignedStudentsSummary = async (req, res) => {
-    const { stage_1, stage_3 } = req.query;
+  const { stage_1, stage_3 } = req.query;
 
-    let tableName;
-    if (!stage_1 && !stage_3) return res.status(400).json({ "message": "Please select a option" });
-    if (stage_1) {
-        tableName = "expertreviewlog";
+  let tableName;
+  if (!stage_1 && !stage_3)
+    return res.status(400).json({ message: "Please select a option" });
+  if (stage_1) tableName = "expertreviewlog";
+  if (stage_3) tableName = "modreviewlog";
+
+  const query = `
+    SELECT 
+      e.expertId,
+      e.expert_name,
+      s.subjectId,
+      s.subject_name,
+      st.departmentId,
+      erl.qset,
+      COUNT(DISTINCT erl.student_id) AS expert_assigned_count,
+      SUM(CASE WHEN erl.expertId IS NOT NULL THEN 1 ELSE 0 END) AS total_assigned_in_qset,
+      COUNT(*) AS total_students_in_qset
+    FROM 
+      ${tableName} erl
+    JOIN expertdb e ON e.expertId = erl.expertId
+    JOIN subjectsdb s ON erl.subjectId = s.subjectId
+    JOIN students st ON erl.student_id = st.student_id
+    GROUP BY 
+      e.expertId, e.expert_name, s.subjectId, s.subject_name, st.departmentId, erl.qset
+    ORDER BY 
+      st.departmentId, e.expertId, s.subjectId, erl.qset;
+  `;
+
+  try {
+    const [results] = await connection.query(query);
+
+    if (results.length === 0) {
+      return res.status(200).json({
+        message: "No expert assignments found",
+        departments: [],
+      });
     }
-    if (stage_3) {
-        tableName = "modreviewlog";
-    }
 
+    const groupedAssignments = results.reduce((acc, row) => {
+      if (!acc[row.departmentId]) {
+        acc[row.departmentId] = {
+          departmentId: row.departmentId,
+          experts: {},
+        };
+      }
 
-    const query = `
-        SELECT 
-            e.expertId,
-            e.expert_name,
-            s.subjectId,
-            s.subject_name,
-            st.departmentId,
-            erl.qset,
-            COUNT(DISTINCT erl.student_id) AS expert_assigned_count,
-            (SELECT COUNT(DISTINCT student_id) 
-             FROM ${tableName} 
-             WHERE qset = erl.qset AND subjectId = s.subjectId) AS total_students_in_qset,
-            (SELECT COUNT(DISTINCT student_id) 
-             FROM ${tableName} 
-             WHERE qset = erl.qset AND subjectId = s.subjectId AND expertId IS NOT NULL) AS total_assigned_in_qset
-        FROM 
-            expertdb e
-        JOIN ${tableName} erl ON e.expertId = erl.expertId
-        JOIN subjectsdb s ON erl.subjectId = s.subjectId
-        JOIN students st ON erl.student_id = st.student_id
-        GROUP BY 
-            e.expertId, e.expert_name, s.subjectId, s.subject_name, st.departmentId, erl.qset
-        ORDER BY 
-            st.departmentId, e.expertId, s.subjectId, erl.qset;
-    `;
+      if (!acc[row.departmentId].experts[row.expertId]) {
+        acc[row.departmentId].experts[row.expertId] = {
+          expertId: row.expertId,
+          expert_name: row.expert_name,
+          subjects: {},
+        };
+      }
 
-    try {
-        const [results] = await connection.query(query);
+      if (!acc[row.departmentId].experts[row.expertId].subjects[row.subjectId]) {
+        acc[row.departmentId].experts[row.expertId].subjects[row.subjectId] = {
+          subjectId: row.subjectId,
+          subject_name: row.subject_name,
+          qsets: [],
+        };
+      }
 
-        if (results.length === 0) {
-            return res.status(200).json({
-                message: "No expert assignments found",
-                departments: []
-            });
-        }
+      acc[row.departmentId].experts[row.expertId].subjects[row.subjectId].qsets.push({
+        qset: row.qset,
+        expert_assigned_count: row.expert_assigned_count,
+        total_students_in_qset: row.total_students_in_qset,
+        total_assigned_in_qset: row.total_assigned_in_qset,
+      });
 
-        // Group the results by department, expert, subject, and qset
-        const groupedAssignments = results.reduce((acc, row) => {
-            if (!acc[row.departmentId]) {
-                acc[row.departmentId] = {
-                    departmentId: row.departmentId,
-                    experts: {}
-                };
-            }
+      return acc;
+    }, {});
 
-            if (!acc[row.departmentId].experts[row.expertId]) {
-                acc[row.departmentId].experts[row.expertId] = {
-                    expertId: row.expertId,
-                    expert_name: row.expert_name,
-                    subjects: {}
-                };
-            }
+    const formattedAssignments = Object.values(groupedAssignments).map((department) => ({
+      ...department,
+      experts: Object.values(department.experts).map((expert) => ({
+        ...expert,
+        subjects: Object.values(expert.subjects),
+      })),
+    }));
 
-            if (!acc[row.departmentId].experts[row.expertId].subjects[row.subjectId]) {
-                acc[row.departmentId].experts[row.expertId].subjects[row.subjectId] = {
-                    subjectId: row.subjectId,
-                    subject_name: row.subject_name,
-                    qsets: []
-                };
-            }
-
-            acc[row.departmentId].experts[row.expertId].subjects[row.subjectId].qsets.push({
-                qset: row.qset,
-                expert_assigned_count: row.expert_assigned_count,
-                total_students_in_qset: row.total_students_in_qset,
-                total_assigned_in_qset: row.total_assigned_in_qset
-            });
-
-            return acc;
-        }, {});
-
-        // Convert the grouped assignments to the desired array format
-        const formattedAssignments = Object.values(groupedAssignments).map(department => ({
-            ...department,
-            experts: Object.values(department.experts).map(expert => ({
-                ...expert,
-                subjects: Object.values(expert.subjects)
-            }))
-        }));
-
-        res.status(200).json({
-            departments: formattedAssignments
-        });
-
-    } catch (error) {
-        console.error('Error fetching expert assignment summary:', error);
-        res.status(500).json({ message: "Internal Server error" });
-    }
+    res.status(200).json({ departments: formattedAssignments });
+  } catch (error) {
+    console.error("Error fetching expert assignment summary:", error);
+    res.status(500).json({ message: "Internal Server error" });
+  }
 };
+
 
 exports.unassignExpertFromStudents = async (req, res) => {
     const { department, subject, qset, expertId, count, stage_1, stage_3 } = req.body;

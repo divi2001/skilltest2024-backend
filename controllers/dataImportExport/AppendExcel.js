@@ -1,10 +1,11 @@
+// controllers\dataImportExport\AppendExcel.js
 const fs = require('fs');
 const xlsx = require('xlsx');
 const fastCsv = require('fast-csv');
 const pool = require("../../config/db1");
 const schema = require('../../schema/schema');
 const moment = require('moment');
-const {encrypt, decrypt} = require('./../../config/encrypt');
+const { encrypt, decrypt } = require('./../../config/encrypt');
 
 const appendExcel = async (filePath) => {
   try {
@@ -17,7 +18,7 @@ const appendExcel = async (filePath) => {
         const worksheet = workbook.Sheets[sheetName];
         const csvData = xlsx.utils.sheet_to_csv(worksheet);
         const csvFilePath = `${filePath}_${sheetName}.csv`;
-        
+
         fs.writeFileSync(csvFilePath, csvData);
 
         try {
@@ -74,7 +75,7 @@ const appendCSV = async (tableName, csvFilePath) => {
           filteredRow[column] = row[column];
         }
       }
-      
+
       try {
         validateRow(tableName, filteredRow, rowNumber);
         chunk.push(filteredRow);
@@ -123,16 +124,16 @@ const createTableIfNotExists = async (tableName, columns) => {
     AND table_name = ?
   `;
   const [result] = await executeQuery(checkTableQuery, [tableName]);
-  
+
   if (result[0].count === 0) {
     const createTableQuery = `CREATE TABLE ?? (
       ${columns.map(column => {
-        const fieldType = schema[tableName][column];
-        if (column.toLowerCase() === 'id') {
-          return `\`${column}\` ${fieldType} PRIMARY KEY AUTO_INCREMENT`;
-        }
-        return `\`${column}\` ${fieldType}`;
-      }).join(', ')}
+      const fieldType = schema[tableName][column];
+      if (column.toLowerCase() === 'id') {
+        return `\`${column}\` ${fieldType} PRIMARY KEY AUTO_INCREMENT`;
+      }
+      return `\`${column}\` ${fieldType}`;
+    }).join(', ')}
     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`;
 
     await executeQuery(createTableQuery, [tableName]);
@@ -143,106 +144,110 @@ const createTableIfNotExists = async (tableName, columns) => {
 };
 
 const insertOrUpdateChunk = async (tableName, columns, chunk) => {
-    const insertQuery = `
+  const insertQuery = `
       INSERT INTO ?? (${columns.map(column => `\`${column}\``).join(', ')}) 
       VALUES ? 
       ON DUPLICATE KEY UPDATE 
       ${columns.map(column => `\`${column}\` = VALUES(\`${column}\`)`).join(', ')}
     `;
-    
-    const values = chunk.map(row => {
-      return columns.map(column => {
-        let value = row[column];
-        const fieldType = schema[tableName][column];
-  
-        if (value === '' || value === null || value === undefined) {
-          return null;
+
+  const values = chunk.map(row => {
+    return columns.map(column => {
+      let value = row[column];
+      const fieldType = schema[tableName][column];
+
+      if (value === '' || value === null || value === undefined) {
+        return null;
+      }
+
+      if (column === 'courseId' || column === 'subjectId') {
+        if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+          value = parseInt(value.replace(/[\[\]\s]/g, ''), 10);
         }
-  
-        if (column === 'courseId' || column === 'subjectId') {
-          if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
-            value = parseInt(value.replace(/[\[\]\s]/g, ''), 10);
-          }
+      }
+
+      if (column === 'loggedin' || column === 'done') {
+        return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
+      }
+
+      if (column === 'centerpass' && tableName === 'examcenterdb') {
+        return encrypt(value);
+      }
+
+      if (column === 'departmentPassword' && tableName === 'departmentdb') {
+        return encrypt(value);
+      }
+
+      if (column === 'password' && tableName === 'students') {
+        return encrypt(value);
+      }
+      
+      if (column === 'controller_pass' && tableName === 'controllerdb') {
+        return encrypt(value);
+      }
+
+      if (fieldType === 'TIME') {
+        if (value) {
+          const time = moment(value, ['h:mm A', 'HH:mm']);
+          return time.isValid() ? time.format('HH:mm:ss') : null;
         }
-  
-        if (column === 'loggedin' || column === 'done') {
-          return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
-        }
-  
-        if(column === 'centerpass' && tableName === 'examcenterdb'){
-          return encrypt(value);
-        }
-  
-        if(column === 'departmentPassword' && tableName === 'departmentdb'){
-          return encrypt(value);
-        }
-  
-        if(column === 'password' && tableName === 'students'){
-          return encrypt(value);
-        }
-  
-        if (fieldType === 'TIME') {
-          if (value) {
-            const time = moment(value, ['h:mm A', 'HH:mm']);
-            return time.isValid() ? time.format('HH:mm:ss') : null;
-          }
-          return null;
-        }
-  
-        if (fieldType === 'BOOLEAN') {
-          return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
-        } else if (fieldType === 'INT' || fieldType === 'BIGINT') {
-          return isNaN(parseInt(value, 10)) ? null : parseInt(value, 10);
-        } else if (fieldType === 'DECIMAL') {
-          return isNaN(parseFloat(value)) ? null : parseFloat(value);
-        } else if (fieldType === 'DATE') {
-          return value ? new Date(value) : null;
-        } else if (fieldType === 'TIMESTAMP') {
-          return value ? new Date(value) : null;
-        } else {
-          return value;
-        }
-      });
+        return null;
+      }
+
+      if (fieldType === 'BOOLEAN') {
+        return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
+      } else if (fieldType === 'INT' || fieldType === 'BIGINT') {
+        return isNaN(parseInt(value, 10)) ? null : parseInt(value, 10);
+      } else if (fieldType === 'DECIMAL') {
+        return isNaN(parseFloat(value)) ? null : parseFloat(value);
+      } else if (fieldType === 'DATE') {
+        return value ? new Date(value) : null;
+      } else if (fieldType === 'TIMESTAMP') {
+        return value ? new Date(value) : null;
+      } else {
+        return value;
+      }
     });
-    
-    await executeQuery(insertQuery, [tableName, values]);
-  };
+  });
+
+  await executeQuery(insertQuery, [tableName, values]);
+};
 // Reuse the existing validateRow, executeQuery functions...
 
 
 
 const validateRow = (tableName, row, rowNumber) => {
-    if (tableName === 'students' && (!row.student_id || row.student_id.trim() === '')) {
-      throw new Error(`Invalid student_id in row ${rowNumber}`);
-    }
-    // Add more validations as needed for other tables and fields
-  };
-  
-  const executeQuery = async (query, params, retries = 3) => {
-    let lastError;
-    for (let i = 0; i < retries; i++) {
+  if (tableName === 'students' && (!row.student_id || row.student_id.trim() === '')) {
+    throw new Error(`Invalid student_id in row ${rowNumber}`);
+  }
+  // Add more validations as needed for other tables and fields
+};
+
+const executeQuery = async (query, params, retries = 3) => {
+  let lastError;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const connection = await pool.getConnection();
       try {
-        const connection = await pool.getConnection();
-        try {
-          const result = await connection.query(query, params);
-          return result;
-        } finally {
-          connection.release();
-        }
-      } catch (error) {
-        console.error(`Query failed, attempt ${i + 1} of ${retries}:`, error);
-        lastError = error;
-        if (error.code === 'ECONNRESET') {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } else {
-          throw error;
-        }
+        const result = await connection.query(query, params);
+        return result;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error(`Query failed, attempt ${i + 1} of ${retries}:`, error);
+      lastError = error;
+      if (error.code === 'ECONNRESET') {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else {
+        throw error;
       }
     }
-    throw lastError;
-  };
-  
+  }
+  throw lastError;
+};
 
 
-  
-module.exports = {  appendExcel };
+
+
+module.exports = { appendExcel };

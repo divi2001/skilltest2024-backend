@@ -1,6 +1,6 @@
-
 const connection = require('../config/db1');
 const moment = require('moment-timezone');
+const { encrypt, decrypt } = require('../config/encrypt');
 
 exports.loginadmin = async (req, res) => {
     const { userId, password } = req.body;
@@ -8,9 +8,11 @@ exports.loginadmin = async (req, res) => {
 
     const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
 
+    let dm = encrypt(password);
+    console.log('Encrypted stored password:', dm);
+
     try {
         const [results] = await connection.query(query1, [userId]);
-
         console.log(results)
 
         if (results.length > 0) {
@@ -19,7 +21,9 @@ exports.loginadmin = async (req, res) => {
 
             let decryptedStoredPassword;
             try {
-                decryptedStoredPassword = (admin.password);
+                decryptedStoredPassword = decrypt(admin.password);
+                console.log('Decrypted stored password: ', decryptedStoredPassword);
+                // decryptedStoredPassword = (admin.password);
                 console.log('Stored password:', decryptedStoredPassword);
                 console.log('Provided password:', password);
             } catch (error) {
@@ -34,6 +38,7 @@ exports.loginadmin = async (req, res) => {
 
             console.log('Comparing passwords:');
             console.log('Stored (after trim):', decryptedStoredPasswordStr);
+
             console.log('Provided (after trim):', providedPasswordStr);
             console.log('Passwords match:', decryptedStoredPasswordStr === providedPasswordStr);
 
@@ -688,7 +693,7 @@ exports.approveResetRequest = async (req, res) => {
             // Format the time for the updated request
             const formattedRequest = {
                 ...updatedRequest[0],
-                time: moment(updatedRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+                time: updatedRequest[0].time ? moment(updatedRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : null
             };
 
             return res.status(200).json({
@@ -736,7 +741,7 @@ exports.getRequestData = async (req, res) => {
         // Format the time for each request
         const formattedRequests = resetRequests.map(request => ({
             ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+            time: request.time ? moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : null
         }));
 
         res.json(formattedRequests);
@@ -748,7 +753,7 @@ exports.getRequestData = async (req, res) => {
 };
 const formatDate = (date) => {
     if (!date) return null;
-    return moment(date).tz('Asia/Kolkata').format('DD-MM-YYYY hh:mm:ss A')
+    return moment(date).tz('Asia/Kolkata').format('YYYY-MM-DD hh:mm:ss A')
 }
 exports.getStudentData = async (req, res) => {
 
@@ -818,13 +823,13 @@ exports.getAttendaceReports = async (req, res) => {
         let query = `select * from attendance_reports where 1=1 ${filter} ORDER BY center `
         console.log(query);
 
-        const [reports] = await connection.query(query,queryParams);
+        const [reports] = await connection.query(query, queryParams);
 
-        if(reports.length === 0) {
-           return res.status(404).json({"message":"Attendance reports not uploaded yet!!"});
+        if (reports.length === 0) {
+            return res.status(404).json({ "message": "Attendance reports not uploaded yet!!" });
         }
-        res.status(201).json({"message":"Attendance reports fetched successfully!!",attendance_reports:reports});
-        
+        res.status(201).json({ "message": "Attendance reports fetched successfully!!", attendance_reports: reports });
+
     } catch (error) {
         console.error('Database query error:', error);
         res.status(500).send('Internal server error');
