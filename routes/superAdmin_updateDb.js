@@ -14,6 +14,7 @@ const HallticketsGeneration = require('../controllers/superAdminController/Hallt
 const { expertdb } = require('../schema/schema');
 const { getAllBatches, updateBatchStatus } = require('../controllers/superAdminController/batchController');
 const excelUploadController = require('../controllers/superAdminController/ExcelUploadController');
+const submdoneController = require('../controllers/superAdminController/submDone');
 
 router.post('/fetch-update-tables', fetchUpdateTableController.fetchUpdateTable);
 router.put('/update-table/:table_name/:id', updateTableController.updateTable);
@@ -51,6 +52,18 @@ router.get('/download-student-hall-ticket/:seatNo', HallticketsGeneration.downlo
 // Excel file upload routes
 router.post('/upload-student-data', excelUploadController.uploadStudentData);
 router.post('/validate-student-data', excelUploadController.validateStudentData);
+
+
+// Expert Review Log Routes
+router.get('/expert-review-logs', submdoneController.getExpertReviewLogs);
+router.post('/expert-review-logs/reset', submdoneController.resetExpertReviewLogs);
+
+// Moderator Review Log Routes  
+router.get('/moderator-review-logs', submdoneController.getModReviewLogs);
+router.post('/moderator-review-logs/reset', submdoneController.resetModReviewLogs);
+
+// Common Routes
+router.get('/review-logs/filter-options', submdoneController.getReviewFilterOptions);
 
 
 module.exports = router;
