@@ -20,9 +20,10 @@ exports.loginadmin = async (req, res) => {
             const storedPassword = admin.password;
             
             console.log('Stored password:', storedPassword);
+            const storedDecryptedPassword = decrypt(storedPassword);
             console.log('Provided password:', password);
 
-            if (storedPassword === password) {
+            if (storedDecryptedPassword === password) {
                 console.log('Login successful for admin:', admin.adminid);
                 req.session.adminid = admin.adminid;
                 res.send('Logged in successfully as an admin!');
