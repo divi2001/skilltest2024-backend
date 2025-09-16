@@ -1,4 +1,4 @@
-// routes\superAdmin_updateDb.js
+//skilltest2024-backend\routes\superAdmin_updateDb.js
 const express = require('express');
 const router = express.Router();
 
@@ -15,6 +15,8 @@ const { expertdb } = require('../schema/schema');
 const { getAllBatches, updateBatchStatus } = require('../controllers/superAdminController/batchController');
 const excelUploadController = require('../controllers/superAdminController/ExcelUploadController');
 const submdoneController = require('../controllers/superAdminController/submDone');
+const backupController = require('../controllers/superAdminController/backupController');
+
 
 router.post('/fetch-update-tables', fetchUpdateTableController.fetchUpdateTable);
 router.put('/update-table/:table_name/:id', updateTableController.updateTable);
@@ -35,7 +37,6 @@ router.post('/unassign-expert', unassignExpertFromStudents);
 router.post("/qset-to-modqset",copyQsetToModqset);
 router.post("/update-batch-status",updateBatchStatus);
 
-
 router.get('/get-expert-review-logs', getStudentsFromExpertReviewlog);
 router.get('/get-mod-review-logs', getStudentsFromModReviewlog);
 router.get("/get-experts", getAllExperts);
@@ -53,9 +54,6 @@ router.get('/download-student-hall-ticket/:seatNo', HallticketsGeneration.downlo
 router.post('/upload-student-data', excelUploadController.uploadStudentData);
 router.post('/validate-student-data', excelUploadController.validateStudentData);
 
-
-
-
 // skilltest2024-backend\routes\superAdmin_updateDb.js
 // Expert Review Log Routes
 router.get('/expert-review-logs', submdoneController.getExpertReviewLogs);
@@ -68,5 +66,9 @@ router.post('/moderator-review-logs/reset', submdoneController.resetModReviewLog
 // Common Routes
 router.get('/review-logs/filter-options', submdoneController.getReviewFilterOptions);
 
+
+// Add these routes at the bottom before module.exports
+router.get('/download-backup', backupController.downloadBackup);
+router.get('/backup-status', backupController.getBackupStatus);
 
 module.exports = router;
