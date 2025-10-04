@@ -25,6 +25,9 @@ const superAdminTrackDashboardRoute = require('./routes/superAdmin_updateDb');
 const expertLoginRoutes = require('./routes/expertsCheckingRoutes/expertsAuthRoutes'); //ExpertLoginRoutes
 const expertDashboardStage3Routes = require('./routes/expertsCheckingRoutes/studentSpecificRoutes')
 
+const excelDataUploadRoutes = require('./routes/excelDataUploadRoutes');
+
+
 const app = express();
 const PORT = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -60,6 +63,8 @@ app.use(session({
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use('/api/excel', excelDataUploadRoutes);
 
 
 const uploadsDir = path.join(__dirname,'uploads');
