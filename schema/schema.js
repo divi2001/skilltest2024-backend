@@ -1,4 +1,4 @@
-// schema.js
+//skilltest2024-backend\schema\schema.js
 const schema = {
     admindb: {
         adminid: 'BIGINT PRIMARY KEY',
