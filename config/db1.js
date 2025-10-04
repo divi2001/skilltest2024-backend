@@ -1,4 +1,4 @@
-
+//skilltest2024-backend\config\db1.js
 const mysql = require('mysql2/promise');
 require('dotenv').config(); // Load environment variables from .env file
 
