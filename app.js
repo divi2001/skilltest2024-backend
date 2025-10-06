@@ -27,6 +27,8 @@ const expertDashboardStage3Routes = require('./routes/expertsCheckingRoutes/stud
 
 const excelDataUploadRoutes = require('./routes/excelDataUploadRoutes');
 
+const newDepartmentRoutes = require('./routes/newDepartment_routes');
+
 
 const app = express();
 const PORT = 3000;
@@ -92,6 +94,7 @@ app.use(answerSheetRoutes);
 app.use(typingRoutes)
 app.use(excelRouter)
 app.use(superAdminTrackDashboardRoute);
+app.use('/api/new-department', newDepartmentRoutes);
 
 //Expert Routes
 app.use(expertLoginRoutes);
