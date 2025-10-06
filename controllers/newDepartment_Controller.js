@@ -480,3 +480,90 @@ exports.getAllStudents = async (req, res) => {
         res.status(500).json({ message: 'Internal server error', error: err.message });
     }
 };
+
+// Add batches to existing department
+exports.addBatchesToExistingDepartment = async (req, res) => {
+    const { departmentId, batches } = req.body;
+
+    if (!departmentId || !batches || !Array.isArray(batches) || batches.length === 0) {
+        return res.status(400).json({ 
+            message: "Department ID and batches array are required" 
+        });
+    }
+
+    try {
+        // Check if department exists
+        const [deptExists] = await connection.query(
+            'SELECT * FROM departmentdb WHERE departmentId = ?',
+            [departmentId]
+        );
+
+        if (deptExists.length === 0) {
+            return res.status(400).json({ 
+                message: "Department does not exist" 
+            });
+        }
+
+        const results = [];
+        const errors = [];
+
+        // Process each batch
+        for (const batch of batches) {
+            const { batchNo, batchdate, reporting_time, start_time, end_time, batchstatus = true } = batch;
+
+            // Validate batch data
+            if (!batchNo || !batchdate || !reporting_time || !start_time || !end_time) {
+                errors.push(`Batch ${batchNo}: Missing required fields`);
+                continue;
+            }
+
+            try {
+                // Check if batch already exists for this department
+                const [existingBatch] = await connection.query(
+                    'SELECT * FROM batchdb WHERE departmentId = ? AND batchNo = ?',
+                    [departmentId, batchNo]
+                );
+
+                if (existingBatch.length > 0) {
+                    errors.push(`Batch ${batchNo}: Already exists for this department`);
+                    continue;
+                }
+
+                // Insert new batch
+                const [result] = await connection.query(
+                    'INSERT INTO batchdb (departmentId, batchNo, batchdate, reporting_time, start_time, end_time, batchstatus) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [departmentId, batchNo, batchdate, reporting_time, start_time, end_time, batchstatus]
+                );
+
+                results.push({
+                    departmentId,
+                    batchNo,
+                    batchdate,
+                    reporting_time,
+                    start_time,
+                    end_time,
+                    batchstatus,
+                    status: 'created'
+                });
+
+            } catch (batchError) {
+                errors.push(`Batch ${batchNo}: ${batchError.message}`);
+            }
+        }
+
+        res.json({
+            message: `Batch creation completed. Success: ${results.length}, Errors: ${errors.length}`,
+            data: results,
+            errors: errors.length > 0 ? errors : undefined,
+            summary: {
+                totalProcessed: batches.length,
+                successful: results.length,
+                failed: errors.length
+            }
+        });
+
+    } catch (err) {
+        console.error('Database query error:', err);
+        res.status(500).json({ message: 'Internal server error', error: err.message });
+    }
+};

@@ -25,4 +25,7 @@ router.get('/controllers', newDepartmentController.getAllControllers);
 router.post('/students', newDepartmentController.registerStudent);
 router.get('/students', newDepartmentController.getAllStudents);
 
+// Add batches to existing department
+router.post('/existing-department/batches', newDepartmentController.addBatchesToExistingDepartment);
+
 module.exports = router;
