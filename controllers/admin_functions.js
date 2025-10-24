@@ -16,24 +16,22 @@ exports.loginadmin = async (req, res) => {
             const admin = results[0];
             console.log('Admin found in database:', admin.adminid);
 
-            // Direct comparison since database has plain text password
+            // Direct plain-text password comparison
             const storedPassword = admin.password;
-            
             console.log('Stored password:', storedPassword);
-            const storedDecryptedPassword = decrypt(storedPassword);
             console.log('Provided password:', password);
 
-            if (storedDecryptedPassword === password) {
-                console.log('Login successful for admin:', admin.adminid);
+            if (storedPassword === password) {
+                console.log('✅ Login successful for admin:', admin.adminid);
                 req.session.adminid = admin.adminid;
                 res.send('Logged in successfully as an admin!');
             } else {
-                console.log('Password mismatch for admin:', admin.adminid);
+                console.log('❌ Password mismatch for admin:', admin.adminid);
                 res.status(401).send('Invalid credentials for admin');
             }
         } else {
-            console.log('Admin ID not found:', userId);
-            res.status(404).send('admin not found');
+            console.log('⚠️ Admin ID not found:', userId);
+            res.status(404).send('Admin not found');
         }
     } catch (err) {
         console.error('Database error:', err);

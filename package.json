@@ -26,6 +26,7 @@
     "express-session": "^1.18.0",
     "fast-csv": "^5.0.1",
     "fs": "^0.0.1-security",
+    "handlebars": "^4.7.8",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.45",
@@ -36,8 +37,10 @@
     "nstall": "^0.2.0",
     "path": "^0.12.7",
     "pdfkit": "^0.15.0",
+    "puppeteer": "^24.25.0",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.2",
+    "sharp": "^0.34.4",
     "styled-components": "^6.1.11",
     "xlsx": "^0.18.5"
   }
