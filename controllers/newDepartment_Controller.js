@@ -730,7 +730,7 @@ exports.getAllExamCenters = async (req, res) => {
 
 // Batch Controllers
 exports.createBatch = async (req, res) => {
-    const { departmentId, batchNo, batchdate, reporting_time, start_time, end_time, batchstatus = true } = req.body;
+    const { departmentId, batchNo, batchdate, reporting_time, start_time, end_time, batchstatus = false } = req.body;
 
     if (!departmentId || !batchNo || !batchdate || !reporting_time || !start_time || !end_time) {
         return res.status(400).json({ 
@@ -836,124 +836,167 @@ exports.getBatchesByDepartment = async (req, res) => {
     }
 };
 
+
+
+
+
 // Enhanced Controller Management
 exports.addControllers = async (req, res) => {
-    const { departmentId, batchNo, controllers } = req.body;
+  const { departmentId, batchNo, controllers } = req.body;
 
-    // Validate required fields
-    if (!departmentId || !batchNo || !controllers || !Array.isArray(controllers)) {
-        return res.status(400).json({
-            success: false,
-            message: 'Department ID, Batch Number, and controllers array are required'
-        });
+  // Validate required fields
+  if (!departmentId || !batchNo || !controllers || !Array.isArray(controllers)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Department ID, Batch Number, and controllers array are required'
+    });
+  }
+
+  // Field validation
+  for (let i = 0; i < controllers.length; i++) {
+    const controller = controllers[i];
+    if (!controller.controller_name || !controller.center) {
+      return res.status(400).json({
+        success: false,
+        message: `Controller ${i + 1}: controller_name and center are required`
+      });
+    }
+  }
+
+  try {
+    // Check if batch exists
+    const [batchExists] = await connection.query(
+      'SELECT * FROM batchdb WHERE departmentId = ? AND batchNo = ? AND batchstatus = 1',
+      [departmentId, batchNo]
+    );
+
+    if (batchExists.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Batch not found or inactive'
+      });
     }
 
-    // Updated validation: district is now optional
-    for (let i = 0; i < controllers.length; i++) {
-        const controller = controllers[i];
-        if (!controller.controller_name || 
-            !controller.controller_contact || !controller.controller_email || 
-            !controller.controller_pass || !controller.center) {
-            return res.status(400).json({
-                success: false,
-                message: `Controller ${i + 1}: All fields are required except controller_code and district (controller_name, controller_contact, controller_email, controller_pass, center)`
-            });
-        }
+    // Check for duplicate controller codes if provided
+    const controllersWithCodes = controllers.filter(
+      (c) => c.controller_code && c.controller_code.toString().trim() !== ''
+    );
+
+    if (controllersWithCodes.length > 0) {
+      const controllerCodes = controllersWithCodes.map((c) => c.controller_code);
+      const placeholders = controllerCodes.map(() => '?').join(',');
+      const [existingCodes] = await connection.query(
+        `SELECT controller_code FROM controllerdb 
+         WHERE departmentId = ? AND batchNo = ? AND controller_code IN (${placeholders})`,
+        [departmentId, batchNo, ...controllerCodes]
+      );
+
+      if (existingCodes.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: `Controller codes already exist: ${existingCodes
+            .map((c) => c.controller_code)
+            .join(', ')}`
+        });
+      }
     }
 
-    try {
-        // Check if batch exists
-        const [batchExists] = await connection.query(
-            'SELECT * FROM batchdb WHERE departmentId = ? AND batchNo = ? AND batchstatus = 1',
-            [departmentId, batchNo]
-        );
-        
-        if (batchExists.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Batch not found or inactive'
-            });
-        }
+    const insertedControllers = [];
 
-        // Check for duplicate controller codes only if controller_code is provided
-        const controllersWithCodes = controllers.filter(c => c.controller_code && c.controller_code.toString().trim() !== '');
-        
-        if (controllersWithCodes.length > 0) {
-            const controllerCodes = controllersWithCodes.map(c => c.controller_code);
-            const placeholders = controllerCodes.map(() => '?').join(',');
-            const [existingCodes] = await connection.query(
-                `SELECT controller_code FROM controllerdb 
-                 WHERE departmentId = ? AND batchNo = ? AND controller_code IN (${placeholders})`,
-                [departmentId, batchNo, ...controllerCodes]
-            );
-            
-            if (existingCodes.length > 0) {
-                return res.status(409).json({
-                    success: false,
-                    message: `Controller codes already exist: ${existingCodes.map(c => c.controller_code).join(', ')}`
-                });
-            }
-        }
+    // Loop through each controller
+    for (const controller of controllers) {
+      // Check if center exists
+      const [centerExists] = await connection.query(
+        'SELECT * FROM examcenterdb WHERE center = ?',
+        [controller.center]
+      );
 
-        // Insert controllers
-        const insertedControllers = [];
-        
-        for (const controller of controllers) {
-            // Handle controller_code: use provided value, or set to null if empty
-            let controllerCode = null;
-            if (controller.controller_code && controller.controller_code.toString().trim() !== '') {
-                controllerCode = controller.controller_code;
-            }
-
-            // Handle district: set to null if not provided or empty
-            let districtValue = null;
-            if (controller.district && controller.district.toString().trim() !== '') {
-                districtValue = controller.district;
-            }
-
-            const [result] = await connection.query(
-                `INSERT INTO controllerdb 
-                (center, batchNo, departmentId, controller_code, controller_name, controller_contact, controller_email, controller_pass, district)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [
-                    controller.center,
-                    batchNo,
-                    departmentId,
-                    controllerCode, // This can be null
-                    controller.controller_name,
-                    controller.controller_contact,
-                    controller.controller_email,
-                    controller.controller_pass,
-                    districtValue // This can be null
-                ]
-            );
-            
-            insertedControllers.push({
-                ...controller,
-                controller_code: controllerCode,
-                district: districtValue,
-                departmentId,
-                batchNo,
-                insertId: result.insertId
-            });
-        }
-
-        res.status(201).json({
-            success: true,
-            message: `${controllers.length} controller(s) added successfully`,
-            data: insertedControllers,
-            count: insertedControllers.length
+      if (centerExists.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: `Center with ID ${controller.center} does not exist`
         });
+      }
 
-    } catch (err) {
-        console.error('Database query error:', err);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: err.message
-        });
+      // Set default contact/email if missing
+      const contactValue =
+        controller.controller_contact && controller.controller_contact.toString().trim() !== ''
+          ? controller.controller_contact
+          : '0123456789';
+
+      const emailValue =
+        controller.controller_email && controller.controller_email.toString().trim() !== ''
+          ? controller.controller_email
+          : 'abc123@gmail.com';
+
+      // Generate password
+      let controllerPass;
+      if (batchNo === 100) {
+        controllerPass = `${batchNo}${controller.center}`;
+      } else {
+        const randomTwoDigits = Math.floor(10 + Math.random() * 90);
+        controllerPass = `${batchNo}${departmentId}${controller.center}${randomTwoDigits}`;
+      }
+
+      // Handle optional fields
+      const controllerCode =
+        controller.controller_code && controller.controller_code.toString().trim() !== ''
+          ? controller.controller_code
+          : null;
+
+      const districtValue =
+        controller.district && controller.district.toString().trim() !== ''
+          ? controller.district
+          : null;
+
+      // Insert into DB
+      const [result] = await connection.query(
+        `INSERT INTO controllerdb 
+         (center, batchNo, departmentId, controller_code, controller_name, controller_contact, controller_email, controller_pass, district)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          controller.center,
+          batchNo,
+          departmentId,
+          controllerCode,
+          controller.controller_name,
+          contactValue,
+          emailValue,
+          controllerPass,
+          districtValue
+        ]
+      );
+
+      insertedControllers.push({
+        ...controller,
+        controller_code: controllerCode,
+        controller_contact: contactValue,
+        controller_email: emailValue,
+        controller_pass: controllerPass,
+        district: districtValue,
+        departmentId,
+        batchNo,
+        insertId: result.insertId
+      });
     }
+
+    res.status(201).json({
+      success: true,
+      message: `${controllers.length} controller(s) added successfully`,
+      data: insertedControllers,
+      count: insertedControllers.length
+    });
+  } catch (err) {
+    console.error('Database query error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: err.message
+    });
+  }
 };
+
+
 
 // Get all controllers with enhanced data
 exports.getAllControllers = async (req, res) => {
@@ -1471,9 +1514,145 @@ exports.addBatchesToExistingDepartment = async (req, res) => {
 //for uploading excel file
 
 // NEW: Complete Bulk Upload Batches from Excel/CSV (with departmentId in file)
+// exports.bulkUploadBatchesComplete = async (req, res) => {
+//     try {
+//         const file = req.file;
+
+//         // Validate file
+//         if (!file) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: 'File is required'
+//             });
+//         }
+
+//         let batches = [];
+
+//         try {
+//             // Parse file based on type
+//             if (file.mimetype === 'text/csv') {
+//                 batches = await parseCSV(file.buffer);
+//             } else {
+//                 batches = await parseExcel(file.buffer);
+//             }
+//         } catch (parseError) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: 'Error parsing file: ' + parseError.message
+//             });
+//         }
+
+//         if (batches.length === 0) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: 'No valid batch data found in file'
+//             });
+//         }
+
+//         // Process batches
+//         const results = [];
+//         const errors = [];
+//         const processedDepartments = new Set();
+
+//         for (let i = 0; i < batches.length; i++) {
+//             const batch = batches[i];
+//             const rowNum = i + 2; // Assuming row 1 is header
+
+//             try {
+//                 // Validate batch data including departmentId
+//                 const validation = validateCompleteBatchData(batch, rowNum);
+//                 if (!validation.isValid) {
+//                     errors.push(validation.error);
+//                     continue;
+//                 }
+
+//                 // Check if department exists (only once per department)
+//                 if (!processedDepartments.has(batch.departmentid)) {
+//                     const [deptExists] = await connection.query(
+//                         'SELECT * FROM departmentdb WHERE departmentId = ?',
+//                         [batch.departmentid]
+//                     );
+
+//                     if (deptExists.length === 0) {
+//                         errors.push(`Row ${rowNum}: Department ID ${batch.departmentid} does not exist`);
+//                         continue;
+//                     }
+//                     processedDepartments.add(batch.departmentid);
+//                 }
+
+//                 // Check if batch already exists
+//                 const [existingBatch] = await connection.query(
+//                     'SELECT * FROM batchdb WHERE departmentId = ? AND batchNo = ?',
+//                     [batch.departmentid, batch.batchno]
+//                 );
+
+//                 if (existingBatch.length > 0) {
+//                     errors.push(`Row ${rowNum}: Batch ${batch.batchno} already exists for department ${batch.departmentid}`);
+//                     continue;
+//                 }
+
+//                 // Insert batch
+//                 const [result] = await connection.query(
+//                     'INSERT INTO batchdb (departmentId, batchNo, batchdate, reporting_time, start_time, end_time, batchstatus) VALUES (?, ?, ?, ?, ?, ?, ?)',
+//                     [
+//                         batch.departmentid,
+//                         batch.batchno,
+//                         batch.batchdate,
+//                         batch.reporting_time,
+//                         batch.start_time,
+//                         batch.end_time,
+//                         batch.batchstatus !== undefined ? batch.batchstatus : true
+//                     ]
+//                 );
+
+//                 results.push({
+//                     departmentId: batch.departmentid,
+//                     batchNo: batch.batchno,
+//                     batchdate: batch.batchdate,
+//                     reporting_time: batch.reporting_time,
+//                     start_time: batch.start_time,
+//                     end_time: batch.end_time,
+//                     batchstatus: batch.batchstatus !== undefined ? batch.batchstatus : true,
+//                     status: 'created',
+//                     row: rowNum
+//                 });
+
+//             } catch (batchError) {
+//                 errors.push(`Row ${rowNum}: ${batchError.message}`);
+//             }
+//         }
+
+//         res.json({
+//             success: true,
+//             message: `Batch upload completed. ${results.length} successful, ${errors.length} failed.`,
+//             data: results,
+//             errors: errors.length > 0 ? errors : undefined,
+//             summary: {
+//                 totalProcessed: batches.length,
+//                 successful: results.length,
+//                 failed: errors.length
+//             }
+//         });
+
+//     } catch (err) {
+//         console.error('Complete bulk upload batches error:', err);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Internal server error during bulk upload',
+//             error: err.message
+//         });
+//     }
+// };
+
+//==============================================================================================
+
+// UPDATED: Backend batch bulk upload with proper manual department handling and underscore DB columns
 exports.bulkUploadBatchesComplete = async (req, res) => {
     try {
         const file = req.file;
+        const manualDepartmentId = req.body.manualDepartmentId; // Get manual department ID
+
+        console.log('Manual Department ID received:', manualDepartmentId);
 
         // Validate file
         if (!file) {
@@ -1506,72 +1685,102 @@ exports.bulkUploadBatchesComplete = async (req, res) => {
             });
         }
 
+        // Check if Excel has departmentId column
+        const hasExcelDepartmentId = batches.some(batch =>
+            batch.hasOwnProperty('departmentid') ||
+            batch.hasOwnProperty('departmentId') ||
+            batch.hasOwnProperty('department_id')
+        );
+
+        console.log('Excel has departmentId:', hasExcelDepartmentId);
+        console.log('First batch sample:', batches[0]);
+
+        // Require either Excel departmentId or manualDepartmentId
+        if (!hasExcelDepartmentId && !manualDepartmentId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Excel file does not contain departmentId column. Please select a department manually from the dropdown.'
+            });
+        }
+
         // Process batches
         const results = [];
         const errors = [];
-        const processedDepartments = new Set();
 
         for (let i = 0; i < batches.length; i++) {
             const batch = batches[i];
             const rowNum = i + 2; // Assuming row 1 is header
 
             try {
-                // Validate batch data including departmentId
-                const validation = validateCompleteBatchData(batch, rowNum);
+                // Resolve departmentId first (priority: Excel -> manual)
+                let departmentId;
+                if (batch.departmentid || batch.departmentId || batch.department_id) {
+                    departmentId = batch.departmentid || batch.departmentId || batch.department_id;
+                } else {
+                    departmentId = manualDepartmentId;
+                }
+
+                // Validate batch data against underscore keys (as produced by parseExcel/parseCSV)
+                const validation = validateBatchDataOnly(batch, rowNum);
                 if (!validation.isValid) {
                     errors.push(validation.error);
                     continue;
                 }
 
-                // Check if department exists (only once per department)
-                if (!processedDepartments.has(batch.departmentid)) {
-                    const [deptExists] = await connection.query(
-                        'SELECT * FROM departmentdb WHERE departmentId = ?',
-                        [batch.departmentid]
-                    );
+                // Normalize values from multiple possible header variants
+                const batchNo       = batch.batchno      ?? batch.batchNo      ?? batch.batch_no;
+                const batchDate     = batch.batchdate    ?? batch.batchDate    ?? batch.batch_date;
+                const reportingTime = batch.reporting_time ?? batch.reportingtime ?? batch.reportingTime;
+                const startTime     = batch.start_time   ?? batch.starttime    ?? batch.startTime;
+                const endTime       = batch.end_time     ?? batch.endtime      ?? batch.endTime;
 
-                    if (deptExists.length === 0) {
-                        errors.push(`Row ${rowNum}: Department ID ${batch.departmentid} does not exist`);
-                        continue;
-                    }
-                    processedDepartments.add(batch.departmentid);
-                }
-
-                // Check if batch already exists
-                const [existingBatch] = await connection.query(
-                    'SELECT * FROM batchdb WHERE departmentId = ? AND batchNo = ?',
-                    [batch.departmentid, batch.batchno]
+                // Department must exist
+                const [departmentExists] = await connection.query(
+                    'SELECT departmentId FROM departmentdb WHERE departmentId = ?',
+                    [departmentId]
                 );
-
-                if (existingBatch.length > 0) {
-                    errors.push(`Row ${rowNum}: Batch ${batch.batchno} already exists for department ${batch.departmentid}`);
+                if (departmentExists.length === 0) {
+                    errors.push(`Row ${rowNum}: Department ID ${departmentId} not found`);
                     continue;
                 }
 
-                // Insert batch
+                // Duplicate check
+                const [batchExists] = await connection.query(
+                    'SELECT batchNo FROM batchdb WHERE departmentId = ? AND batchNo = ?',
+                    [departmentId, batchNo]
+                );
+                if (batchExists.length > 0) {
+                    errors.push(`Row ${rowNum}: Batch ${batchNo} already exists for department ${departmentId}`);
+                    continue;
+                }
+
+                // INSERT using correct DB column names with underscores
                 const [result] = await connection.query(
-                    'INSERT INTO batchdb (departmentId, batchNo, batchdate, reporting_time, start_time, end_time, batchstatus) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    `INSERT INTO batchdb 
+                     (departmentId, batchNo, batchdate, reporting_time, start_time, end_time, batchstatus)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
                     [
-                        batch.departmentid,
-                        batch.batchno,
-                        batch.batchdate,
-                        batch.reporting_time,
-                        batch.start_time,
-                        batch.end_time,
-                        batch.batchstatus !== undefined ? batch.batchstatus : true
+                        departmentId,
+                        batchNo,
+                        batchDate,
+                        reportingTime,
+                        startTime,
+                        endTime,
+                        1 // Default active status
                     ]
                 );
 
                 results.push({
-                    departmentId: batch.departmentid,
-                    batchNo: batch.batchno,
-                    batchdate: batch.batchdate,
-                    reporting_time: batch.reporting_time,
-                    start_time: batch.start_time,
-                    end_time: batch.end_time,
-                    batchstatus: batch.batchstatus !== undefined ? batch.batchstatus : true,
+                    departmentId,
+                    batchNo,
+                    batchdate: batchDate,
+                    reporting_time: reportingTime,
+                    start_time: startTime,
+                    end_time: endTime,
                     status: 'created',
-                    row: rowNum
+                    row: rowNum,
+                    insertId: result.insertId,
+                    source: (batch.departmentid || batch.departmentId || batch.department_id) ? 'excel' : 'manual_selection'
                 });
 
             } catch (batchError) {
@@ -1587,7 +1796,8 @@ exports.bulkUploadBatchesComplete = async (req, res) => {
             summary: {
                 totalProcessed: batches.length,
                 successful: results.length,
-                failed: errors.length
+                failed: errors.length,
+                usedManualDepartment: !hasExcelDepartmentId && manualDepartmentId ? true : false
             }
         });
 
@@ -1600,6 +1810,45 @@ exports.bulkUploadBatchesComplete = async (req, res) => {
         });
     }
 };
+
+
+//==============================================================================================
+
+// NEW: Validation function that does NOT require departmentId in Excel
+function validateBatchDataOnly(batch, rowNum) {
+    // Only validate batch-specific fields, NOT departmentId
+    const requiredFields = ['batchno', 'batchdate', 'reporting_time', 'start_time', 'end_time'];
+    
+    for (const field of requiredFields) {
+        if (!batch[field] || batch[field].toString().trim() === '') {
+            return {
+                isValid: false,
+                error: `Row ${rowNum}: Missing or empty required field '${field}'`
+            };
+        }
+    }
+
+    return { isValid: true };
+}
+
+// Helper function to validate batch data (if not already exists)
+function validateCompleteBatchData(batch, rowNum) {
+    const requiredFields = ['batchno', 'batchdate', 'reportingtime', 'starttime', 'endtime'];
+    
+    for (const field of requiredFields) {
+        if (!batch[field] || batch[field].toString().trim() === '') {
+            return {
+                isValid: false,
+                error: `Row ${rowNum}: Missing or empty required field '${field}'`
+            };
+        }
+    }
+
+    return { isValid: true };
+}
+
+
+
 
 // NEW: Complete Bulk Upload Controllers from Excel/CSV (with departmentId and batchNo in file)
 exports.bulkUploadControllersComplete = async (req, res) => {
@@ -2082,3 +2331,159 @@ function validateCompleteControllerData(controller, rowNum) {
 
     return { isValid: true };
 }
+
+
+
+// Helper function to generate password based on batchNo and center
+function generatePassword(batchNo, center) {
+  if (batchNo === 100) {
+    return `mock${center}`;
+  } else {
+    // Generate 6-digit number without zeros (digits 1-9 only)
+    let password = '';
+    for (let i = 0; i < 6; i++) {
+      password += Math.floor(Math.random() * 9) + 1;
+    }
+    return password;
+  }
+}
+
+
+
+// Controller function to generate and save controllers
+exports.generateAndSaveControllers = async (req, res) => {
+  try {
+    const query = `
+      SELECT DISTINCT departmentId, batchNo, center 
+      FROM students 
+      WHERE departmentId IS NOT NULL 
+        AND batchNo IS NOT NULL 
+        AND center IS NOT NULL
+    `;
+    
+    const [rows] = await connection.query(query);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No valid student combinations found'
+      });
+    }
+    
+    const controllers = [];
+    
+    // Process inserts SEQUENTIALLY instead of parallel
+    for (const row of rows) {
+      const controllerData = {
+        center: row.center,
+        batchNo: row.batchNo,
+        departmentId: row.departmentId,
+        controller_code: null,
+        controller_name: '',
+        controller_contact: null,
+        controller_email: '',
+        controller_pass: generatePassword(row.batchNo, row.center),
+        district: null
+      };
+      
+      try {
+        const insertQuery = `
+          INSERT INTO controllerdb 
+          (center, batchNo, departmentId, controller_code, controller_name, 
+           controller_contact, controller_email, controller_pass, district)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        
+        await connection.query(insertQuery, [
+          controllerData.center,
+          controllerData.batchNo,
+          controllerData.departmentId,
+          controllerData.controller_code,
+          controllerData.controller_name,
+          controllerData.controller_contact,
+          controllerData.controller_email,
+          controllerData.controller_pass,
+          controllerData.district
+        ]);
+        
+        controllers.push(controllerData);
+      } catch (insertErr) {
+        // Skip duplicates
+        if (insertErr.code === 'ER_DUP_ENTRY') {
+          console.log(`Skipping duplicate: dept=${row.departmentId}, batch=${row.batchNo}, center=${row.center}`);
+        } else {
+          throw insertErr;
+        }
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: 'Controllers generated and saved successfully',
+      count: controllers.length,
+      data: controllers
+    });
+    
+  } catch (err) {
+    console.error('Error generating/saving controllers:', err);
+    res.status(500).json({ 
+      success: false,
+      message: 'Internal server error', 
+      error: err.message 
+    });
+  }
+};
+
+
+
+// Controller function to preview controllers (without saving)
+exports.generateControllers = async (req, res) => {
+  try {
+    // Get distinct combinations - exact query you specified
+    const query = `
+      SELECT DISTINCT departmentId, batchNo, center 
+      FROM students 
+      WHERE departmentId IS NOT NULL 
+        AND batchNo IS NOT NULL 
+        AND center IS NOT NULL
+    `;
+    
+    const [rows] = await connection.query(query);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No valid student combinations found'
+      });
+    }
+    
+    // Generate controller data for preview
+    const controllers = rows.map((row) => {
+      return {
+        departmentId: row.departmentId,
+        batchNo: row.batchNo,
+        center: row.center,
+        controller_code: '',  // Empty string
+        controller_contact: '',  // Empty string
+        controller_email: '',  // Empty string
+        controller_name: '',  // Empty string
+        controller_pass: generatePassword(row.batchNo, row.center)  // Password logic
+      };
+    });
+    
+    res.json({
+      success: true,
+      message: 'Controllers generated successfully',
+      count: controllers.length,
+      data: controllers
+    });
+    
+  } catch (err) {
+    console.error('Error generating controllers:', err);
+    res.status(500).json({ 
+      success: false,
+      message: 'Internal server error', 
+      error: err.message 
+    });
+  }
+};

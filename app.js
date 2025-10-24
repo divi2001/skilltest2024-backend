@@ -28,6 +28,9 @@ const expertDashboardStage3Routes = require('./routes/expertsCheckingRoutes/stud
 const excelDataUploadRoutes = require('./routes/excelDataUploadRoutes');
 
 const newDepartmentRoutes = require('./routes/newDepartment_routes');
+const evaluationRoutes = require('./routes/evaluationRoutes');
+const mockRoutes = require('./routes/mockRoutes');
+
 
 
 const app = express();
@@ -95,6 +98,8 @@ app.use(typingRoutes)
 app.use(excelRouter)
 app.use(superAdminTrackDashboardRoute);
 app.use('/api/new-department', newDepartmentRoutes);
+app.use('/api', mockRoutes);
+app.use('/api/v1/evaluation', evaluationRoutes);
 
 //Expert Routes
 app.use(expertLoginRoutes);

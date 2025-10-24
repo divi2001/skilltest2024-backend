@@ -2,44 +2,44 @@ const connection = require('../config/db1');
 const moment = require('moment-timezone');
 const { encrypt, decrypt } = require('../config/encrypt');
 const mysql = require('mysql2/promise');
-exports.loginadmin = async (req, res) => {
-    const { userId, password } = req.body;
-    console.log('Login attempt - UserID:', userId);
+// exports.loginadmin = async (req, res) => {
+//     const { userId, password } = req.body;
+//     console.log('Login attempt - UserID:', userId);
 
-    const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
+//     const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
 
-    try {
-        const [results] = await connection.query(query1, [userId]);
-        console.log(results);
+//     try {
+//         const [results] = await connection.query(query1, [userId]);
+//         console.log(results);
 
-        if (results.length > 0) {
-            const admin = results[0];
-            console.log('Admin found in database:', admin.adminid);
+//         if (results.length > 0) {
+//             const admin = results[0];
+//             console.log('Admin found in database:', admin.adminid);
 
-            // Direct comparison since database has plain text password
-            const storedPassword = admin.password;
+//             // Direct comparison since database has plain text password
+//             const storedPassword = admin.password;
             
-            console.log('Stored password:', storedPassword);
-            const storedDecryptedPassword = decrypt(storedPassword);
-            console.log('Provided password:', password);
+//             console.log('Stored password:', storedPassword);
+//             const storedDecryptedPassword = decrypt(storedPassword);
+//             console.log('Provided password:', password);
 
-            if (storedDecryptedPassword === password) {
-                console.log('Login successful for admin:', admin.adminid);
-                req.session.adminid = admin.adminid;
-                res.send('Logged in successfully as an admin!');
-            } else {
-                console.log('Password mismatch for admin:', admin.adminid);
-                res.status(401).send('Invalid credentials for admin');
-            }
-        } else {
-            console.log('Admin ID not found:', userId);
-            res.status(404).send('admin not found');
-        }
-    } catch (err) {
-        console.error('Database error:', err);
-        res.status(500).send(err.message);
-    }
-};
+//             if (storedDecryptedPassword === password) {
+//                 console.log('Login successful for admin:', admin.adminid);
+//                 req.session.adminid = admin.adminid;
+//                 res.send('Logged in successfully as an admin!');
+//             } else {
+//                 console.log('Password mismatch for admin:', admin.adminid);
+//                 res.status(401).send('Invalid credentials for admin');
+//             }
+//         } else {
+//             console.log('Admin ID not found:', userId);
+//             res.status(404).send('admin not found');
+//         }
+//     } catch (err) {
+//         console.error('Database error:', err);
+//         res.status(500).send(err.message);
+//     }
+// };
 
 
 
@@ -171,6 +171,44 @@ exports.loginadmin = async (req, res) => {
 //     }
 // };
 
+// controllers/admin_functions.js
+
+exports.loginadmin = async (req, res) => {
+    const { userId, password } = req.body;
+    console.log('Login attempt - UserID:', userId);
+
+    const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
+
+    try {
+        const [results] = await connection.query(query1, [userId]);
+        console.log(results);
+
+        if (results.length > 0) {
+            const admin = results[0];
+            console.log('Admin found in database:', admin.adminid);
+
+            // Direct plain-text password comparison
+            const storedPassword = admin.password;
+            console.log('Stored password:', storedPassword);
+            console.log('Provided password:', password);
+
+            if (storedPassword === password) {
+                console.log('✅ Login successful for admin:', admin.adminid);
+                req.session.adminid = admin.adminid;
+                res.send('Logged in successfully as an admin!');
+            } else {
+                console.log('❌ Password mismatch for admin:', admin.adminid);
+                res.status(401).send('Invalid credentials for admin');
+            }
+        } else {
+            console.log('⚠️ Admin ID not found:', userId);
+            res.status(404).send('Admin not found');
+        }
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).send(err.message);
+    }
+};
 
 
 exports.fetchTableData = async (req, res) => {

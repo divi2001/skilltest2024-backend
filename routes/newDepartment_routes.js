@@ -84,4 +84,8 @@ router.post('/existing-department/batches', newDepartmentController.addBatchesTo
 // Legacy route (keeping for compatibility)
 router.post('/assign-controller', newDepartmentController.assignController);
 
+
+router.post('/generate-controllers', newDepartmentController.generateControllers);
+router.post('/generate-save-controllers', newDepartmentController.generateAndSaveControllers);
+
 module.exports = router;
