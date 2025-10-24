@@ -28,6 +28,8 @@ const expertDashboardStage3Routes = require('./routes/expertsCheckingRoutes/stud
 const excelDataUploadRoutes = require('./routes/excelDataUploadRoutes');
 
 const newDepartmentRoutes = require('./routes/newDepartment_routes');
+const hallticketDepartmentRoutes = require('./routes/hallticketDepartment_routes');
+const skilltestHallticketRoutes = require('./routes/skilltestHallticket_routes');
 
 
 const app = express();
@@ -79,6 +81,10 @@ app.use('/uploads', express.static('uploads'));
 app.use(express.static(path.join(__dirname,'uploads')));
 
 
+// Set EJS as view engine for hall ticket PDF generation
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 
 app.use(studentRoutes)
 app.use(examcentereRoutes)
@@ -95,6 +101,8 @@ app.use(typingRoutes)
 app.use(excelRouter)
 app.use(superAdminTrackDashboardRoute);
 app.use('/api/new-department', newDepartmentRoutes);
+app.use('/api/hallticket-departments', hallticketDepartmentRoutes);
+app.use('/api/skilltest-halltickets', skilltestHallticketRoutes);
 
 //Expert Routes
 app.use(expertLoginRoutes);
