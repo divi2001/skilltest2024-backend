@@ -647,6 +647,7 @@
             background-color: white;
         }
 
+
         .main-container{
             height: 1123px;
             width: 794px;
@@ -668,21 +669,26 @@
             margin: 0;
         }
 
+
         .logo{
             position: absolute;
-            left: 10px;
+            left: 5px;
             top: 10px;
-            width: auto;
+            width: 100px;
             height: 90px;
+            object-fit: contain;
         }
+
 
         .ashok-stambh{
             position: absolute;
-            left:700px;
+            left:705px;
             top:10px;
             width: 100px;
-            height: 95px;
+            height: 90px;
+            object-fit: contain;
         }
+
 
         .title p{
             text-align: center;
@@ -718,19 +724,23 @@
             padding-bottom: 8px;
         }
 
+
         .student-details tr {
             padding-top:0;
             padding-bottom:0;
         }
 
+
         .seat-no-title {
             font-weight: 700;
         }
+
 
         .passport-photo{
             height:175px;
             width: 150px;
         }
+
 
         .student-photo {
             height:175px;
@@ -744,6 +754,7 @@
             margin:0;
             padding:0;
         }
+
 
         .data-fields{
             width:289px;
@@ -764,6 +775,7 @@
             padding-left: 7px;
         }
 
+
         .data-field-female {
             padding-right: 9px;
             width: 17.4rem;
@@ -777,6 +789,7 @@
         .photo-instruction{
             padding-right:43px;
         }
+
 
         .photo-instruction span{
             text-align: center;
@@ -822,16 +835,19 @@
             padding-top: 24px;
         }
 
+
         .sign-front{
             position: relative;
             top:28px;
         }
+
 
         .centerhead-sign{
             position: relative;
             top:-12px;
             left: 8px;
         }
+
 
         .signature2 p{
             text-align: center;
@@ -852,6 +868,7 @@
             padding-bottom: 8px;
             padding-right:5px;
         }
+
 
         .student-details3 th {
             font-size: small;
@@ -887,6 +904,7 @@
             padding-right: 34px;
         }
 
+
         .invigilatorname{
             position: relative; 
             top: 40px; 
@@ -911,6 +929,7 @@
             padding-right: 8px;
         }
 
+
         .batch-table {
             position: absolute;
             top: 746.5px;
@@ -925,6 +944,7 @@
             font-weight: 400;
         }
 
+
         .mahatvachi-nondh{
             border: solid black 2px;
             position: absolute;
@@ -932,6 +952,7 @@
             left: 14px;
             width: 777.5px;
         }
+
 
         .nondh-title{
             font-weight: 700;
@@ -956,7 +977,7 @@
         }
         .title2{
             position: absolute;
-            width:794px;
+            width:785px;
             font-family: Arial, Helvetica, sans-serif;
             background-color:#9F9A9A;
             height:30px;
@@ -984,6 +1005,7 @@
            font-weight: 700;
         }
 
+
         .qr-section {
             display: flex;
             justify-content: center;
@@ -992,6 +1014,7 @@
             gap: 60px;
         }
 
+
         .qr-section div{
             text-align: center;
         }
@@ -999,6 +1022,7 @@
             height:100px;
             width: 100px;
         }
+
 
         @media print and (color) {
             .body {
@@ -1035,17 +1059,24 @@
                 <div>Public Works Department</div>
             </div>
 
-            <% if (logoBase64) { %>
-            <img class="logo" src="<%= logoBase64 %>" >
+
+            <!-- LEFT LOGO - Static PWD Logo -->
+            <% if (leftLogoBase64) { %>
+            <img class="logo" src="<%= leftLogoBase64 %>" alt="PWD Logo">
             <% } %>
             
-            <% if (ashokStambhBase64) { %>
-            <img class="ashok-stambh" src="<%= ashokStambhBase64 %>">
+            <!-- RIGHT LOGO - Dynamic Department Logo -->
+            <% if (logoBase64) { %>
+            <img class="ashok-stambh" src="<%= logoBase64 %>" alt="Department Logo">
+            <% } else if (ashokStambhBase64) { %>
+            <img class="ashok-stambh" src="<%= ashokStambhBase64 %>" alt="Ashok Stambh">
             <% } %>
+
 
             <div class="title">
                <p>ADMIT CARD / प्रवेशपत्र </p> 
             </div>
+
 
             <table class="student-details">
                 <tr class="line1">
@@ -1104,6 +1135,7 @@
                 <tr></tr>
             </table>
 
+
             <table class="student-details2">
                 <tr>
                     <th class="table2-fields">
@@ -1153,6 +1185,7 @@
                 </tr>
             </table>
 
+
             <table class="student-details3">
                 <tr>
                     <th class="table3-fields">
@@ -1194,6 +1227,7 @@
                 </tr>
             </table>
 
+
             <table class="batch-table">
                 <tr>
                     <th>Batch No.</th>
@@ -1205,6 +1239,7 @@
                 </tr>
             </table>
 
+
             <div class="mahatvachi-nondh">
                 <div class="nondh-title">&nbsp; महत्वाची नोंद :</div> <br>
                 <ul>
@@ -1214,6 +1249,7 @@
                     <li>सदर प्रवेशपत्र हे परीक्षा पूर्ण झाल्यावर उमेदवारांनी परीक्षा केंद्रावर जमा करावयाचे आहे.</li>
                 </ul>
             </div>
+
 
             <div class="page2">
                 <div class="title2">
@@ -1253,6 +1289,7 @@
                         <li>उमेदवारांनी लघुलेखन विषयाची कार्यपद्धती व गुणदान पद्धती खालील क्यूआर कोड स्कॅन करून अवलोकन करावे.</li>
                     </ol>
                 </div>
+
 
                 <div class="qr-section">
                     <div>
