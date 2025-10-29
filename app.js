@@ -102,7 +102,7 @@ app.use(excelRouter)
 app.use(superAdminTrackDashboardRoute);
 app.use('/api/new-department', newDepartmentRoutes);
 app.use('/api/hallticket-departments', hallticketDepartmentRoutes);
-app.use('/api/skilltest-halltickets', skilltestHallticketRoutes);
+app.use('/api/skilltest-halltickets', skilltestHallticketRoutes, hallticketDepartmentRoutes);
 
 //Expert Routes
 app.use(expertLoginRoutes);
