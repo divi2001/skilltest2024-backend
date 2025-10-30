@@ -33,8 +33,9 @@
 // routes/newDepartment_routes.js
 const express = require('express');
 const router = express.Router();
-const { upload, handleMulterError } = require('../config/multerConfig');
+const { upload, handleMulterError: multerConfigError } = require('../config/multerConfig');
 const newDepartmentController = require('../controllers/newDepartment_Controller');
+const { uploadExcelFile, handleMulterError } = require('../middleware/uploadExcel');
 
 // Department Routes
 router.post('/departments', newDepartmentController.createDepartment);
