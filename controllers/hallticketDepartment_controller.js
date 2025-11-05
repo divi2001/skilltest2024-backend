@@ -1,12 +1,63 @@
 //controllers/hallticketDepartment_controller.js
-// controllers/hallticketDepartment_controller.js
 const db = require('../config/db1');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
 
+
+// ✅ IMPORT GCC TBC GENERATION LOGIC (FRIEND'S ADDITION)
+const { generateGccTbcHallTicketFromDB, generateGccTbcBulkHallTicketsFromDB } = require('./superAdminController/HallticketsGeneration');
+
+
+// ✅ IMPORT DECRYPT FUNCTION (FRIEND'S ADDITION)
+const { decrypt } = require('../config/encrypt');
+
+
 // ========== HELPER FUNCTIONS ==========
+
+
+// ✅ PASSWORD DECRYPTION FUNCTION (FRIEND'S UNIQUE FUNCTION #1)
+/**
+ * Decrypt password using your existing encrypt.js decrypt function
+ * @param {string} encryptedPassword - Encrypted password from database (format: iv:encryptedData)
+ * @returns {string} - Decrypted plain text password
+ */
+function decryptPassword(encryptedPassword) {
+  try {
+    if (!encryptedPassword) {
+      console.log('⚠️ No password provided');
+      return 'N/A';
+    }
+
+    console.log('🔐 Decrypting password...');
+    
+    // Check if password is in encrypted format (iv:encryptedData)
+    if (!encryptedPassword.includes(':')) {
+      console.log('ℹ️ Password not in encrypted format, returning as-is');
+      return encryptedPassword;
+    }
+
+    // ✅ Use your existing decrypt function
+    const decrypted = decrypt(encryptedPassword);
+    
+    // If decrypted value is an object, extract password field
+    if (typeof decrypted === 'object' && decrypted.password) {
+      console.log('✅ Password decrypted successfully (from object)');
+      return decrypted.password;
+    }
+    
+    // If decrypted value is a string, return it
+    console.log('✅ Password decrypted successfully');
+    return decrypted;
+
+  } catch (error) {
+    console.error('❌ Password decryption error:', error.message);
+    console.log('⚠️ Returning original encrypted value');
+    return encryptedPassword;
+  }
+}
+
 
 function calculateGateClosureTime(reportingTime) {
   if (!reportingTime) return 'N.A';
@@ -29,6 +80,7 @@ function calculateGateClosureTime(reportingTime) {
   }
 }
 
+
 function formatTimeToAMPM(time) {
   if (!time) return 'N.A';
   
@@ -46,6 +98,7 @@ function formatTimeToAMPM(time) {
   }
 }
 
+
 function formatDate(date) {
   if (!date) return 'N.A';
   
@@ -61,6 +114,55 @@ function formatDate(date) {
     return 'N.A';
   }
 }
+
+
+// ✅ FIXED: Format Base64 to Data URI
+/**
+ * Converts raw Base64 string to proper data URI format
+ * @param {string} base64String - Raw Base64 string from database
+ * @param {string} mimeType - MIME type (default: image/jpeg)
+ * @returns {string} - Formatted data URI or empty string
+ */
+function formatImageBase64(base64String, mimeType = 'image/jpeg') {
+  try {
+    // Handle null/undefined
+    if (!base64String) {
+      console.warn('⚠️ No base64 data provided');
+      return '';
+    }
+
+    // Convert to string if needed
+    const base64Str = String(base64String).trim();
+
+    // If empty after trim
+    if (base64Str === '') {
+      console.warn('⚠️ Base64 string is empty');
+      return '';
+    }
+
+    // If already a data URI, return as is
+    if (base64Str.startsWith('data:')) {
+      console.log('✓ Base64 is already a data URI');
+      return base64Str;
+    }
+
+    // Validate Base64 format
+    if (!/^[A-Za-z0-9+/=]+$/.test(base64Str)) {
+      console.error('❌ Invalid Base64 format detected');
+      return '';
+    }
+
+    // Create data URI
+    const dataUri = `data:${mimeType};base64,${base64Str}`;
+    console.log(`✓ Base64 formatted to data URI (length: ${dataUri.length} chars)`);
+    return dataUri;
+
+  } catch (error) {
+    console.error('❌ Error formatting Base64:', error.message);
+    return '';
+  }
+}
+
 
 function convertDBDataToHallTicketFormat(dbStudent) {
   return {
@@ -79,11 +181,12 @@ function convertDBDataToHallTicketFormat(dbStudent) {
     newname: 'N.A',
     APPLICATION_NUMBER: dbStudent.student_id,
     disability_type: 'N.A',
-    photoBase64: dbStudent.base64 || '',
-    signBase64: dbStudent.sign_base64 || '',
+    photoBase64: formatImageBase64(dbStudent.base64, 'image/jpeg'),  // ✅ FIXED
+    signBase64: formatImageBase64(dbStudent.sign_base64, 'image/jpeg'),  // ✅ FIXED
     departmentId: dbStudent.departmentId
   };
 }
+
 
 async function getDepartmentLogo(departmentId) {
   try {
@@ -131,6 +234,7 @@ async function getDepartmentLogo(departmentId) {
     return '';
   }
 }
+
 
 async function getDepartmentDetails(departmentId) {
   try {
@@ -192,6 +296,7 @@ async function getDepartmentDetails(departmentId) {
   }
 }
 
+
 function getImageAsBase64(imagePath) {
   try {
     const fullPath = path.join(__dirname, '../public/assets/skilltest', imagePath);
@@ -211,6 +316,26 @@ function getImageAsBase64(imagePath) {
     return '';
   }
 }
+
+
+// ✅ EXAM TYPE DETECTION FUNCTION (FRIEND'S UNIQUE FUNCTION #2)
+async function getDepartmentExamType(departmentId) {
+  try {
+    if (!departmentId) return null;
+    
+    const query = 'SELECT examType FROM departmentdb WHERE departmentId = ?';
+    const [rows] = await db.execute(query, [parseInt(departmentId)]);
+    
+    if (rows.length > 0) {
+      return rows[0].examType;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching exam type:', error);
+    return null;
+  }
+}
+
 
 function loadQRCodes(qrType) {
   let qrCodeBase64 = '';
@@ -233,9 +358,14 @@ function loadQRCodes(qrType) {
   return { qrCodeBase64, qrCodeTwBase64 };
 }
 
-function createHallTicketFolder(departmentId) {
+
+// ========== FOLDER MANAGEMENT FUNCTIONS ==========
+
+
+// ✅ ENHANCED FOLDER CREATION (FRIEND'S UNIQUE FUNCTION #3)
+function createHallTicketFolder(departmentId, examType = 'db') {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-  const folderName = `halltickets_db_dept${departmentId}_${timestamp}`;
+  const folderName = `halltickets_${examType}_dept${departmentId}_${timestamp}`;
   const folderPath = path.join(__dirname, '../public/generated_halltickets', folderName);
   
   const baseDir = path.join(__dirname, '../public/generated_halltickets');
@@ -249,6 +379,7 @@ function createHallTicketFolder(departmentId) {
   
   return { folderPath, folderName };
 }
+
 
 function cleanupOldFolders() {
   try {
@@ -273,7 +404,105 @@ function cleanupOldFolders() {
   }
 }
 
+
+// ✅ SKILL TEST GENERATION FUNCTION (FRIEND'S UNIQUE FUNCTION #4) - FIXED
+/**
+ * Generates Skill Test Hall Ticket PDF using EJS template
+ * This is isolated from GCC generation for cleaner code organization
+ */
+async function generateSkillTestHallTicketFromDB(dbStudent, res, departmentId, customization = null, qrType = 'both') {
+  let browser = null;
+  
+  try {
+    const student = convertDBDataToHallTicketFormat(dbStudent);
+    const departmentDetails = await getDepartmentDetails(departmentId || dbStudent.departmentId);
+
+    // ✅ LOAD BOTH QR CODES
+    const { qrCodeBase64, qrCodeTwBase64 } = loadQRCodes(qrType);
+    console.log('✓ QR codes loaded for single ticket generation:', { 
+      hasShorthand: !!qrCodeBase64, 
+      hasTypewriting: !!qrCodeTwBase64 
+    });
+
+    // ✅ YOUR CUSTOMIZATION LOGIC - merged with friend's approach
+    const hasLeftLogo = customization?.leftLogoBase64 && customization.leftLogoBase64.trim() !== '';
+    const hasRightLogo = customization?.rightLogoBase64 && customization.rightLogoBase64.trim() !== '';
+    const hasInvigilatorImage = customization?.invigilatorImageBase64 && customization.invigilatorImageBase64.trim() !== '';
+
+    const studentWithImages = {
+      ...student,
+      leftLogoBase64: hasLeftLogo ? customization.leftLogoBase64 : getImageAsBase64('pwd_logo1.jpg'),
+      logoBase64: hasRightLogo ? customization.rightLogoBase64 : departmentDetails.logo,
+      ashokStambhBase64: hasRightLogo ? customization.rightLogoBase64 : getImageAsBase64('pwd_logo2.jpeg'),
+      photoBase64: student.photoBase64,  // ✅ Already formatted by formatImageBase64()
+      signBase64: student.signBase64,    // ✅ Already formatted by formatImageBase64()
+      townPlanningSignBase64: hasInvigilatorImage ? customization.invigilatorImageBase64 : getImageAsBase64('town_planning_sign.jpg'),
+      qrCodeBase64: qrCodeBase64,
+      qrCodeTwBase64: qrCodeTwBase64,
+      departmentName: departmentDetails.name,
+      invigilatorText: (customization?.invigilatorText && Object.keys(customization.invigilatorText).length > 0 && customization.invigilatorText.title?.trim()) 
+        ? customization.invigilatorText 
+        : {
+            title: 'नियंत्रक अधिकारी',
+            line1: 'मुख्य अभियंता',
+            line2: 'सा.बां.प्रादेशिक विभाग मुंबई तथा,',
+            line3: 'अध्यक्ष राज्यस्तरीय समन्वय समिती.'
+          }
+    };
+
+    const templatePath = path.join(__dirname, '../views/hallticket.ejs');
+    const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+    const html = ejs.render(htmlTemplate, studentWithImages);
+
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu'
+      ]
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { 
+      waitUntil: 'networkidle0',
+      timeout: 60000 
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      preferCSSPageSize: false,
+      margin: { 
+        top: '0mm', 
+        right: '0mm', 
+        bottom: '0mm', 
+        left: '0mm' 
+      }
+    });
+
+    await browser.close();
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=hallticket_${dbStudent.student_id}.pdf`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    res.end(pdfBuffer, 'binary');
+    console.log('✅ Skill Test PDF sent successfully');
+
+  } catch (error) {
+    if (browser) await browser.close();
+    throw error;
+  }
+}
+
+
 // ========== CONTROLLER OBJECT ==========
+
 
 const hallticketDepartmentController = {
   
@@ -418,6 +647,9 @@ const hallticketDepartmentController = {
         });
       }
 
+      // ✅ USE DYNAMIC EXAM TYPE (FRIEND'S APPROACH)
+      const examType = await getDepartmentExamType(departmentId);
+
       let query = `
         SELECT 
           s.student_id,
@@ -437,11 +669,11 @@ const hallticketDepartmentController = {
           sub.subject_name
         FROM students s
         LEFT JOIN examcenterdb e ON s.center = e.center
-        LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND sub.examType = 'SKILL'
+        LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND sub.examType = ?
         WHERE s.departmentId = ?
       `;
 
-      const params = [parseInt(departmentId)];
+      const params = [examType || 'SKILL', parseInt(departmentId)];
 
       if (center && center !== 'all') {
         query += ' AND s.center = ?';
@@ -467,7 +699,7 @@ const hallticketDepartmentController = {
       const formattedStudents = students.map(student => ({
         ...convertDBDataToHallTicketFormat(student),
         centerCode: student.centerCode,
-        examType: 'SKILL'
+        examType: examType || 'SKILL'
       }));
 
       res.status(200).json({
@@ -487,6 +719,7 @@ const hallticketDepartmentController = {
     }
   },
 
+  // ✅ UPDATED: Single download with exam type routing + password decryption
   downloadSingleHallTicketFromDB: async (req, res) => {
     let browser = null;
 
@@ -494,19 +727,30 @@ const hallticketDepartmentController = {
       const { student_id } = req.params;
       const { departmentId, qrType } = req.query;
       
-      // ✅ Get customization from request body
+      // ✅ Get customization from request body (YOUR FEATURE)
       const customization = req.body?.customization || null;
 
       console.log('=== DB PDF GENERATION START ===');
       console.log('Student ID:', student_id);
       console.log('Department ID:', departmentId);
       console.log('QR Type:', qrType || 'both (default)');
-      console.log('Customization Received:', customization ? 'YES - Using Custom Images' : 'NO - Using Default Images');
+      console.log('Customization Received:', customization ? 'YES' : 'NO');
+
+      // ✅ DETECT EXAM TYPE (FRIEND'S FEATURE)
+      const examType = await getDepartmentExamType(departmentId);
+      console.log('📋 Exam Type:', examType);
+
+      if (!examType) {
+        return res.status(400).json({
+          error: 'Could not determine exam type for this department'
+        });
+      }
 
       let query = `
         SELECT 
           s.student_id,
           s.fullname,
+          s.mothername,
           s.batchNo,
           s.batchdate,
           s.reporting_time,
@@ -516,16 +760,21 @@ const hallticketDepartmentController = {
           s.departmentId,
           s.base64,
           s.sign_base64,
+          s.InstituteId,
+          s.courseId,
+          s.password,
+          e.center,
           e.center_name,
           e.center_address,
-          sub.subject_name
+          sub.subject_name,
+          sub.subjectId
         FROM students s
         LEFT JOIN examcenterdb e ON s.center = e.center
-        LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND sub.examType = 'SKILL'
+        LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND sub.examType = ?
         WHERE s.student_id = ?
       `;
 
-      const params = [student_id];
+      const params = [examType, student_id];
 
       if (departmentId) {
         query += ' AND s.departmentId = ?';
@@ -540,104 +789,36 @@ const hallticketDepartmentController = {
         });
       }
 
-      if (students.length > 1) {
-        console.warn(`⚠ Warning: Multiple records found for student_id ${student_id}. Using first record.`);
-      }
-
       const dbStudent = students[0];
       console.log('✓ Student found:', dbStudent.fullname);
 
-      const student = convertDBDataToHallTicketFormat(dbStudent);
-      const departmentDetails = await getDepartmentDetails(departmentId || dbStudent.departmentId);
-      console.log('Step 1: Department details fetched ✓');
+      // ✅ DEBUG: Log image data status
+      console.log('🔍 DEBUG - Image Data Status:');
+      console.log('  Photo base64:', dbStudent.base64 ? `Present (${dbStudent.base64.substring(0, 30)}...)` : 'NULL');
+      console.log('  Signature base64:', dbStudent.sign_base64 ? `Present (${dbStudent.sign_base64.substring(0, 30)}...)` : 'NULL');
 
-      const { qrCodeBase64, qrCodeTwBase64 } = loadQRCodes(qrType);
+      // ✅ DECRYPT PASSWORD (FRIEND'S FEATURE)
+      if (dbStudent.password) {
+        console.log('🔐 Decrypting password for student:', dbStudent.student_id);
+        dbStudent.decryptedPassword = decryptPassword(dbStudent.password);
+        console.log('Password status:', dbStudent.decryptedPassword !== 'N/A' ? '✓ Decrypted' : '✗ Failed');
+      } else {
+        console.log('⚠️ No password field in database');
+        dbStudent.decryptedPassword = 'N/A';
+      }
 
-      // ✅ CORRECTED: Check if customization has actual data (not just empty object)
-      const hasLeftLogo = customization?.leftLogoBase64 && customization.leftLogoBase64.trim() !== '';
-      const hasRightLogo = customization?.rightLogoBase64 && customization.rightLogoBase64.trim() !== '';
-      const hasInvigilatorImage = customization?.invigilatorImageBase64 && customization.invigilatorImageBase64.trim() !== '';
-
-      const studentWithImages = {
-        ...student,
-        // Use custom only if it exists AND has content, otherwise use default
-        leftLogoBase64: hasLeftLogo ? customization.leftLogoBase64 : getImageAsBase64('pwd_logo1.jpg'),
-        logoBase64: hasRightLogo ? customization.rightLogoBase64 : departmentDetails.logo,
-        ashokStambhBase64: hasRightLogo ? customization.rightLogoBase64 : getImageAsBase64('pwd_logo2.jpeg'),
-        photoBase64: student.photoBase64,
-        signBase64: student.signBase64,
-        townPlanningSignBase64: hasInvigilatorImage ? customization.invigilatorImageBase64 : getImageAsBase64('town_planning_sign.jpg'),
-        qrCodeBase64: qrCodeBase64,
-        qrCodeTwBase64: qrCodeTwBase64,
-        departmentName: departmentDetails.name,
-        // ✅ CORRECTED: Use custom text ONLY if provided, else use default
-        invigilatorText: (customization?.invigilatorText && Object.keys(customization.invigilatorText).length > 0 && customization.invigilatorText.title?.trim()) 
-          ? customization.invigilatorText 
-          : {
-              title: 'नियंत्रक अधिकारी',
-              line1: 'मुख्य अभियंता',
-              line2: 'सा.बां.प्रादेशिक विभाग मुंबई तथा,',
-              line3: 'अध्यक्ष राज्यस्तरीय समन्वय समिती.'
-            }
-      };
-
-      console.log('Step 2: Images prepared ✓');
-      console.log('Left Logo:', hasLeftLogo ? 'CUSTOM' : 'DEFAULT');
-      console.log('Right Logo:', hasRightLogo ? 'CUSTOM' : 'DEFAULT');
-      console.log('Invigilator Image:', hasInvigilatorImage ? 'CUSTOM' : 'DEFAULT');
-
-      const templatePath = path.join(__dirname, '../views/hallticket.ejs');
-      const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
-      console.log('Step 3: Template loaded ✓');
-
-      const html = ejs.render(htmlTemplate, studentWithImages);
-      console.log('Step 4: HTML rendered ✓');
-
-      console.log('🚀 Launching Puppeteer...');
-      browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu'
-        ]
-      });
-      console.log('Step 5: Puppeteer launched ✓');
-
-      const page = await browser.newPage();
-      await page.setContent(html, { 
-        waitUntil: 'networkidle0',
-        timeout: 60000 
-      });
-      console.log('Step 6: Content set ✓');
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      console.log('📄 Generating PDF...');
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        preferCSSPageSize: false,
-        margin: { 
-          top: '0mm', 
-          right: '0mm', 
-          bottom: '0mm', 
-          left: '0mm' 
-        }
-      });
-
-      await browser.close();
-      console.log('✅ PDF generated successfully');
-
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=hallticket_${student_id}.pdf`);
-      res.setHeader('Content-Length', pdfBuffer.length);
-
-      res.end(pdfBuffer, 'binary', () => {
-        console.log('📤 PDF sent to client');
-      });
+      // ✅ ROUTE TO CORRECT GENERATOR (FRIEND'S FEATURE)
+      if (examType === 'GCC') {
+        console.log('🎨 Using GCC TBC template (PDFKit)');
+        return await generateGccTbcHallTicketFromDB(dbStudent, res, departmentId);
+      } else if (examType === 'SKILL') {
+        console.log('🎨 Using Skill Test template (EJS) with your customization');
+        return await generateSkillTestHallTicketFromDB(dbStudent, res, departmentId, customization, qrType);
+      } else {
+        return res.status(400).json({
+          error: `Unsupported exam type: ${examType}`
+        });
+      }
 
     } catch (error) {
       console.error('❌ DB PDF generation error:', error);
@@ -654,13 +835,14 @@ const hallticketDepartmentController = {
     }
   },
 
+  // ✅ UPDATED: Bulk download with exam type routing + password decryption
   downloadAllHallTicketsFromDB: async (req, res) => {
     let browser = null;
 
     try {
       const { departmentId, center, batchNo, qrType } = req.query;
       
-      // ✅ Get customization from request body
+      // ✅ Get customization from request body (YOUR FEATURE)
       const customization = req.body?.customization || null;
 
       if (!departmentId) {
@@ -675,16 +857,29 @@ const hallticketDepartmentController = {
       console.log('Center:', center);
       console.log('Batch No:', batchNo);
       console.log('QR Type:', qrType || 'both (default)');
-      console.log('Customization Received:', customization ? 'YES - Using Custom Images' : 'NO - Using Default Images');
+      console.log('Customization Received:', customization ? 'YES' : 'NO');
+
+      // ✅ DETECT EXAM TYPE (FRIEND'S FEATURE)
+      const examType = await getDepartmentExamType(departmentId);
+      console.log('📋 Exam Type:', examType);
+
+      if (!examType) {
+        return res.status(400).json({
+          success: false,
+          error: 'Could not determine exam type for this department'
+        });
+      }
 
       cleanupOldFolders();
 
-      const { folderPath, folderName } = createHallTicketFolder(departmentId);
+      // ✅ USE ENHANCED FOLDER CREATION WITH EXAM TYPE (FRIEND'S FEATURE)
+      const { folderPath, folderName } = createHallTicketFolder(departmentId, examType);
 
       let query = `
         SELECT 
           s.student_id,
           s.fullname,
+          s.mothername,
           s.batchNo,
           s.batchdate,
           s.reporting_time,
@@ -694,16 +889,21 @@ const hallticketDepartmentController = {
           s.departmentId,
           s.base64,
           s.sign_base64,
+          s.InstituteId,
+          s.courseId,
+          s.password,
+          e.center,
           e.center_name,
           e.center_address,
-          sub.subject_name
+          sub.subject_name,
+          sub.subjectId
         FROM students s
         LEFT JOIN examcenterdb e ON s.center = e.center
-        LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND sub.examType = 'SKILL'
+        LEFT JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND sub.examType = ?
         WHERE s.departmentId = ?
       `;
 
-      const params = [parseInt(departmentId)];
+      const params = [examType, parseInt(departmentId)];
 
       if (center && center !== 'all') {
         query += ' AND s.center = ?';
@@ -729,120 +929,153 @@ const hallticketDepartmentController = {
 
       console.log(`Total students: ${students.length}`);
 
-      const departmentDetails = await getDepartmentDetails(departmentId);
-      console.log('✓ Department details fetched for bulk generation');
-
-      const { qrCodeBase64, qrCodeTwBase64 } = loadQRCodes(qrType);
-
-      // ✅ Check customization validity once
-      const hasLeftLogo = customization?.leftLogoBase64 && customization.leftLogoBase64.trim() !== '';
-      const hasRightLogo = customization?.rightLogoBase64 && customization.rightLogoBase64.trim() !== '';
-      const hasInvigilatorImage = customization?.invigilatorImageBase64 && customization.invigilatorImageBase64.trim() !== '';
-
-      browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu'
-        ]
+      // ✅ DECRYPT PASSWORDS FOR ALL STUDENTS (FRIEND'S FEATURE)
+      console.log('🔐 Decrypting passwords for all students...');
+      let decryptedCount = 0;
+      students.forEach(student => {
+        if (student.password) {
+          student.decryptedPassword = decryptPassword(student.password);
+          if (student.decryptedPassword !== 'N/A') {
+            decryptedCount++;
+          }
+        } else {
+          student.decryptedPassword = 'N/A';
+        }
       });
-
-      const templatePath = path.join(__dirname, '../views/hallticket.ejs');
-      const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+      console.log(`✅ Decrypted ${decryptedCount} out of ${students.length} passwords`);
 
       let successCount = 0;
       let errorCount = 0;
       const generatedFiles = [];
 
-      for (let i = 0; i < students.length; i++) {
-        const dbStudent = students[i];
+      // ✅ ROUTE BASED ON EXAM TYPE (FRIEND'S FEATURE)
+      if (examType === 'GCC') {
+        console.log('🎨 Using GCC TBC template (PDFKit) for bulk');
+        
+        const result = await generateGccTbcBulkHallTicketsFromDB(
+          students,
+          folderPath,
+          folderName,
+          departmentId
+        );
 
-        try {
-          console.log(`Processing ${i + 1}/${students.length}: ${dbStudent.student_id}`);
+        successCount = result.successCount;
+        errorCount = result.errorCount;
+        generatedFiles.push(...result.files);
 
-          const student = convertDBDataToHallTicketFormat(dbStudent);
+      } else if (examType === 'SKILL') {
+        console.log('🎨 Using Skill Test template (EJS) for bulk with your customization');
 
-          // ✅ CORRECTED: Apply customization if valid, else defaults
-          const studentWithImages = {
-            ...student,
-            leftLogoBase64: hasLeftLogo ? customization.leftLogoBase64 : getImageAsBase64('pwd_logo1.jpg'),
-            logoBase64: hasRightLogo ? customization.rightLogoBase64 : departmentDetails.logo,
-            ashokStambhBase64: hasRightLogo ? customization.rightLogoBase64 : getImageAsBase64('pwd_logo2.jpeg'),
-            photoBase64: student.photoBase64,
-            signBase64: student.signBase64,
-            townPlanningSignBase64: hasInvigilatorImage ? customization.invigilatorImageBase64 : getImageAsBase64('town_planning_sign.jpg'),
-            qrCodeBase64: qrCodeBase64,
-            qrCodeTwBase64: qrCodeTwBase64,
-            departmentName: departmentDetails.name,
-            invigilatorText: (customization?.invigilatorText && Object.keys(customization.invigilatorText).length > 0 && customization.invigilatorText.title?.trim()) 
-              ? customization.invigilatorText 
-              : {
-                  title: 'नियंत्रक अधिकारी',
-                  line1: 'मुख्य अभियंता',
-                  line2: 'सा.बां.प्रादेशिक विभाग मुंबई तथा,',
-                  line3: 'अध्यक्ष राज्यस्तरीय समन्वय समिती.'
-                }
-          };
+        const departmentDetails = await getDepartmentDetails(departmentId);
+        const { qrCodeBase64, qrCodeTwBase64 } = loadQRCodes(qrType);
 
-          const html = ejs.render(htmlTemplate, studentWithImages);
+        // ✅ Check customization validity once
+        const hasLeftLogo = customization?.leftLogoBase64 && customization.leftLogoBase64.trim() !== '';
+        const hasRightLogo = customization?.rightLogoBase64 && customization.rightLogoBase64.trim() !== '';
+        const hasInvigilatorImage = customization?.invigilatorImageBase64 && customization.invigilatorImageBase64.trim() !== '';
 
-          const page = await browser.newPage();
-          await page.setContent(html, { 
-            waitUntil: 'domcontentloaded',
-            timeout: 30000 
-          });
+        browser = await puppeteer.launch({
+          headless: 'new',
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--disable-gpu'
+          ]
+        });
 
-          await new Promise(resolve => setTimeout(resolve, 300));
+        const templatePath = path.join(__dirname, '../views/hallticket.ejs');
+        const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
 
-          const pdfBuffer = await page.pdf({
-            format: 'A4',
-            printBackground: true,
-            preferCSSPageSize: false,
-            margin: { 
-              top: '0mm', 
-              right: '0mm', 
-              bottom: '0mm', 
-              left: '0mm' 
-            }
-          });
+        for (let i = 0; i < students.length; i++) {
+          const dbStudent = students[i];
 
-          await page.close();
+          try {
+            console.log(`Processing ${i + 1}/${students.length}: ${dbStudent.student_id}`);
 
-          const filename = `hallticket_${dbStudent.student_id}.pdf`;
-          const filePath = path.join(folderPath, filename);
-          fs.writeFileSync(filePath, pdfBuffer);
+            const student = convertDBDataToHallTicketFormat(dbStudent);
 
-          generatedFiles.push({
-            student_id: dbStudent.student_id,
-            fullname: dbStudent.fullname,
-            filename: filename,
-            downloadUrl: `/generated_halltickets/${folderName}/${filename}`
-          });
+            // ✅ Apply customization if valid, else defaults
+            const studentWithImages = {
+              ...student,
+              leftLogoBase64: hasLeftLogo ? customization.leftLogoBase64 : getImageAsBase64('pwd_logo1.jpg'),
+              logoBase64: hasRightLogo ? customization.rightLogoBase64 : departmentDetails.logo,
+              ashokStambhBase64: hasRightLogo ? customization.rightLogoBase64 : getImageAsBase64('pwd_logo2.jpeg'),
+              photoBase64: student.photoBase64,  // ✅ Already formatted
+              signBase64: student.signBase64,    // ✅ Already formatted
+              townPlanningSignBase64: hasInvigilatorImage ? customization.invigilatorImageBase64 : getImageAsBase64('town_planning_sign.jpg'),
+              qrCodeBase64: qrCodeBase64,
+              qrCodeTwBase64: qrCodeTwBase64,
+              departmentName: departmentDetails.name,
+              invigilatorText: (customization?.invigilatorText && Object.keys(customization.invigilatorText).length > 0 && customization.invigilatorText.title?.trim()) 
+                ? customization.invigilatorText 
+                : {
+                    title: 'नियंत्रक अधिकारी',
+                    line1: 'मुख्य अभियंता',
+                    line2: 'सा.बां.प्रादेशिक विभाग मुंबई तथा,',
+                    line3: 'अध्यक्ष राज्यस्तरीय समन्वय समिती.'
+                  }
+            };
 
-          successCount++;
-          console.log(`✓ Saved to folder: ${filename} (${successCount}/${students.length})`);
+            const html = ejs.render(htmlTemplate, studentWithImages);
 
-        } catch (error) {
-          errorCount++;
-          console.error(`✗ Error generating PDF for ${dbStudent.student_id}:`, error.message);
+            const page = await browser.newPage();
+            await page.setContent(html, { 
+              waitUntil: 'domcontentloaded',
+              timeout: 30000 
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const pdfBuffer = await page.pdf({
+              format: 'A4',
+              printBackground: true,
+              preferCSSPageSize: false,
+              margin: { 
+                top: '0mm', 
+                right: '0mm', 
+                bottom: '0mm', 
+                left: '0mm' 
+              }
+            });
+
+            await page.close();
+
+            const filename = `hallticket_${dbStudent.student_id}.pdf`;
+            const filePath = path.join(folderPath, filename);
+            fs.writeFileSync(filePath, pdfBuffer);
+
+            generatedFiles.push({
+              student_id: dbStudent.student_id,
+              fullname: dbStudent.fullname,
+              filename: filename,
+              downloadUrl: `/generated_halltickets/${folderName}/${filename}`
+            });
+
+            successCount++;
+            console.log(`✓ Saved to folder: ${filename} (${successCount}/${students.length})`);
+
+          } catch (error) {
+            errorCount++;
+            console.error(`✗ Error generating PDF for ${dbStudent.student_id}:`, error.message);
+          }
+
+          if (i < students.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
         }
 
-        if (i < students.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
+        await browser.close();
+        browser = null;
       }
-
-      await browser.close();
-      browser = null;
 
       console.log(`✅ DB generation complete: ${successCount} successful, ${errorCount} failed`);
 
       res.json({
         success: true,
         message: `Generated ${successCount} hall tickets successfully`,
+        examType: examType,
         folderName: folderName,
         folderPath: `/generated_halltickets/${folderName}`,
         totalFiles: successCount,
