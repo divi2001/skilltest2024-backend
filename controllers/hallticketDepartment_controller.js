@@ -167,11 +167,11 @@ function formatImageBase64(base64String, mimeType = 'image/jpeg') {
 function convertDBDataToHallTicketFormat(dbStudent) {
   return {
     student_id: dbStudent.student_id,
-    fullname: dbStudent.fullname || 'N.A',
-    batchNo: dbStudent.batchNo || 'N.A',
-    center_name: dbStudent.center_name || 'N.A',
-    center_address: dbStudent.center_address || 'N.A',
-    subject_name: dbStudent.subject_name || 'N.A',
+    fullname: dbStudent.fullname || '',
+    batchNo: dbStudent.batchNo || '',
+    center_name: dbStudent.center_name || '',
+    center_address: dbStudent.center_address || '',
+    subject_name: dbStudent.subject_name || '',
     batchdate: formatDate(dbStudent.batchdate),
     reporting_time: formatTimeToAMPM(dbStudent.reporting_time),
     start_time: formatTimeToAMPM(dbStudent.start_time),
