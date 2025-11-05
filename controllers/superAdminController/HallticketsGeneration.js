@@ -5,6 +5,21 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const archiver = require('archiver');
 
+const { decrypt } = require('../../config/encrypt');
+
+function decryptPassword(encryptedPassword) {
+  try {
+    if (!encryptedPassword || !encryptedPassword.includes(':')) {
+      return encryptedPassword || 'N/A';
+    }
+    const decrypted = decrypt(encryptedPassword);
+    return (typeof decrypted === 'object' && decrypted.password) ? decrypted.password : decrypted;
+  } catch (error) {
+    console.error('Password decryption error:', error.message);
+    return encryptedPassword;
+  }
+}
+
 function wrapText(text, maxWidth, pdfDoc) {
   // Handle undefined/null/empty text
   if (!text) {
@@ -663,8 +678,192 @@ async function downloadAllHallTickets(req, res) {
   }
 }
 
+
+async function generateGccTbcHallTicketFromDB(dbStudent, res, departmentId) {
+  try {
+    console.log('🎨 Generating GCC TBC PDF from database...');
+
+    // ✅ Use decrypted password
+    const plainPassword = dbStudent.decryptedPassword || 'N/A';
+    console.log('🔐 Using password:', plainPassword !== 'N/A' ? '✓ Decrypted' : '✗ N/A');
+
+    const studentData = {
+      seatNo: dbStudent.student_id?.toString() || 'N/A',
+      instituteId: dbStudent.InstituteId?.toString() || 'N/A',
+      candidateName: dbStudent.fullname || 'N/A',
+      motherName: dbStudent.mothername || 'N/A',
+      centerNo: dbStudent.center?.toString() || 'N/A',
+      handicap: dbStudent.disability === 1 ? 'Yes' : 'No',
+      subjectCode: dbStudent.subjectId?.toString() || 'N/A',
+      batch: dbStudent.batchNo?.toString() || 'N/A',
+      date: formatDateHelper(dbStudent.batchdate),
+      examTime: formatTimeHelper(dbStudent.start_time),
+      password: plainPassword,
+      instituteCode: dbStudent.InstituteId?.toString() || 'N/A',
+      subject: dbStudent.subject_name || 'N/A',
+      reportingTime: formatTimeHelper(dbStudent.reporting_time),
+      examCenter: dbStudent.center_name || 'Exam center not specified',
+      centerAddress: dbStudent.center_address || 'Address not specified',
+      image: dbStudent.base64 || null
+    };
+
+    const assets = await loadAssets();
+
+    const doc = new PDFDocument({
+      size: "A4",
+      margins: { top: 20, bottom: 20, left: 30, right: 30 },
+      autoFirstPage: false
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=hallticket_gcc_${studentData.seatNo}.pdf`);
+
+    doc.pipe(res);
+
+    const { regularFont, boldFont } = await registerFonts(doc, assets.regularFontPath, assets.boldFontPath);
+
+    await generateStudentHallTicket(doc, studentData, {
+      ...assets,
+      regularFont,
+      boldFont
+    });
+
+    doc.end();
+
+    console.log('✅ GCC TBC PDF generated with decrypted password');
+
+  } catch (error) {
+    console.error('❌ GCC TBC PDF error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate GCC TBC hall tickets from database (BULK)
+ */
+async function generateGccTbcBulkHallTicketsFromDB(students, folderPath, folderName, departmentId) {
+  try {
+    console.log('🎨 Bulk GCC TBC generation...');
+
+    const assets = await loadAssets();
+    let successCount = 0;
+    let errorCount = 0;
+    const generatedFiles = [];
+
+    for (let i = 0; i < students.length; i++) {
+      const dbStudent = students[i];
+
+      try {
+        console.log(`${i + 1}/${students.length}: ${dbStudent.student_id}`);
+
+        const plainPassword = dbStudent.decryptedPassword || 'N/A';
+
+        const studentData = {
+          seatNo: dbStudent.student_id?.toString() || 'N/A',
+          instituteId: dbStudent.InstituteId?.toString() || 'N/A',
+          candidateName: dbStudent.fullname || 'N/A',
+          motherName: dbStudent.mothername || 'N/A',
+          centerNo: dbStudent.center?.toString() || 'N/A',
+          handicap: dbStudent.disability === 1 ? 'Yes' : 'No',
+          subjectCode: dbStudent.subjectId?.toString() || 'N/A',
+          batch: dbStudent.batchNo?.toString() || 'N/A',
+          date: formatDateHelper(dbStudent.batchdate),
+          examTime: formatTimeHelper(dbStudent.start_time),
+          password: plainPassword,
+          instituteCode: dbStudent.InstituteId?.toString() || 'N/A',
+          subject: dbStudent.subject_name || 'N/A',
+          reportingTime: formatTimeHelper(dbStudent.reporting_time),
+          examCenter: dbStudent.center_name || 'Exam center not specified',
+          centerAddress: dbStudent.center_address || 'Address not specified',
+          image: dbStudent.base64 || null
+        };
+
+        const doc = new PDFDocument({
+          size: "A4",
+          margins: { top: 20, bottom: 20, left: 30, right: 30 },
+          autoFirstPage: false
+        });
+
+        const filename = `hallticket_${dbStudent.student_id}.pdf`;
+        const filePath = path.join(folderPath, filename);
+        const writeStream = fs.createWriteStream(filePath);
+
+        doc.pipe(writeStream);
+
+        const { regularFont, boldFont } = await registerFonts(doc, assets.regularFontPath, assets.boldFontPath);
+
+        await generateStudentHallTicket(doc, studentData, {
+          ...assets,
+          regularFont,
+          boldFont
+        });
+
+        doc.end();
+
+        await new Promise((resolve, reject) => {
+          writeStream.on('finish', resolve);
+          writeStream.on('error', reject);
+        });
+
+        generatedFiles.push({
+          student_id: dbStudent.student_id,
+          fullname: dbStudent.fullname,
+          filename: filename,
+          downloadUrl: `/generated_halltickets/${folderName}/${filename}`
+        });
+
+        successCount++;
+
+      } catch (error) {
+        errorCount++;
+        console.error(`✗ Error: ${dbStudent.student_id}`, error.message);
+      }
+
+      if (i < students.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    return { successCount, errorCount, files: generatedFiles };
+
+  } catch (error) {
+    console.error('❌ Bulk error:', error);
+    throw error;
+  }
+}
+
+// Helper functions
+function formatDateHelper(date) {
+  if (!date) return 'N/A';
+  try {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  } catch (error) {
+    return 'N/A';
+  }
+}
+
+function formatTimeHelper(time) {
+  if (!time) return 'N/A';
+  try {
+    const [hours, minutes] = time.split(':').map(Number);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    let displayHours = hours % 12;
+    displayHours = displayHours ? displayHours : 12;
+    return `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+  } catch (error) {
+    return 'N/A';
+  }
+}
+
+// ✅ UPDATE EXPORTS
 module.exports = {
   downloadHallTicketsForInstitute,
   downloadAllHallTickets,
-  downloadHallTicketForStudent
+  downloadHallTicketForStudent,
+  generateGccTbcHallTicketFromDB,
+  generateGccTbcBulkHallTicketsFromDB
 };
