@@ -42,137 +42,6 @@ const mysql = require('mysql2/promise');
 // };
 
 
-
-// exports.fetchTableData = async (req, res) => {
-//     console.log("Fetching table data for admin");
-//     const { tableName } = req.body;
-//     const adminId = req.session.adminid;
-
-//     if (!adminId) {
-//         return res.status(401).send('Unauthorized: Admin not logged in');
-//     }
-
-//     try {
-//         console.log(`Fetching column information for table: ${tableName}`);
-//         // First, get the column information for the table
-//         const [columns] = await connection.query(`
-//               SELECT COLUMN_NAME, DATA_TYPE 
-//               FROM INFORMATION_SCHEMA.COLUMNS 
-//               WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
-//           `, [tableName]);
-
-//         console.log(`Columns found:`, columns);
-
-//         if (columns.length === 0) {
-//             return res.status(404).send('Table not found or has no columns');
-//         }
-
-//         // Construct the SELECT part of the query, formatting DATE and DATETIME columns
-//         const selectParts = columns.map(column => {
-//             if (column.DATA_TYPE === 'date') {
-//                 return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-//             } else if (column.DATA_TYPE === 'datetime') {
-//                 return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-//             } else if (column.DATA_TYPE === 'timestamp') {
-//                 return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-//             } else {
-//                 return mysql.escapeId(column.COLUMN_NAME);
-//             }
-//         });
-
-//         const query = `SELECT ${selectParts.join(', ')} FROM ${mysql.escapeId(tableName)}`;
-//         console.log('Executing query:', query);
-
-//         const [results] = await connection.query(query);
-//         console.log(`Query executed successfully. Rows returned: ${results.length}`);
-
-//         res.json(results);
-//     } catch (err) {
-//         console.error('Error fetching table data:', err);
-//         if (err.code === 'ER_NO_SUCH_TABLE') {
-//             res.status(404).send('Table not found');
-//         } else if (err.sql) {
-//             console.error('SQL that caused the error:', err.sql);
-//             res.status(500).send('Error executing SQL query');
-//         } else {
-//             res.status(500).send('Error fetching table data');
-//         }
-//     }
-// };
-
-// exports.fetchTableNames = async (req, res) => {
-//     console.log("Fetching all table names for admin");
-//     const adminId = req.session.adminid;
-
-//     if (!adminId) {
-//         return res.status(401).send('Unauthorized: Admin not logged in');
-//     }
-
-//     const query = `SHOW TABLES`;
-
-//     try {
-//         const [results] = await connection.query(query);
-//         const tableNames = results.map(row => Object.values(row)[0]);
-//         res.json(tableNames);
-//     } catch (err) {
-//         console.error('Error fetching table names:', err);
-//         res.status(500).send('Error fetching table names');
-//     }
-// };
-
-
-// exports.updateTableData = async (req, res) => {
-//     console.log("Updating table data for admin");
-//     const adminId = req.session.adminid;
-
-//     if (!adminId) {
-//         return res.status(401).send('Unauthorized: Admin not logged in');
-//     }
-
-//     const { tableName, updatedRows } = req.body;
-
-//     if (!tableName || !updatedRows || !Array.isArray(updatedRows)) {
-//         return res.status(400).send('Invalid request: tableName and updatedRows array are required');
-//     }
-
-//     try {
-//         // Start a transaction
-//         await connection.query('START TRANSACTION');
-
-//         // First, fetch the primary key column name for the table
-//         const [tableInfo] = await connection.query(`SHOW KEYS FROM ${tableName} WHERE Key_name = 'PRIMARY'`);
-//         if (tableInfo.length === 0) {
-//             throw new Error(`No primary key found for table ${tableName}`);
-//         }
-//         const primaryKeyColumn = tableInfo[0].Column_name;
-
-//         for (const row of updatedRows) {
-//             const columns = Object.keys(row).filter(key => key !== 'key' && key !== primaryKeyColumn);
-//             const values = columns.map(col => row[col]);
-
-//             const updateQuery = `
-//                 UPDATE ${tableName}
-//                 SET ${columns.map(col => `${col} = ?`).join(', ')}
-//                 WHERE ${primaryKeyColumn} = ?
-//             `;
-
-//             await connection.query(updateQuery, [...values, row[primaryKeyColumn]]);
-//         }
-
-//         // Commit the transaction
-//         await connection.query('COMMIT');
-
-//         res.json({ success: true, message: 'Table data updated successfully' });
-//     } catch (err) {
-//         // If there's an error, rollback the transaction
-//         await connection.query('ROLLBACK');
-//         console.error('Error updating table data:', err);
-//         res.status(500).json({ success: false, message: 'Error updating table data', error: err.message });
-//     }
-// };
-
-// controllers/admin_functions.js
-
 exports.loginadmin = async (req, res) => {
     const { userId, password } = req.body;
     console.log('Login attempt - UserID:', userId);
@@ -212,61 +81,62 @@ exports.loginadmin = async (req, res) => {
 
 
 exports.fetchTableData = async (req, res) => {
-    console.log("Fetching table data for admin");
-    const { tableName } = req.body;
-    const adminId = req.session.adminid;
-
-    if (!adminId) {
-        return res.status(401).send('Unauthorized: Admin not logged in');
+  const { tableName } = req.body;
+  
+  try {
+    // Validate table name to prevent SQL injection
+    if (!tableName || !/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid table name' 
+      });
     }
 
-    try {
-        console.log(`Fetching column information for table: ${tableName}`);
-        // First, get the column information for the table
-        const [columns] = await connection.query(`
-              SELECT COLUMN_NAME, DATA_TYPE 
-              FROM INFORMATION_SCHEMA.COLUMNS 
-              WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
-          `, [tableName]);
-
-        console.log(`Columns found:`, columns);
-
-        if (columns.length === 0) {
-            return res.status(404).send('Table not found or has no columns');
-        }
-
-        // Construct the SELECT part of the query, formatting DATE and DATETIME columns
-        const selectParts = columns.map(column => {
-            if (column.DATA_TYPE === 'date') {
-                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-            } else if (column.DATA_TYPE === 'datetime') {
-                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-            } else if (column.DATA_TYPE === 'timestamp') {
-                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
-            } else {
-                return mysql.escapeId(column.COLUMN_NAME);
-            }
-        });
-
-        const query = `SELECT ${selectParts.join(', ')} FROM ${mysql.escapeId(tableName)}`;
-        console.log('Executing query:', query);
-
-        const [results] = await connection.query(query);
-        console.log(`Query executed successfully. Rows returned: ${results.length}`);
-
-        res.json(results);
-    } catch (err) {
-        console.error('Error fetching table data:', err);
-        if (err.code === 'ER_NO_SUCH_TABLE') {
-            res.status(404).send('Table not found');
-        } else if (err.sql) {
-            console.error('SQL that caused the error:', err.sql);
-            res.status(500).send('Error executing SQL query');
-        } else {
-            res.status(500).send('Error fetching table data');
-        }
-    }
+    // Fetch table data
+    const [rows] = await connection.query(`SELECT * FROM \`${tableName}\``);
+    
+    // ✅ NEW: Fetch primary key(s) for the table
+    const [primaryKeyRows] = await connection.query(
+      `SELECT COLUMN_NAME 
+       FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+       WHERE TABLE_SCHEMA = DATABASE() 
+         AND TABLE_NAME = ? 
+         AND CONSTRAINT_NAME = 'PRIMARY'
+       ORDER BY ORDINAL_POSITION`,
+      [tableName]
+    );
+    
+    // Extract primary key column name(s)
+    const primaryKeys = primaryKeyRows.map(row => row.COLUMN_NAME);
+    const primaryKey = primaryKeys.length > 0 ? primaryKeys[0] : null;
+    
+    // If composite key, return all keys
+    const compositePrimaryKeys = primaryKeys.length > 1 ? primaryKeys : null;
+    
+    console.log(`Table: ${tableName}, Primary Key: ${primaryKey || 'None found'}`);
+    
+    // ✅ CHANGED: Return data with primary key information
+    res.json({
+      success: true,
+      data: rows,
+      primaryKey: primaryKey,  // ← Add this
+      compositePrimaryKeys: compositePrimaryKeys,  // ← Add this
+      metadata: {
+        tableName: tableName,
+        rowCount: rows.length
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching table data:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching table data',
+      error: error.message 
+    });
+  }
 };
+
 
 exports.fetchTableNames = async (req, res) => {
     console.log("Fetching all table names for admin");
@@ -669,153 +539,146 @@ exports.deleteTableRecord = async (req, res) => {
     }
 };
 
-// NEW: Enhanced Update with Base64 Support
 exports.enhancedUpdateTableData = async (req, res) => {
-    console.log("[Enhanced] Updating table data with transaction support");
-    const adminId = req.session.adminid;
-
-    if (!adminId) {
-        return res.status(401).send('Unauthorized: Admin not logged in');
-    }
-
-    const { tableName, updates } = req.body;
-    const MAX_IMAGE_SIZE = 50 * 1024; // 50KB
-
+  const { tableName, updates } = req.body;
+  
+  try {
+    // Validate inputs
     if (!tableName || !updates || !Array.isArray(updates)) {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid request data'
-        });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid request data' 
+      });
     }
 
-    const conn = await connection.getConnection();
-    try {
-        await conn.beginTransaction();
+    // Validate table name
+    if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid table name' 
+      });
+    }
 
-        // Get detailed table information
-        const [tableInfo] = await conn.query(`
-            SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE
-            FROM INFORMATION_SCHEMA.COLUMNS 
-            WHERE TABLE_SCHEMA = DATABASE() 
-            AND TABLE_NAME = ?
-        `, [tableName]);
+    // ✅ NEW: Fetch primary key dynamically for the table
+    const [primaryKeyRows] = await connection.query(
+      `SELECT COLUMN_NAME 
+       FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+       WHERE TABLE_SCHEMA = DATABASE() 
+         AND TABLE_NAME = ? 
+         AND CONSTRAINT_NAME = 'PRIMARY'
+       ORDER BY ORDINAL_POSITION`,
+      [tableName]
+    );
 
-        if (tableInfo.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: `Table '${tableName}' not found`
-            });
+    if (primaryKeyRows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: `No primary key found for table: ${tableName}`
+      });
+    }
+
+    const primaryKeyColumn = primaryKeyRows[0].COLUMN_NAME;
+    console.log(`Using primary key: ${primaryKeyColumn} for table: ${tableName}`);
+
+    const results = [];
+    let successCount = 0;
+    let failCount = 0;
+
+    // Process each update
+    for (const updateData of updates) {
+      try {
+        // ✅ CHANGED: Use dynamic primary key
+        const primaryKeyValue = updateData[primaryKeyColumn];
+        
+        if (!primaryKeyValue && primaryKeyValue !== 0) {
+          results.push({
+            success: false,
+            error: `Missing primary key value: ${primaryKeyColumn}`,
+            data: updateData
+          });
+          failCount++;
+          continue;
         }
 
-        // Identify primary key
-        const primaryKeyColumn = tableInfo.find(col => col.COLUMN_KEY === 'PRI') || tableInfo[0];
-        const primaryKey = primaryKeyColumn.COLUMN_NAME;
+        // Build UPDATE query dynamically
+        const fieldsToUpdate = { ...updateData };
+        delete fieldsToUpdate[primaryKeyColumn]; // Don't update primary key
 
-        const results = [];
-        for (const row of updates) {
-            if (!row[primaryKey]) {
-                results.push({
-                    success: false,
-                    message: `Missing primary key (${primaryKey}) in row data`,
-                    rowData: row
-                });
-                continue;
-            }
+        const setClause = Object.keys(fieldsToUpdate)
+          .map(key => `\`${key}\` = ?`)
+          .join(', ');
+        
+        const values = [...Object.values(fieldsToUpdate), primaryKeyValue];
 
-            // Validate and process base64 images
-            const validUpdates = {};
-            for (const [col, value] of Object.entries(row)) {
-                if (col === primaryKey) continue;
+        const updateQuery = `
+          UPDATE \`${tableName}\` 
+          SET ${setClause} 
+          WHERE \`${primaryKeyColumn}\` = ?
+        `;
 
-                const columnInfo = tableInfo.find(c => c.COLUMN_NAME === col);
-                if (!columnInfo) continue;
+        console.log('Executing update:', updateQuery);
+        console.log('Values:', values);
 
-                // Handle base64 image validation
-                if (typeof value === 'string' && value.startsWith('data:image')) {
-                    const base64Size = Math.ceil((value.length * 3) / 4);
-                    if (base64Size > MAX_IMAGE_SIZE) {
-                        results.push({
-                            success: false,
-                            message: `Image size for ${col} exceeds 50KB limit`,
-                            primaryKey: row[primaryKey]
-                        });
-                        continue;
-                    }
-                }
+        const [result] = await connection.query(updateQuery, values);
 
-                // Handle data type conversion
-                if (value === null || value === 'NULL') {
-                    if (columnInfo.IS_NULLABLE === 'NO') continue;
-                    validUpdates[col] = null;
-                } else if (columnInfo.DATA_TYPE.includes('int')) {
-                    validUpdates[col] = parseInt(value) || 0;
-                } else if (columnInfo.DATA_TYPE.includes('decimal')) {
-                    validUpdates[col] = parseFloat(value) || 0.0;
-                } else {
-                    validUpdates[col] = value;
-                }
-            }
-
-            if (Object.keys(validUpdates).length === 0) {
-                results.push({
-                    success: false,
-                    message: `No valid columns to update for ${primaryKey}=${row[primaryKey]}`,
-                    rowData: row
-                });
-                continue;
-            }
-
-            try {
-                const setClause = Object.keys(validUpdates).map(col => `${col} = ?`).join(', ');
-                const values = [...Object.values(validUpdates), row[primaryKey]];
-
-                const updateQuery = `UPDATE ${tableName} SET ${setClause} WHERE ${primaryKey} = ?`;
-                const [result] = await conn.query(updateQuery, values);
-
-                results.push({
-                    success: result.affectedRows > 0,
-                    primaryKey: row[primaryKey],
-                    affectedRows: result.affectedRows,
-                    updatedColumns: Object.keys(validUpdates)
-                });
-
-            } catch (error) {
-                results.push({
-                    success: false,
-                    primaryKey: row[primaryKey],
-                    error: error.message
-                });
-            }
-        }
-
-        // Check for failures
-        const failedUpdates = results.filter(r => !r.success);
-        if (failedUpdates.length > 0) {
-            await conn.rollback();
-            return res.status(207).json({
-                success: false,
-                message: `${failedUpdates.length} of ${updates.length} updates failed`,
-                results
-            });
-        }
-
-        await conn.commit();
-        return res.json({
+        if (result.affectedRows > 0) {
+          results.push({
             success: true,
-            message: `Updated ${updates.length} rows in ${tableName}`,
-            results
-        });
-
-    } catch (error) {
-        await conn.rollback();
-        return res.status(500).json({
+            primaryKey: primaryKeyColumn,
+            primaryKeyValue: primaryKeyValue,
+            affectedRows: result.affectedRows
+          });
+          successCount++;
+        } else {
+          results.push({
             success: false,
-            message: 'Database error',
-            error: error.message
+            error: 'No rows affected - record may not exist',
+            primaryKey: primaryKeyColumn,
+            primaryKeyValue: primaryKeyValue
+          });
+          failCount++;
+        }
+
+      } catch (updateError) {
+        console.error('Update error for record:', updateError);
+        results.push({
+          success: false,
+          error: updateError.message,
+          data: updateData
         });
-    } finally {
-        conn.release();
+        failCount++;
+      }
     }
+
+    // Determine response status
+    if (failCount === 0) {
+      res.json({
+        success: true,
+        message: `All ${successCount} updates completed successfully`,
+        results: results
+      });
+    } else if (successCount === 0) {
+      res.status(400).json({
+        success: false,
+        message: `All ${failCount} updates failed`,
+        results: results
+      });
+    } else {
+      res.status(207).json({
+        success: false,
+        message: `${successCount} of ${updates.length} updates succeeded, ${failCount} failed`,
+        results: results
+      });
+    }
+
+  } catch (error) {
+    console.error('Error in enhanced update:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error updating table data',
+      error: error.message 
+    });
+  }
 };
 
 
