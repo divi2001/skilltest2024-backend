@@ -136,7 +136,7 @@ async function createAnswerSheet(doc, data) {
     }
     
     async function createPage(doc, student, isFirstPage, qrCodeUrl) {
-        createHeader(doc, data.departmentName, 'GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025');
+        createHeader(doc, data.departmentName, data.departmentExam);
         
         let startY = headerHeight+15;
       
@@ -219,7 +219,7 @@ const getData = async(center, batchNo, student_id, departmentId) => {
             query = "SELECT s.fullname, s.student_id, s.base64, sub.subject_name FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId WHERE s.center = ? AND s.batchNo = ? AND s.student_id = ? AND s.departmentId = ?;";
             queryParams.push(student_id, departmentId);
         } else {
-            query = 'SELECT s.fullname, s.student_id, s.base64, sub.subject_name, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+            query = 'SELECT s.fullname, s.student_id, s.base64, sub.subject_name, d.departmentName, d.departmentExam, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
             queryParams.push(departmentId);
         }
         
@@ -291,9 +291,9 @@ const generateAnswerSheets = async(doc, center, batchNo, student_id, departmentI
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
         
         // Updated to use 3-day validation instead of 1-day
-        if(!checkDownloadAllowed3Days(batchInfo.batchdate)) {
-            throw new Error("Download is only allowed within 3 days before the batch date");
-        }
+        // if(!checkDownloadAllowed3Days(batchInfo.batchdate)) {
+        //     throw new Error("Download is only allowed within 3 days before the batch date");
+        // }
         
         // Convert start_time to 12-hour format
         const formattedStartTime = formatTime(batchInfo.start_time);
@@ -310,6 +310,7 @@ const generateAnswerSheets = async(doc, center, batchNo, student_id, departmentI
                 photoBase64: student.base64 || " "
             })),
             departmentName: response[0]?.departmentName || 'GCC Examination',
+            departmentExam: response[0]?.departmentExam || '',
             departmentLogo: response[0]?.logo || null
         };
 

@@ -45,7 +45,7 @@ function formatTime(timeString) {
 async function getData(center, batchNo) {
     try {
         // console.log(center, batchNo);
-        const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.loggedin = 0';
+        const query = 'SELECT s.student_id , d.departmentName, d.departmentExam, d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.loggedin = 0';
         const response = await connection.query(query, [batchNo, center]);
         console.log(response);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
@@ -111,7 +111,7 @@ function addHeader(doc, data) {
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025', 110, doc.y + 5, {
+        .text(data.departmentExam, 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
@@ -253,9 +253,9 @@ async function generatePostAbsenteeReport(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
-        }
+        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+        //     throw new Error("Download not allowed at this time");
+        // }
         
         // Convert start_time to 12-hour format
         const formattedExamTime = formatTime(batchInfo.start_time);
@@ -267,6 +267,7 @@ async function generatePostAbsenteeReport(doc, center, batchNo) {
             examTime: formattedExamTime, // Now in 12-hour format
             seatNumbers: response.map(student => student.student_id.toString()),
             departmentName : response[0].departmentName,
+            departmentExam : response[0].departmentExam,
             departmentLogo : response[0].logo
         };
 

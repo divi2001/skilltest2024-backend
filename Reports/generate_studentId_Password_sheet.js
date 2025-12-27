@@ -56,7 +56,7 @@ async function getData(center, batchNo) {
 
         // console.log(batchData[0].start_time, batchData[0].batchdate);
 
-        const query = 'SELECT s.student_id, s.password , d.departmentName , d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ?';
+        const query = 'SELECT s.student_id, s.password , d.departmentName, d.departmentExam , d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ?';
         const [results] = await connection.query(query, [center, batchNo]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
@@ -67,6 +67,7 @@ async function getData(center, batchNo) {
         return { 
             response: decryptedResults, 
             departmentName:results[0].departmentName,
+            departmentExam:results[0].departmentExam,
             logo:results[0].logo,
             batchData: batchData
         };
@@ -86,25 +87,53 @@ function addHeader(doc, data) {
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025', 110, doc.y + 5, {
+        .text(data.departmentExam, 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
 
-    doc.moveTo(50, doc.y + 15).lineTo(550, doc.y + 15).stroke();
+    doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
     doc.moveDown();
-    const yPosition = doc.y-8;
+    const yPosition = doc.y - 8;
     const fontSize = 12;
-    const spacer = '\u00A0\u00A0';
     doc.fontSize(fontSize).font('Helvetica');
 
-    doc.text(`CENTER CODE: ${data.centerCode}${spacer}`, 50, yPosition + 13);
-    doc.text(`BATCH: ${data.batch}${spacer}`, 185, yPosition + 13);
-    doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 275, yPosition + 13);
-    doc.text(`EXAM TIME: ${data.examTime}`, 425, yPosition + 13);
+    // Save the current position
+    const currentY = yPosition + 10;
+    
+    // Reset text state and position each element individually
+    doc.text('', 0, 0); // Reset any previous text state
+    
+    // Position each text element with explicit coordinates and no text flow
+    doc.text(`CENTER CODE: ${data.centerCode}`, 50, currentY, {
+        lineBreak: false,
+        width: 130,
+        align: 'left'
+    });
+    
+    doc.text(`BATCH: ${data.batch}`, 185, currentY, {
+        lineBreak: false,
+        width: 85,
+        align: 'left'
+    });
+    
+    doc.text(`EXAM DATE: ${data.examDate}`, 275, currentY, {
+        lineBreak: false,
+        width: 145,
+        align: 'left'
+    });
+    
+    doc.text(`EXAM TIME: ${data.examTime}`, 425, currentY, {
+        lineBreak: false,
+        width: 125,
+        align: 'left'
+    });
 
-    return doc.y + 20;
+    // Manually set the Y position for the next content
+    doc.y = currentY + 20;
+    
+    return doc.y;
 }
 
 function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
@@ -142,51 +171,102 @@ function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
 
 function createSeatingArrangementReport(doc, data) {
     addHeader(doc, data);
-    
+
     doc.fontSize(14).font('Helvetica-Bold')
-        .text('Student Id and Password', 50, 170, {
-            width: 500,
+        .text('Student Id and Password', 0, 170, {
+            width: doc.page.width,
             align: 'center'
         });
 
     const pageWidth = doc.page.width;
     const pageHeight = doc.page.height;
-    const marginLeft = 50;
-    const marginRight = 50;
-    const marginBottom = 50;
-    const tableTop = 200;
-    const tableGap = 30; // Gap between tables
-    const tableWidth = (pageWidth - marginLeft - marginRight - tableGap) / 2;
-    const maxRowsPerTable = Math.floor((pageHeight - tableTop - marginBottom) / 20) - 1; // -1 for header
 
-    let currentY = tableTop;
+    const marginBottom = 50;
+    const rowHeight = 20;
+    const tableGap = 30;
+    const tableWidth = 230;
+
     let studentsProcessed = 0;
 
     while (studentsProcessed < data.students.length) {
-        if (currentY >= pageHeight - marginBottom) {
-            doc.addPage();
-            addHeader(doc, data);
-            currentY = tableTop;
+        const remaining = data.students.length - studentsProcessed;
+
+        const usableHeight = pageHeight - 200 - marginBottom;
+        const maxRowsPerTable = Math.floor(usableHeight / rowHeight) - 1;
+
+        const rowsThisPage = Math.min(
+            remaining,
+            maxRowsPerTable * 2
+        );
+
+        const isSingleColumn = rowsThisPage <= maxRowsPerTable;
+
+        const tablesCount = isSingleColumn ? 1 : 2;
+        const totalTableWidth =
+            isSingleColumn
+                ? tableWidth
+                : tableWidth * 2 + tableGap;
+
+        const startX = (pageWidth - totalTableWidth) / 2;
+
+        const rowsInLeftTable = isSingleColumn
+            ? rowsThisPage
+            : Math.min(maxRowsPerTable, rowsThisPage);
+
+        const rowsInRightTable = rowsThisPage - rowsInLeftTable;
+
+        const tablesHeight =
+            Math.max(rowsInLeftTable, rowsInRightTable) * rowHeight;
+
+        // ✅ Vertical centering
+        const startY = Math.max(
+            200,
+            (pageHeight - tablesHeight) / 2
+        );
+
+        // LEFT / SINGLE TABLE
+        const leftStudents = data.students.slice(
+            studentsProcessed,
+            studentsProcessed + rowsInLeftTable
+        );
+
+        const leftEndY = createTable(
+            doc,
+            leftStudents,
+            startX,
+            startY,
+            maxRowsPerTable,
+            tableWidth
+        );
+
+        studentsProcessed += rowsInLeftTable;
+
+        // RIGHT TABLE (if needed)
+        if (!isSingleColumn && rowsInRightTable > 0) {
+            const rightStudents = data.students.slice(
+                studentsProcessed,
+                studentsProcessed + rowsInRightTable
+            );
+
+            createTable(
+                doc,
+                rightStudents,
+                startX + tableWidth + tableGap,
+                startY,
+                maxRowsPerTable,
+                tableWidth
+            );
+
+            studentsProcessed += rowsInRightTable;
         }
 
-        const remainingStudents = data.students.slice(studentsProcessed);
-        const leftTableStudents = remainingStudents.slice(0, maxRowsPerTable);
-        studentsProcessed += leftTableStudents.length;
-
-        const leftTableEndY = createTable(doc, leftTableStudents, marginLeft, currentY, maxRowsPerTable, tableWidth);
-
         if (studentsProcessed < data.students.length) {
-            const rightTableStudents = remainingStudents.slice(maxRowsPerTable, maxRowsPerTable * 2);
-            studentsProcessed += rightTableStudents.length;
-
-            const rightTableX = marginLeft + tableWidth + tableGap;
-            const rightTableEndY = createTable(doc, rightTableStudents, rightTableX, currentY, maxRowsPerTable, tableWidth);
-            currentY = Math.max(leftTableEndY, rightTableEndY) + 20;
-        } else {
-            currentY = leftTableEndY + 20;
+            doc.addPage();
+            addHeader(doc, data);
         }
     }
 }
+
 
 function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     // Set the timezone to Kolkata
@@ -238,9 +318,9 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
         
         // Uncomment the following lines if you want to check download allowance
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time, batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
-        }
+        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time, batchInfo.batchdate)) {
+        //     throw new Error("Download not allowed at this time");
+        // }
 
         // Convert start_time to 12-hour format
         const formattedExamTime = formatTime(batchInfo.start_time);
@@ -252,6 +332,7 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
             examTime: formattedExamTime, // Now in 12-hour format
             students: response,
             departmentName: Data.departmentName,
+            departmentExam: Data.departmentExam,
             departmentLogo: Data.logo
         };
 
