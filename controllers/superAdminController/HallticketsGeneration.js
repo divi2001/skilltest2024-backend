@@ -101,7 +101,7 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     })
     .fontSize(11)
-    .text("GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025", centerX, 50, {
+    .text("GCC COMPUTER SHORTHAND EXAMINATION JANUARY 2026", centerX, 50, {
       width: textWidth,
       align: "center",
     })
@@ -160,7 +160,7 @@ async function generateStudentHallTicket(doc, studentData, assets) {
   doc.text("CANDIDATE NAME : " + studentData.candidateName, rightStart, 135);
   doc.text("MOTHER'S NAME : " + studentData.motherName, rightStart, 160);
   doc.text("CENTER NO : " + studentData.centerNo, rightStart, 185);
-  doc.text("HANDICAP : " + studentData.handicap, rightStart, 205);
+  doc.text("HANDICAP : " + "None", rightStart, 205);
   doc.text("SUBJECT CODE : " + studentData.subjectCode, rightStart, 225);
   doc.text("BATCH : " + studentData.batch, rightStart, 245);
   doc.text("DATE : " + studentData.date, rightStart, 265);
@@ -204,15 +204,15 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     });
 
-  if (signFile) {
-    doc.image(signFile, boxX + 20, 240, {
-      width: maxImageWidth+45,
-      height: maxImageHeight+45,
-      fit: [maxImageWidth+40, maxImageHeight+40],
-      align: 'center',
-      valign: 'center'
-    });
-  }
+  // if (signFile) {
+  //   doc.image(signFile, boxX + 20, 240, {
+  //     width: maxImageWidth+45,
+  //     height: maxImageHeight+45,
+  //     fit: [maxImageWidth+40, maxImageHeight+40],
+  //     align: 'center',
+  //     valign: 'center'
+  //   });
+  // }
 
   // Commissioner details
   doc

@@ -55,7 +55,7 @@ function formatTime(timeString) {
 async function getData(center, batchNo, departmentId) {
     try {
         // Modified query to get ALL students, not just absent ones
-        const query = 'SELECT s.student_id, s.loggedin, d.departmentName, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.batchNo = ? AND s.center = ? AND s.departmentId = ?';
+        const query = 'SELECT s.student_id, s.loggedin, d.departmentName, d.departmentExam, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.batchNo = ? AND s.center = ? AND s.departmentId = ?';
         const response = await connection.query(query, [batchNo, center, departmentId]);
         
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
@@ -149,7 +149,7 @@ function addHeader(doc, data) {
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('GCC COMPUTER SHORTHAND EXAMINATION JUNE 2025', 110, doc.y + 5, {
+        .text(data.departmentExam, 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
@@ -315,9 +315,9 @@ async function generatePostAbsenteeReport(doc, center, batchNo, departmentId) {
         console.log('Formatted Exam Time:', examTime);
         
         // Use the updated 3-day check function
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time - must be within 3 days of batch date");
-        }
+        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+        //     throw new Error("Download not allowed at this time - must be within 3 days of batch date");
+        // }
         
         const data = {
             centerCode: center,
@@ -326,6 +326,7 @@ async function generatePostAbsenteeReport(doc, center, batchNo, departmentId) {
             examTime: examTime,
             students: response, // Changed from seatNumbers to students array
             departmentName: response[0].departmentName,
+            departmentExam: response[0].departmentExam,
             departmentLogo: response[0].logo
         };
 

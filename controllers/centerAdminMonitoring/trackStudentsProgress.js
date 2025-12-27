@@ -482,9 +482,12 @@ exports.getActiveDepartments = async (req, res) => {
 };
 
 // Modified endpoint to get batches for a specific department
+// src/controllers/centerAdminMonitoring/trackStudentsProgress.js
 exports.getBatchesByDepartment = async (req, res) => {
+    console.log('Starting getBatchesByDepartment function');
     try {
         const { departmentId } = req.body;
+        console.log('Received departmentId:', departmentId);
         const examCenterCode = req.session.centerId;
 
         if (!examCenterCode) {
@@ -905,31 +908,5 @@ exports.getStudentsByBatchAndDepartment = async (req, res) => {
     } catch (error) {
         console.error("Error fetching students by batch and department:", error);
         res.status(500).json({ message: "Failed to fetch students" });
-    }
-};
-
-// Get batch numbers for a specific department (optional utility function)
-exports.getBatchesByDepartment = async (req, res) => {
-    try {
-        const { departmentId } = req.params;
-        const examCenterCode = req.session.centerId;
-        
-        if (!examCenterCode) {
-            return res.status(401).json({ message: "Center admin is not logged in" });
-        }
-
-        const query = `
-            SELECT DISTINCT batchNo 
-            FROM students 
-            WHERE departmentId = ? AND center = ?
-            ORDER BY batchNo
-        `;
-        
-        const [results] = await connection.query(query, [departmentId, examCenterCode]);
-        
-        res.status(200).json(results.map(row => row.batchNo));
-    } catch (error) {
-        console.error("Error fetching batches by department:", error);
-        res.status(500).json({ message: "Failed to fetch batches" });
     }
 };

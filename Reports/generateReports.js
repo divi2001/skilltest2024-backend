@@ -1,3 +1,4 @@
+// src/Reports/generateReports.js
 const connection = require("../config/db1");
 const XLSX = require('xlsx');
 const moment = require('moment-timezone');
@@ -95,7 +96,7 @@ exports.generateAbsenteeReport = async (req, res) => {
         const center = req.session.centerId;
 
         // Check download permission
-        await checkBatchDownloadPermission(batchNo, departmentId);
+        // await checkBatchDownloadPermission(batchNo, departmentId);
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.pdf');
@@ -187,7 +188,7 @@ exports.generateAttendanceReport = async (req, res) => {
         const center = req.session.centerId;
 
         // Check download permission
-        await checkBatchDownloadPermission(batchNo, departmentId);
+        // await checkBatchDownloadPermission(batchNo, departmentId);
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=attendance_report.pdf');
@@ -244,7 +245,7 @@ exports.generateBlankAnswerSheet = async (req, res) => {
         const center = req.session.centerId;
 
         // Check download permission
-        await checkBatchDownloadPermission(batchNo, departmentId);
+        // await checkBatchDownloadPermission(batchNo, departmentId);
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=blank_answer_sheet.pdf');
@@ -299,7 +300,7 @@ exports.generateAnswerSheet = async (req, res) => {
         const center = req.session.centerId;
 
         // Check download permission
-        await checkBatchDownloadPermission(batchNo, departmentId);
+        // await checkBatchDownloadPermission(batchNo, departmentId);
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=answer_sheet.pdf');
@@ -437,9 +438,9 @@ exports.generateStudentId_Password = async (req, res) => {
 
         // Check if download is allowed
         console.log(batchData[0].start_time,batchData[0].batchdate)
-        if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
-            return res.status(403).json({ "message": "Download not allowed at this time" });
-        }
+        // if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
+        //     return res.status(403).json({ "message": "Download not allowed at this time" });
+        // }
  
         // If download is allowed, proceed with getting student data
         const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';
