@@ -160,7 +160,7 @@ async function generateStudentHallTicket(doc, studentData, assets) {
   doc.text("CANDIDATE NAME : " + studentData.candidateName, rightStart, 135);
   doc.text("MOTHER'S NAME : " + studentData.motherName, rightStart, 160);
   doc.text("CENTER NO : " + studentData.centerNo, rightStart, 185);
-  doc.text("HANDICAP : " + "None", rightStart, 205);
+  doc.text("HANDICAP : " + studentData.handicap, rightStart, 205);
   doc.text("SUBJECT CODE : " + studentData.subjectCode, rightStart, 225);
   doc.text("BATCH : " + studentData.batch, rightStart, 245);
   doc.text("DATE : " + studentData.date, rightStart, 265);
