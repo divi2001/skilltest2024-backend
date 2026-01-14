@@ -95,6 +95,19 @@ exports.fetchTableData = async (req, res) => {
     // Fetch table data
     const [rows] = await connection.query(`SELECT * FROM \`${tableName}\``);
     
+    // ✅ Decrypt centerpass field if table is examcenterdb
+    if (tableName === 'examcenterdb') {
+      rows.forEach(row => {
+        if (row.centerpass) {
+          try {
+            row.centerpass = decrypt(row.centerpass);
+          } catch (error) {
+            console.error(`Failed to decrypt centerpass for center ${row.center}:`, error);
+          }
+        }
+      });
+    }
+    
     // ✅ NEW: Fetch primary key(s) for the table
     const [primaryKeyRows] = await connection.query(
       `SELECT COLUMN_NAME 
