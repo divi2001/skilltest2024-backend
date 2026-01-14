@@ -18,7 +18,7 @@ const mysql = require('mysql2/promise');
 
 //             // Direct comparison since database has plain text password
 //             const storedPassword = admin.password;
-            
+
 //             console.log('Stored password:', storedPassword);
 //             const storedDecryptedPassword = decrypt(storedPassword);
 //             console.log('Provided password:', password);
@@ -81,60 +81,77 @@ exports.loginadmin = async (req, res) => {
 
 
 exports.fetchTableData = async (req, res) => {
-  const { tableName } = req.body;
-  
-  try {
-    // Validate table name to prevent SQL injection
-    if (!tableName || !/^[a-zA-Z0-9_]+$/.test(tableName)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid table name' 
-      });
-    }
+    const { tableName } = req.body;
 
-    // Fetch table data
-    const [rows] = await connection.query(`SELECT * FROM \`${tableName}\``);
-    
-    // ✅ NEW: Fetch primary key(s) for the table
-    const [primaryKeyRows] = await connection.query(
-      `SELECT COLUMN_NAME 
+    try {
+        // Validate table name to prevent SQL injection
+        if (!tableName || !/^[a-zA-Z0-9_]+$/.test(tableName)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid table name'
+            });
+        }
+
+        // Fetch table data
+        const [rows] = await connection.query(`SELECT * FROM \`${tableName}\``);
+
+        // DECRYPT SENSITIVE DATA for departmentdb
+        if (tableName === 'departmentdb') {
+            rows.forEach(row => {
+                if (row.departmentPassword) {
+                    try {
+                        // Only attempt decrypt if it looks like our format
+                        if (row.departmentPassword.includes(':')) {
+                            row.departmentPassword = decrypt(row.departmentPassword);
+                        }
+                    } catch (e) {
+                        // Ignore decryption errors, display safe or original
+                        // console.error('Decryption failed for row', row.departmentId);
+                    }
+                }
+            });
+        }
+
+        // ✅ NEW: Fetch primary key(s) for the table
+        const [primaryKeyRows] = await connection.query(
+            `SELECT COLUMN_NAME 
        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
        WHERE TABLE_SCHEMA = DATABASE() 
          AND TABLE_NAME = ? 
          AND CONSTRAINT_NAME = 'PRIMARY'
        ORDER BY ORDINAL_POSITION`,
-      [tableName]
-    );
-    
-    // Extract primary key column name(s)
-    const primaryKeys = primaryKeyRows.map(row => row.COLUMN_NAME);
-    const primaryKey = primaryKeys.length > 0 ? primaryKeys[0] : null;
-    
-    // If composite key, return all keys
-    const compositePrimaryKeys = primaryKeys.length > 1 ? primaryKeys : null;
-    
-    console.log(`Table: ${tableName}, Primary Key: ${primaryKey || 'None found'}`);
-    
-    // ✅ CHANGED: Return data with primary key information
-    res.json({
-      success: true,
-      data: rows,
-      primaryKey: primaryKey,  // ← Add this
-      compositePrimaryKeys: compositePrimaryKeys,  // ← Add this
-      metadata: {
-        tableName: tableName,
-        rowCount: rows.length
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error fetching table data:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error fetching table data',
-      error: error.message 
-    });
-  }
+            [tableName]
+        );
+
+        // Extract primary key column name(s)
+        const primaryKeys = primaryKeyRows.map(row => row.COLUMN_NAME);
+        const primaryKey = primaryKeys.length > 0 ? primaryKeys[0] : null;
+
+        // If composite key, return all keys
+        const compositePrimaryKeys = primaryKeys.length > 1 ? primaryKeys : null;
+
+        console.log(`Table: ${tableName}, Primary Key: ${primaryKey || 'None found'}`);
+
+        // ✅ CHANGED: Return data with primary key information
+        res.json({
+            success: true,
+            data: rows,
+            primaryKey: primaryKey,  // ← Add this
+            compositePrimaryKeys: compositePrimaryKeys,  // ← Add this
+            metadata: {
+                tableName: tableName,
+                rowCount: rows.length
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching table data:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching table data',
+            error: error.message
+        });
+    }
 };
 
 
@@ -231,7 +248,7 @@ exports.updateTableData = async (req, res) => {
                 if (key === '_temp_id' || key === 'key' || key === primaryKey) {
                     continue;
                 }
-                
+
                 // Check if column exists in table
                 const columnExists = tableInfo.find(col => col.COLUMN_NAME === key);
                 if (!columnExists) {
@@ -371,7 +388,7 @@ exports.addTableRecord = async (req, res) => {
         // Validate table exists
         const [tables] = await connection.query('SHOW TABLES');
         const tableNames = tables.map(row => Object.values(row)[0]);
-        
+
         if (!tableNames.includes(tableName)) {
             return res.status(400).json({
                 success: false,
@@ -422,7 +439,7 @@ exports.addTableRecord = async (req, res) => {
 
         const placeholders = values.map(() => '?').join(', ');
         const query = `INSERT INTO ${tableName} (${insertColumns.join(', ')}) VALUES (${placeholders})`;
-        
+
         const [result] = await connection.query(query, values);
 
         console.log("Record added successfully, ID:", result.insertId);
@@ -465,7 +482,7 @@ exports.deleteTableRecord = async (req, res) => {
         // Validate table exists
         const [tables] = await connection.query('SHOW TABLES');
         const tableNames = tables.map(row => Object.values(row)[0]);
-        
+
         if (!tableNames.includes(tableName)) {
             return res.status(400).json({
                 success: false,
@@ -540,145 +557,145 @@ exports.deleteTableRecord = async (req, res) => {
 };
 
 exports.enhancedUpdateTableData = async (req, res) => {
-  const { tableName, updates } = req.body;
-  
-  try {
-    // Validate inputs
-    if (!tableName || !updates || !Array.isArray(updates)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid request data' 
-      });
-    }
+    const { tableName, updates } = req.body;
 
-    // Validate table name
-    if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid table name' 
-      });
-    }
+    try {
+        // Validate inputs
+        if (!tableName || !updates || !Array.isArray(updates)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid request data'
+            });
+        }
 
-    // ✅ NEW: Fetch primary key dynamically for the table
-    const [primaryKeyRows] = await connection.query(
-      `SELECT COLUMN_NAME 
+        // Validate table name
+        if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid table name'
+            });
+        }
+
+        // ✅ NEW: Fetch primary key dynamically for the table
+        const [primaryKeyRows] = await connection.query(
+            `SELECT COLUMN_NAME 
        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
        WHERE TABLE_SCHEMA = DATABASE() 
          AND TABLE_NAME = ? 
          AND CONSTRAINT_NAME = 'PRIMARY'
        ORDER BY ORDINAL_POSITION`,
-      [tableName]
-    );
+            [tableName]
+        );
 
-    if (primaryKeyRows.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: `No primary key found for table: ${tableName}`
-      });
-    }
-
-    const primaryKeyColumn = primaryKeyRows[0].COLUMN_NAME;
-    console.log(`Using primary key: ${primaryKeyColumn} for table: ${tableName}`);
-
-    const results = [];
-    let successCount = 0;
-    let failCount = 0;
-
-    // Process each update
-    for (const updateData of updates) {
-      try {
-        // ✅ CHANGED: Use dynamic primary key
-        const primaryKeyValue = updateData[primaryKeyColumn];
-        
-        if (!primaryKeyValue && primaryKeyValue !== 0) {
-          results.push({
-            success: false,
-            error: `Missing primary key value: ${primaryKeyColumn}`,
-            data: updateData
-          });
-          failCount++;
-          continue;
+        if (primaryKeyRows.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: `No primary key found for table: ${tableName}`
+            });
         }
 
-        // Build UPDATE query dynamically
-        const fieldsToUpdate = { ...updateData };
-        delete fieldsToUpdate[primaryKeyColumn]; // Don't update primary key
+        const primaryKeyColumn = primaryKeyRows[0].COLUMN_NAME;
+        console.log(`Using primary key: ${primaryKeyColumn} for table: ${tableName}`);
 
-        const setClause = Object.keys(fieldsToUpdate)
-          .map(key => `\`${key}\` = ?`)
-          .join(', ');
-        
-        const values = [...Object.values(fieldsToUpdate), primaryKeyValue];
+        const results = [];
+        let successCount = 0;
+        let failCount = 0;
 
-        const updateQuery = `
+        // Process each update
+        for (const updateData of updates) {
+            try {
+                // ✅ CHANGED: Use dynamic primary key
+                const primaryKeyValue = updateData[primaryKeyColumn];
+
+                if (!primaryKeyValue && primaryKeyValue !== 0) {
+                    results.push({
+                        success: false,
+                        error: `Missing primary key value: ${primaryKeyColumn}`,
+                        data: updateData
+                    });
+                    failCount++;
+                    continue;
+                }
+
+                // Build UPDATE query dynamically
+                const fieldsToUpdate = { ...updateData };
+                delete fieldsToUpdate[primaryKeyColumn]; // Don't update primary key
+
+                const setClause = Object.keys(fieldsToUpdate)
+                    .map(key => `\`${key}\` = ?`)
+                    .join(', ');
+
+                const values = [...Object.values(fieldsToUpdate), primaryKeyValue];
+
+                const updateQuery = `
           UPDATE \`${tableName}\` 
           SET ${setClause} 
           WHERE \`${primaryKeyColumn}\` = ?
         `;
 
-        console.log('Executing update:', updateQuery);
-        console.log('Values:', values);
+                console.log('Executing update:', updateQuery);
+                console.log('Values:', values);
 
-        const [result] = await connection.query(updateQuery, values);
+                const [result] = await connection.query(updateQuery, values);
 
-        if (result.affectedRows > 0) {
-          results.push({
-            success: true,
-            primaryKey: primaryKeyColumn,
-            primaryKeyValue: primaryKeyValue,
-            affectedRows: result.affectedRows
-          });
-          successCount++;
-        } else {
-          results.push({
-            success: false,
-            error: 'No rows affected - record may not exist',
-            primaryKey: primaryKeyColumn,
-            primaryKeyValue: primaryKeyValue
-          });
-          failCount++;
+                if (result.affectedRows > 0) {
+                    results.push({
+                        success: true,
+                        primaryKey: primaryKeyColumn,
+                        primaryKeyValue: primaryKeyValue,
+                        affectedRows: result.affectedRows
+                    });
+                    successCount++;
+                } else {
+                    results.push({
+                        success: false,
+                        error: 'No rows affected - record may not exist',
+                        primaryKey: primaryKeyColumn,
+                        primaryKeyValue: primaryKeyValue
+                    });
+                    failCount++;
+                }
+
+            } catch (updateError) {
+                console.error('Update error for record:', updateError);
+                results.push({
+                    success: false,
+                    error: updateError.message,
+                    data: updateData
+                });
+                failCount++;
+            }
         }
 
-      } catch (updateError) {
-        console.error('Update error for record:', updateError);
-        results.push({
-          success: false,
-          error: updateError.message,
-          data: updateData
+        // Determine response status
+        if (failCount === 0) {
+            res.json({
+                success: true,
+                message: `All ${successCount} updates completed successfully`,
+                results: results
+            });
+        } else if (successCount === 0) {
+            res.status(400).json({
+                success: false,
+                message: `All ${failCount} updates failed`,
+                results: results
+            });
+        } else {
+            res.status(207).json({
+                success: false,
+                message: `${successCount} of ${updates.length} updates succeeded, ${failCount} failed`,
+                results: results
+            });
+        }
+
+    } catch (error) {
+        console.error('Error in enhanced update:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating table data',
+            error: error.message
         });
-        failCount++;
-      }
     }
-
-    // Determine response status
-    if (failCount === 0) {
-      res.json({
-        success: true,
-        message: `All ${successCount} updates completed successfully`,
-        results: results
-      });
-    } else if (successCount === 0) {
-      res.status(400).json({
-        success: false,
-        message: `All ${failCount} updates failed`,
-        results: results
-      });
-    } else {
-      res.status(207).json({
-        success: false,
-        message: `${successCount} of ${updates.length} updates succeeded, ${failCount} failed`,
-        results: results
-      });
-    }
-
-  } catch (error) {
-    console.error('Error in enhanced update:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error updating table data',
-      error: error.message 
-    });
-  }
 };
 
 
@@ -1270,7 +1287,7 @@ exports.getStudentData = async (req, res) => {
 
         const [shorthandPassage] = await connection.query(shorthandPassageQuery, [student_id]);
         const [studentResults] = await connection.query(studentQuery, [student_id]);
-        
+
         // Handle typingPassage query separately with error handling
         let typingPassage = [];
         try {
@@ -1280,15 +1297,15 @@ exports.getStudentData = async (req, res) => {
             console.log('Typing passage query failed, ignoring:', typingError.message);
             // typingPassage remains empty array
         }
-        
+
         const [audioLogs] = await connection.query(audioLogsQuery, [student_id]);
         const [examStages] = await connection.query(examStagesQuery, [student_id]);
         const [studentLogs] = await connection.query(studentLogsQuery, [student_id]);
-        
+
         if (studentResults.length === 0) {
             return res.status(404).json({ "Message": "No Student Found for this id!!!" })
         }
-        
+
         console.log(studentLogs);
         studentLogs[0].loginTime = formatDate(studentLogs[0].loginTime);
         studentLogs[0].trial_time = formatDate(studentLogs[0].trial_time);
@@ -1301,12 +1318,12 @@ exports.getStudentData = async (req, res) => {
         studentLogs[0].feedback_time = formatDate(studentLogs[0].feedback_time);
 
         studentResults[0].batchdate = formatDate(studentResults[0].batchdate);
-        
+
         // Only format time if typingPassage has data
         if (typingPassage.length > 0 && typingPassage[0].time) {
             typingPassage[0].time = formatDate(typingPassage[0].time);
         }
-        
+
         res.status(201).json({ shorthandPassage, typingPassage, studentResults, audioLogs, examStages, studentLogs });
     } catch (error) {
         console.error('Database query error:', error);

@@ -5,7 +5,7 @@ const fastCsv = require('fast-csv');
 const pool = require("../../config/db1");
 const schema = require('../../schema/schema');
 const moment = require('moment');
-const {encrypt, decrypt} = require('./../../config/encrypt');
+const { encrypt, decrypt } = require('./../../config/encrypt');
 
 const importExcel = async (filePath) => {
   try {
@@ -18,7 +18,7 @@ const importExcel = async (filePath) => {
         const worksheet = workbook.Sheets[sheetName];
         const csvData = xlsx.utils.sheet_to_csv(worksheet);
         const csvFilePath = `${filePath}_${sheetName}.csv`;
-        
+
         fs.writeFileSync(csvFilePath, csvData);
 
         try {
@@ -54,12 +54,12 @@ const processCSV = async (tableName, csvFilePath) => {
 
     const createTableQuery = `CREATE TABLE ?? (
       ${columns.map(column => {
-        const fieldType = schema[tableName][column];
-        if (column.toLowerCase() === 'id') {
-          return `\`${column}\` ${fieldType} PRIMARY KEY AUTO_INCREMENT`;
-        }
-        return `\`${column}\` ${fieldType}`;
-      }).join(', ')}
+      const fieldType = schema[tableName][column];
+      if (column.toLowerCase() === 'id') {
+        return `\`${column}\` ${fieldType} PRIMARY KEY AUTO_INCREMENT`;
+      }
+      return `\`${column}\` ${fieldType}`;
+    }).join(', ')}
     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`;
 
     await executeQuery(createTableQuery, [tableName]);
@@ -86,7 +86,7 @@ const processCSV = async (tableName, csvFilePath) => {
           filteredRow[column] = row[column];
         }
       }
-      
+
       try {
         validateRow(tableName, filteredRow, rowNumber);
         chunk.push(filteredRow);
@@ -159,8 +159,17 @@ const executeQuery = async (query, params, retries = 3) => {
 };
 
 const dropTableIfExists = async (tableName) => {
-  const dropQuery = 'DROP TABLE IF EXISTS ??';
-  await executeQuery(dropQuery, [tableName]);
+  const connection = await pool.getConnection();
+  try {
+    await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+    await connection.query('DROP TABLE IF EXISTS ??', [tableName]);
+    await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+  } catch (e) {
+    console.error("Drop table error:", e);
+    throw e;
+  } finally {
+    connection.release();
+  }
 };
 
 const insertChunk = async (tableName, columns, chunk) => {
@@ -184,15 +193,15 @@ const insertChunk = async (tableName, columns, chunk) => {
       //   return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
       // }
 
-      if(column === 'centerpass' && tableName === 'examcenterdb'){
+      if (column === 'centerpass' && tableName === 'examcenterdb') {
         return encrypt(value);
       }
 
-      if(column === 'departmentPassword' && tableName === 'departmentdb'){
+      if (column === 'departmentPassword' && tableName === 'departmentdb') {
         return encrypt(value);
       }
 
-      if(column === 'password' && tableName === 'students'){
+      if (column === 'password' && tableName === 'students') {
         return encrypt(value);
       }
 

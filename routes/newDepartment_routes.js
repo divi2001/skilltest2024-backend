@@ -26,7 +26,7 @@ router.post('/check-batch-duplicates', newDepartmentController.checkBatchDuplica
 
 // ✅ Bulk upload batches (with department verification)
 router.post(
-    '/batches/bulk-upload-complete', 
+    '/batches/bulk-upload-complete',
     upload.single('file'),
     newDepartmentController.bulkUploadBatchesComplete
 );
@@ -55,7 +55,7 @@ router.get('/controllers', newDepartmentController.getControllers);
 
 // ✅ Bulk upload controllers (with department verification)
 router.post(
-    '/controllers/bulk-upload-complete', 
+    '/controllers/bulk-upload-complete',
     upload.single('file'),
     newDepartmentController.bulkUploadControllersComplete
 );
@@ -66,6 +66,21 @@ router.post('/validate-controller-references', newDepartmentController.validateC
 //auto generate and save controllers
 router.post('/generate-controllers', newDepartmentController.generateControllers);
 router.post('/generate-save-controllers', newDepartmentController.generateAndSaveControllers);
+
+// ========================================
+// ARCHIVE ROUTES
+// ========================================
+
+const archiveController = require('../controllers/superAdminController/departmentArchiveController');
+
+// Download Department Data Dump
+router.get('/departments/:departmentId/archive/download', archiveController.downloadDepartmentArchive);
+
+// Delete Department Data (Use with caution)
+router.post('/departments/archive/delete', archiveController.deleteDepartmentData);
+
+// Restore Department Data Dump
+router.post('/departments/archive/restore', archiveController.restoreDepartmentArchive);
 
 // ========================================
 // ERROR HANDLING

@@ -42,12 +42,12 @@ function parseSchemaFields(tableName) {
 
     // Parse field definition to extract information
     const def = fieldDefinition.toUpperCase();
-    
+
     // Check if field is required (no DEFAULT and not AUTO_INCREMENT)
     if (!def.includes('DEFAULT') && !def.includes('AUTO_INCREMENT') && !def.includes('NULL')) {
       field.required = true;
     }
-    
+
     // Check if primary key
     if (def.includes('PRIMARY KEY')) {
       field.isPrimary = true;
@@ -116,7 +116,7 @@ function parseSchemaFields(tableName) {
 const getTableSchema = async (req, res) => {
   try {
     const { tableName } = req.params;
-    
+
     console.log(`[INFO] Fetching schema for table: ${tableName}`);
 
     if (!tableName) {
@@ -165,7 +165,7 @@ const getTableSchema = async (req, res) => {
     // Combine schema.js information with database information
     const enhancedFields = schemaFields.map(field => {
       const dbColumn = databaseColumns.find(col => col.COLUMN_NAME === field.name);
-      
+
       return {
         ...field,
         // Override with actual database information if available
@@ -181,13 +181,13 @@ const getTableSchema = async (req, res) => {
     });
 
     // Categorize fields
-    const requiredFields = enhancedFields.filter(field => 
+    const requiredFields = enhancedFields.filter(field =>
       field.required && !field.isPrimary && !field.hasDefault && !field.isAutoIncrement
     );
-    const optionalFields = enhancedFields.filter(field => 
+    const optionalFields = enhancedFields.filter(field =>
       !field.required || field.hasDefault || (field.actualNullable && !field.isPrimary)
     );
-    const systemFields = enhancedFields.filter(field => 
+    const systemFields = enhancedFields.filter(field =>
       field.isPrimary || field.isAutoIncrement || field.name.includes('_id') && field.isPrimary
     );
 
@@ -241,7 +241,7 @@ function validateDataWithDetails(data, columnInfo) {
 
     // Check if entire row is empty
     const rowValues = Object.values(row);
-    const nonEmptyValues = rowValues.filter(value => 
+    const nonEmptyValues = rowValues.filter(value =>
       value !== null && value !== undefined && value !== '' && value !== 'NULL'
     );
 
@@ -267,7 +267,7 @@ function validateDataWithDetails(data, columnInfo) {
       // Check for empty/null values
       if (value === null || value === undefined || value === '' || value === 'NULL') {
         totalEmptyFields++;
-        
+
         if (columnDef.IS_NULLABLE === 'NO' && !columnDef.COLUMN_DEFAULT) {
           rowErrors.push(`Column '${column}' cannot be empty (required field)`);
           missingFields.push(column);
@@ -295,7 +295,7 @@ function validateDataWithDetails(data, columnInfo) {
               rowErrors.push(`Column '${column}' must be a number, got: ${value}`);
             }
             break;
-          
+
           case 'decimal':
           case 'float':
           case 'double':
@@ -304,7 +304,7 @@ function validateDataWithDetails(data, columnInfo) {
               rowErrors.push(`Column '${column}' must be a decimal number, got: ${value}`);
             }
             break;
-          
+
           case 'varchar':
           case 'text':
           case 'longtext':
@@ -316,7 +316,7 @@ function validateDataWithDetails(data, columnInfo) {
               rowErrors.push(`Column '${column}' exceeds maximum length of ${columnDef.CHARACTER_MAXIMUM_LENGTH} characters`);
             }
             break;
-          
+
           case 'date':
           case 'datetime':
           case 'timestamp':
@@ -327,7 +327,7 @@ function validateDataWithDetails(data, columnInfo) {
               validatedValue = date.toISOString().slice(0, 19).replace('T', ' ');
             }
             break;
-          
+
           case 'json':
             if (typeof value === 'object') {
               validatedValue = JSON.stringify(value);
@@ -340,11 +340,11 @@ function validateDataWithDetails(data, columnInfo) {
               }
             }
             break;
-          
+
           default:
             validatedValue = String(value);
         }
-        
+
         validatedRow[column] = validatedValue;
       } catch (error) {
         rowErrors.push(`Data type validation failed for column '${column}': ${error.message}`);
@@ -384,9 +384,9 @@ function validateDataWithDetails(data, columnInfo) {
 
   console.log(`[INFO] Validation completed: ${validatedData.length} valid rows, ${errors.length} error rows, ${emptyRowsInfo.length} empty rows`);
 
-  return { 
-    validatedData, 
-    errors, 
+  return {
+    validatedData,
+    errors,
     warnings,
     emptyRowsInfo,
     missingDataInfo,
@@ -403,7 +403,7 @@ function validateDataWithDetails(data, columnInfo) {
 // Enhanced function to read and validate Excel data
 async function loadAndValidateExcelData(filePath) {
   console.log('[INFO] Starting Excel file processing:', filePath);
-  
+
   try {
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -413,7 +413,7 @@ async function loadAndValidateExcelData(filePath) {
     // Read the workbook
     const workbook = XLSX.readFile(filePath);
     console.log('[INFO] Excel workbook loaded successfully');
-    
+
     if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
       throw new Error('Excel file contains no sheets');
     }
@@ -465,7 +465,7 @@ async function loadAndValidateExcelData(filePath) {
     });
 
     console.log(`[INFO] Excel processing completed: ${processedData.length} data rows found`);
-    
+
     return {
       data: processedData,
       headers: headers.filter(h => h && h.trim()),
@@ -482,7 +482,7 @@ async function loadAndValidateExcelData(filePath) {
 // Enhanced duplicate checking with detailed reporting
 const checkDuplicateEntries = async (tableName, data, tableColumns) => {
   console.log('[INFO] Checking for duplicate entries with detailed reporting...');
-  
+
   try {
     // Get primary key columns
     const uniqueQuery = `
@@ -494,7 +494,7 @@ const checkDuplicateEntries = async (tableName, data, tableColumns) => {
     `;
 
     const [uniqueResults] = await connection.query(uniqueQuery, [tableName]);
-    
+
     // Get unique constraints
     const uniqueConstraintsQuery = `
       SELECT COLUMN_NAME, CONSTRAINT_NAME
@@ -505,14 +505,14 @@ const checkDuplicateEntries = async (tableName, data, tableColumns) => {
     `;
 
     const [uniqueConstraints] = await connection.query(uniqueConstraintsQuery, [tableName]);
-    
+
     // Define columns to check for duplicates
     const primaryKeys = uniqueResults.map(col => col.COLUMN_NAME);
     const uniqueKeys = uniqueConstraints.map(col => col.COLUMN_NAME);
     const commonUniqueFields = ['id', 'student_id', 'email', 'username', 'seat_no', 'institute_id', 'phone'];
-    
+
     const checkColumns = [...new Set([...primaryKeys, ...uniqueKeys, ...commonUniqueFields])];
-    
+
     // Filter to only columns that exist in both table and data
     const availableCheckColumns = checkColumns.filter(col => {
       const existsInTable = tableColumns.some(tableCol => tableCol.COLUMN_NAME === col);
@@ -535,7 +535,7 @@ const checkDuplicateEntries = async (tableName, data, tableColumns) => {
       const columnValues = data
         .map((row, index) => ({ value: row[column], rowNumber: index + 2 }))
         .filter(item => item.value !== null && item.value !== undefined && item.value !== '');
-      
+
       // Find internal duplicates
       const valueOccurrences = {};
       columnValues.forEach(item => {
@@ -560,16 +560,16 @@ const checkDuplicateEntries = async (tableName, data, tableColumns) => {
 
       // Check against existing database records
       const uniqueValues = [...new Set(columnValues.map(item => item.value))];
-      
+
       if (uniqueValues.length > 0) {
         const placeholders = uniqueValues.map(() => '?').join(',');
         const duplicateQuery = `SELECT ${column} FROM ${tableName} WHERE ${column} IN (${placeholders})`;
-        
+
         const [dupResults] = await connection.query(duplicateQuery, uniqueValues);
-        
+
         if (dupResults.length > 0) {
           const duplicateValues = dupResults.map(record => record[column]);
-          
+
           // Find which rows contain these duplicate values
           const affectedRows = data
             .map((row, index) => ({ value: row[column], rowNumber: index + 2 }))
@@ -598,13 +598,13 @@ const checkDuplicateEntries = async (tableName, data, tableColumns) => {
 // Enhanced function to insert Excel data using bulk operations
 const insertExcelData = async (tableName, data, columnNames) => {
   console.log(`[INFO] Starting bulk insert for table: ${tableName}`);
-  
+
   try {
     // Filter columns that exist in both Excel and table
-    const validColumns = columnNames.filter(col => 
+    const validColumns = columnNames.filter(col =>
       data.length > 0 && data[0].hasOwnProperty(col)
     );
-    
+
     if (validColumns.length === 0) {
       throw new Error('No matching columns found between Excel and database table');
     }
@@ -612,7 +612,7 @@ const insertExcelData = async (tableName, data, columnNames) => {
     console.log(`[INFO] Valid columns for insert: ${validColumns.join(', ')}`);
 
     // Prepare bulk insert data
-    const insertValues = data.map(row => 
+    const insertValues = data.map(row =>
       validColumns.map(col => {
         const value = row[col];
         return (value === null || value === undefined || value === '' || value === 'NULL') ? null : value;
@@ -623,48 +623,52 @@ const insertExcelData = async (tableName, data, columnNames) => {
     const batchSize = 100;
     let totalInserted = 0;
     const batches = [];
-    
+
     for (let i = 0; i < insertValues.length; i += batchSize) {
       batches.push(insertValues.slice(i, i + batchSize));
     }
 
     console.log(`[INFO] Processing ${batches.length} batches of ${batchSize} records each`);
 
+    // Prepare update clause for ON DUPLICATE KEY UPDATE (Append and Replace)
+    const updateClause = validColumns.map(col => `${col} = VALUES(${col})`).join(', ');
+
     // Process each batch
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const batch = batches[batchIndex];
-      
+
       try {
         const placeholders = batch.map(() => `(${validColumns.map(() => '?').join(',')})`).join(',');
         const flatValues = batch.flat();
-        
+
         const insertQuery = `
           INSERT INTO ${tableName} (${validColumns.join(',')}) 
           VALUES ${placeholders}
+          ON DUPLICATE KEY UPDATE ${updateClause}
         `;
 
         const [result] = await connection.query(insertQuery, flatValues);
-        totalInserted += result.affectedRows;
-        
-        console.log(`[INFO] Batch ${batchIndex + 1}/${batches.length} completed: ${result.affectedRows} records inserted`);
-        
+        // affectedRows: 1 for insert, 2 for update. We treat any success as progress.
+        totalInserted += (result.affectedRows >= 1 ? 1 : 0) * batch.length; // Approximate count for logging
+
+        console.log(`[INFO] Batch ${batchIndex + 1}/${batches.length} processed`);
+
       } catch (batchError) {
         console.error(`[ERROR] Batch ${batchIndex + 1} failed:`, batchError);
-        
+
         // Try individual inserts for failed batch
         for (const row of batch) {
           try {
             const singleInsertQuery = `
               INSERT INTO ${tableName} (${validColumns.join(',')}) 
               VALUES (${validColumns.map(() => '?').join(',')})
+              ON DUPLICATE KEY UPDATE ${updateClause}
             `;
-            
-            const [singleResult] = await connection.query(singleInsertQuery, row);
-            if (singleResult.affectedRows > 0) {
-              totalInserted++;
-            }
+
+            await connection.query(singleInsertQuery, row);
+            totalInserted++;
           } catch (singleError) {
-            console.error('[ERROR] Individual insert failed:', singleError.message);
+            console.error('[ERROR] Individual upsert failed:', singleError.message);
           }
         }
       }
@@ -683,7 +687,7 @@ const insertExcelData = async (tableName, data, columnNames) => {
 const getAvailableTables = async (req, res) => {
   try {
     console.log('[INFO] Fetching available tables...');
-    
+
     const query = `
       SELECT 
         TABLE_NAME as tableName,
@@ -694,17 +698,17 @@ const getAvailableTables = async (req, res) => {
       AND TABLE_TYPE = 'BASE TABLE'
       ORDER BY TABLE_NAME
     `;
-    
+
     const [results] = await connection.query(query);
-    
+
     console.log(`[INFO] Found ${results.length} tables`);
-    
+
     res.json({
       success: true,
       tables: results,
       count: results.length
     });
-    
+
   } catch (error) {
     console.error('[ERROR] Failed to fetch tables:', error);
     res.status(500).json({
@@ -718,7 +722,7 @@ const getAvailableTables = async (req, res) => {
 // Main function to process Excel data with comprehensive validation
 const processExcelData = async (req, res) => {
   let uploadedFilePath = null;
-  
+
   try {
     console.log('[INFO] Excel data processing request received with enhanced validation');
 
@@ -733,7 +737,7 @@ const processExcelData = async (req, res) => {
 
     uploadedFilePath = req.file.path;
     const { targetTable } = req.body;
-    
+
     if (!targetTable || targetTable.trim() === '') {
       safeFileCleanup(uploadedFilePath);
       return res.status(400).json({
@@ -784,13 +788,13 @@ const processExcelData = async (req, res) => {
 
     const [columnsResults] = await connection.query(columnsQuery, [targetTable]);
     const columnNames = columnsResults.map(col => col.COLUMN_NAME);
-    
+
     console.log(`[INFO] Table structure loaded: ${columnNames.length} columns`);
 
     // Validate Excel columns against table columns
     const missingColumns = excelHeaders.filter(header => !columnNames.includes(header));
     const availableColumns = excelHeaders.filter(header => columnNames.includes(header));
-    
+
     if (availableColumns.length === 0) {
       safeFileCleanup(uploadedFilePath);
       return res.status(400).json({
@@ -807,7 +811,7 @@ const processExcelData = async (req, res) => {
 
     // Enhanced validation with detailed error reporting
     const validationResult = validateDataWithDetails(excelData, columnsResults);
-    
+
     if (validationResult.errors.length > 0) {
       safeFileCleanup(uploadedFilePath);
       return res.status(400).json({
@@ -828,7 +832,7 @@ const processExcelData = async (req, res) => {
 
     // Enhanced duplicate checking
     const duplicateResult = await checkDuplicateEntries(targetTable, validationResult.validatedData, columnsResults);
-    
+
     if (duplicateResult.duplicates.length > 0 || duplicateResult.internalDuplicates.length > 0) {
       safeFileCleanup(uploadedFilePath);
       return res.status(400).json({
@@ -875,13 +879,13 @@ const processExcelData = async (req, res) => {
 
   } catch (error) {
     console.error('[ERROR] Excel processing failed:', error);
-    
+
     // Ensure file cleanup on any error
     safeFileCleanup(uploadedFilePath);
-    
+
     let errorCode = 'PROCESSING_ERROR';
     let statusCode = 500;
-    
+
     if (error.message.includes('Excel processing failed')) {
       errorCode = 'EXCEL_PARSING_ERROR';
       statusCode = 400;
@@ -891,7 +895,7 @@ const processExcelData = async (req, res) => {
       errorCode = 'VALIDATION_ERROR';
       statusCode = 400;
     }
-    
+
     res.status(statusCode).json({
       success: false,
       error: 'Failed to process Excel file',

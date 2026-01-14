@@ -4,6 +4,7 @@ const connection = require('../config/db1');
 const XLSX = require('xlsx');
 const csv = require('csv-parser');
 const { Readable } = require('stream');
+const { decrypt } = require('../config/encrypt');
 
 // ========================================
 // DEPARTMENT CONTROLLERS
@@ -13,8 +14,8 @@ exports.createDepartment = async (req, res) => {
     const { departmentId, departmentName, departmentPassword, logo, departmentStatus = true } = req.body;
 
     if (!departmentId || !departmentName || !departmentPassword) {
-        return res.status(400).json({ 
-            message: "Department ID, Name, and Password are required" 
+        return res.status(400).json({
+            message: "Department ID, Name, and Password are required"
         });
     }
 
@@ -25,8 +26,8 @@ exports.createDepartment = async (req, res) => {
         );
 
         if (existing.length > 0) {
-            return res.status(400).json({ 
-                message: "Department ID already exists" 
+            return res.status(400).json({
+                message: "Department ID already exists"
             });
         }
 
@@ -48,10 +49,10 @@ exports.createDepartment = async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating department:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: "Error creating department", 
-            error: error.message 
+            message: "Error creating department",
+            error: error.message
         });
     }
 };
@@ -65,10 +66,10 @@ exports.getDepartments = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching departments:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: "Error fetching departments", 
-            error: error.message 
+            message: "Error fetching departments",
+            error: error.message
         });
     }
 };
@@ -81,15 +82,15 @@ exports.getDepartments = async (req, res) => {
 async function validateDepartmentExists(departmentId) {
     try {
         console.log(`🔍 Checking if department ${departmentId} exists...`);
-        
+
         const [result] = await connection.query(
             'SELECT departmentId, departmentName FROM departmentdb WHERE departmentId = ?',
             [departmentId]
         );
-        
+
         const exists = result.length > 0;
         console.log(`${exists ? '✅' : '❌'} Department ${departmentId} ${exists ? 'found' : 'not found'}`);
-        
+
         // Return the expected object structure
         return {
             exists: exists,
@@ -107,7 +108,7 @@ async function validateDepartmentExists(departmentId) {
 // ✅ Validation function for batch data
 function validateBatchDataOnly(batch, rowNum) {
     const requiredFields = ['batchNo', 'batchdate', 'reporting_time', 'start_time', 'end_time'];
-    
+
     console.log(`📋 Validating row ${rowNum}:`, {
         batchNo: batch.batchNo,
         batchdate: batch.batchdate,
@@ -115,7 +116,7 @@ function validateBatchDataOnly(batch, rowNum) {
         start_time: batch.start_time,
         end_time: batch.end_time
     });
-    
+
     for (const field of requiredFields) {
         if (!batch[field] || batch[field].toString().trim() === '') {
             return {
@@ -124,7 +125,7 @@ function validateBatchDataOnly(batch, rowNum) {
             };
         }
     }
-    
+
     return { isValid: true };
 }
 
@@ -177,14 +178,14 @@ function parseCSV(buffer) {
 // ✅ Convert time format
 function convertExcelTimeToHHMMSS(timeValue) {
     if (!timeValue) return null;
-    
+
     // If already HH:MM or HH:MM:SS format
     if (typeof timeValue === 'string') {
         if (timeValue.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
             return timeValue;
         }
     }
-    
+
     // Convert Excel time number to HH:MM
     const timeNum = parseFloat(timeValue);
     if (!isNaN(timeNum)) {
@@ -192,7 +193,7 @@ function convertExcelTimeToHHMMSS(timeValue) {
         const minutes = Math.floor((timeNum * 24 - hours) * 60);
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     }
-    
+
     return null;
 }
 
@@ -488,9 +489,9 @@ exports.addBatchesToExistingDepartment = async (req, res) => {
     const { departmentId, batches } = req.body;
 
     if (!departmentId || !batches || batches.length === 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
             success: false,
-            message: "Department ID and batches are required" 
+            message: "Department ID and batches are required"
         });
     }
 
@@ -581,7 +582,7 @@ exports.getBatches = async (req, res) => {
 // ✅ Validation function for controller data
 function validateControllerData(controller, rowNum) {
     const requiredFields = ['controller_name', 'controller_contact', 'controller_email', 'controller_pass', 'center'];
-    
+
     for (const field of requiredFields) {
         if (!controller[field] || controller[field].toString().trim() === '') {
             return {
@@ -590,18 +591,18 @@ function validateControllerData(controller, rowNum) {
             };
         }
     }
-    
+
     return { isValid: true };
 }
 
 // ✅ Bulk upload controllers with validation
 exports.bulkUploadControllersComplete = async (req, res) => {
     console.log('🚀 Starting bulk controller upload...');
-    
+
     if (!req.file) {
-        return res.status(400).json({ 
-            message: "❌ No file uploaded", 
-            success: false 
+        return res.status(400).json({
+            message: "❌ No file uploaded",
+            success: false
         });
     }
 
@@ -745,132 +746,132 @@ exports.bulkUploadControllersComplete = async (req, res) => {
 
 // Validate controller database references (departmentId, batchNo, center)
 exports.validateControllerReferences = async (req, res) => {
-  try {
-    const { controllers } = req.body;
+    try {
+        const { controllers } = req.body;
 
-    if (!controllers || !Array.isArray(controllers) || controllers.length === 0) {
-      return res.status(400).json({
-        isValid: false,
-        message: 'No controller data provided'
-      });
-    }
-
-    const errors = [];
-    
-    // Get all unique values from Excel
-    const uniqueDepartmentIds = [...new Set(controllers.map(c => c.departmentId).filter(Boolean))];
-    const uniqueBatches = [...new Set(controllers.map(c => `${c.departmentId}-${c.batchNo}`).filter(b => !b.includes('undefined')))];
-    const uniqueCenters = [...new Set(controllers.map(c => c.center).filter(Boolean))];
-
-    console.log('Validating controller references:', {
-      departments: uniqueDepartmentIds,
-      batches: uniqueBatches,
-      centers: uniqueCenters
-    });
-
-    // 1. Validate Department IDs exist in departmentdb table
-    const departments = await connection.query(
-      'SELECT departmentId FROM departmentdb WHERE departmentId IN (?)',
-      [uniqueDepartmentIds.length > 0 ? uniqueDepartmentIds : [0]]
-    );
-    const validDepartmentIds = new Set(departments.map(d => d.departmentId));
-    console.log('Valid Department IDs:', Array.from(validDepartmentIds));
-
-    // 2. Validate Batch Numbers exist in batchdb table with correct departmentId
-    let validBatches = new Set();
-    if (uniqueBatches.length > 0) {
-      const batchConditions = uniqueBatches.map(b => {
-        const [deptId, batchNo] = b.split('-');
-        return `(departmentId = ${connection.escape(deptId)} AND batchNo = ${connection.escape(batchNo)})`;
-      }).join(' OR ');
-
-      const batches = await connection.query(
-        `SELECT departmentId, batchNo FROM batchdb WHERE ${batchConditions}`
-      );
-      validBatches = new Set(batches.map(b => `${b.departmentId}-${b.batchNo}`));
-      console.log('Valid Batches:', Array.from(validBatches));
-    }
-
-    // 3. Validate Centers exist in examcenterdb table
-    const centers = await connection.query(
-      'SELECT center FROM examcenterdb WHERE center IN (?)',
-      [uniqueCenters.length > 0 ? uniqueCenters : [0]]
-    );
-    const validCenters = new Set(centers.map(c => c.center));
-    console.log('Valid Centers:', Array.from(validCenters));
-
-    // Validate each row from Excel
-    controllers.forEach((controller, index) => {
-      const rowNumber = index + 2; // Excel row number (header is row 1)
-      const issues = [];
-
-      // Check departmentId
-      if (!controller.departmentId) {
-        issues.push('Department ID is missing');
-      } else if (!validDepartmentIds.has(controller.departmentId)) {
-        issues.push(`Department ID '${controller.departmentId}' does not exist in departmentdb table`);
-      }
-
-      // Check batchNo (must be valid AND belong to the correct department)
-      if (!controller.batchNo) {
-        issues.push('Batch Number is missing');
-      } else {
-        const batchKey = `${controller.departmentId}-${controller.batchNo}`;
-        if (!validBatches.has(batchKey)) {
-          issues.push(`Batch '${controller.batchNo}' does not exist for Department '${controller.departmentId}' in batchdb table`);
+        if (!controllers || !Array.isArray(controllers) || controllers.length === 0) {
+            return res.status(400).json({
+                isValid: false,
+                message: 'No controller data provided'
+            });
         }
-      }
 
-      // Check center (must exist in examcenterdb)
-      if (!controller.center) {
-        issues.push('Center is missing');
-      } else if (!validCenters.has(parseInt(controller.center))) {
-        issues.push(`Center '${controller.center}' does not exist in examcenterdb table`);
-      }
+        const errors = [];
 
-      if (issues.length > 0) {
-        errors.push({
-          rowNumber,
-          departmentId: controller.departmentId,
-          batchNo: controller.batchNo,
-          center: controller.center,
-          issues
+        // Get all unique values from Excel
+        const uniqueDepartmentIds = [...new Set(controllers.map(c => c.departmentId).filter(Boolean))];
+        const uniqueBatches = [...new Set(controllers.map(c => `${c.departmentId}-${c.batchNo}`).filter(b => !b.includes('undefined')))];
+        const uniqueCenters = [...new Set(controllers.map(c => c.center).filter(Boolean))];
+
+        console.log('Validating controller references:', {
+            departments: uniqueDepartmentIds,
+            batches: uniqueBatches,
+            centers: uniqueCenters
         });
-      }
-    });
 
-    // Return validation result
-    if (errors.length > 0) {
-      return res.json({
-        isValid: false,
-        errors,
-        summary: {
-          totalRows: controllers.length,
-          invalidRows: errors.length,
-          validRows: controllers.length - errors.length,
-          message: `Found ${errors.length} row(s) with invalid database references`
+        // 1. Validate Department IDs exist in departmentdb table
+        const departments = await connection.query(
+            'SELECT departmentId FROM departmentdb WHERE departmentId IN (?)',
+            [uniqueDepartmentIds.length > 0 ? uniqueDepartmentIds : [0]]
+        );
+        const validDepartmentIds = new Set(departments.map(d => d.departmentId));
+        console.log('Valid Department IDs:', Array.from(validDepartmentIds));
+
+        // 2. Validate Batch Numbers exist in batchdb table with correct departmentId
+        let validBatches = new Set();
+        if (uniqueBatches.length > 0) {
+            const batchConditions = uniqueBatches.map(b => {
+                const [deptId, batchNo] = b.split('-');
+                return `(departmentId = ${connection.escape(deptId)} AND batchNo = ${connection.escape(batchNo)})`;
+            }).join(' OR ');
+
+            const batches = await connection.query(
+                `SELECT departmentId, batchNo FROM batchdb WHERE ${batchConditions}`
+            );
+            validBatches = new Set(batches.map(b => `${b.departmentId}-${b.batchNo}`));
+            console.log('Valid Batches:', Array.from(validBatches));
         }
-      });
+
+        // 3. Validate Centers exist in examcenterdb table
+        const centers = await connection.query(
+            'SELECT center FROM examcenterdb WHERE center IN (?)',
+            [uniqueCenters.length > 0 ? uniqueCenters : [0]]
+        );
+        const validCenters = new Set(centers.map(c => c.center));
+        console.log('Valid Centers:', Array.from(validCenters));
+
+        // Validate each row from Excel
+        controllers.forEach((controller, index) => {
+            const rowNumber = index + 2; // Excel row number (header is row 1)
+            const issues = [];
+
+            // Check departmentId
+            if (!controller.departmentId) {
+                issues.push('Department ID is missing');
+            } else if (!validDepartmentIds.has(controller.departmentId)) {
+                issues.push(`Department ID '${controller.departmentId}' does not exist in departmentdb table`);
+            }
+
+            // Check batchNo (must be valid AND belong to the correct department)
+            if (!controller.batchNo) {
+                issues.push('Batch Number is missing');
+            } else {
+                const batchKey = `${controller.departmentId}-${controller.batchNo}`;
+                if (!validBatches.has(batchKey)) {
+                    issues.push(`Batch '${controller.batchNo}' does not exist for Department '${controller.departmentId}' in batchdb table`);
+                }
+            }
+
+            // Check center (must exist in examcenterdb)
+            if (!controller.center) {
+                issues.push('Center is missing');
+            } else if (!validCenters.has(parseInt(controller.center))) {
+                issues.push(`Center '${controller.center}' does not exist in examcenterdb table`);
+            }
+
+            if (issues.length > 0) {
+                errors.push({
+                    rowNumber,
+                    departmentId: controller.departmentId,
+                    batchNo: controller.batchNo,
+                    center: controller.center,
+                    issues
+                });
+            }
+        });
+
+        // Return validation result
+        if (errors.length > 0) {
+            return res.json({
+                isValid: false,
+                errors,
+                summary: {
+                    totalRows: controllers.length,
+                    invalidRows: errors.length,
+                    validRows: controllers.length - errors.length,
+                    message: `Found ${errors.length} row(s) with invalid database references`
+                }
+            });
+        }
+
+        return res.json({
+            isValid: true,
+            message: 'All database references are valid',
+            summary: {
+                totalRows: controllers.length,
+                validRows: controllers.length,
+                message: 'All department IDs, batch numbers, and centers exist in the database'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error validating controller references:', error);
+        res.status(500).json({
+            isValid: false,
+            message: 'Error validating controller references',
+            error: error.message
+        });
     }
-
-    return res.json({
-      isValid: true,
-      message: 'All database references are valid',
-      summary: {
-        totalRows: controllers.length,
-        validRows: controllers.length,
-        message: 'All department IDs, batch numbers, and centers exist in the database'
-      }
-    });
-
-  } catch (error) {
-    console.error('Error validating controller references:', error);
-    res.status(500).json({
-      isValid: false,
-      message: 'Error validating controller references',
-      error: error.message
-    });
-  }
 };
 
 
@@ -996,152 +997,152 @@ exports.getBatchesByDepartment = async (req, res) => {
 
 // Helper function to generate password based on batchNo and center
 function generatePassword(batchNo, center) {
-  if (batchNo === 100) {
-    return `mock${center}`;
-  } else {
-    // Generate 6-digit number without zeros (digits 1-9 only)
-    let password = '';
-    for (let i = 0; i < 6; i++) {
-      password += Math.floor(Math.random() * 9) + 1;
+    if (batchNo === 100) {
+        return `mock${center}`;
+    } else {
+        // Generate 6-digit number without zeros (digits 1-9 only)
+        let password = '';
+        for (let i = 0; i < 6; i++) {
+            password += Math.floor(Math.random() * 9) + 1;
+        }
+        return password;
     }
-    return password;
-  }
 }
 
 // Controller function to generate and save controllers
 exports.generateAndSaveControllers = async (req, res) => {
-  try {
-    const query = `
+    try {
+        const query = `
       SELECT DISTINCT departmentId, batchNo, center 
       FROM students 
       WHERE departmentId IS NOT NULL 
         AND batchNo IS NOT NULL 
         AND center IS NOT NULL
     `;
-    
-    const [rows] = await connection.query(query);
-    
-    if (rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No valid student combinations found'
-      });
-    }
-    
-    const controllers = [];
-    
-    // Process inserts SEQUENTIALLY instead of parallel
-    for (const row of rows) {
-      const controllerData = {
-        center: row.center,
-        batchNo: row.batchNo,
-        departmentId: row.departmentId,
-        controller_code: null,
-        controller_name: '',
-        controller_contact: null,
-        controller_email: '',
-        controller_pass: generatePassword(row.batchNo, row.center),
-        district: null
-      };
-      
-      try {
-        const insertQuery = `
+
+        const [rows] = await connection.query(query);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No valid student combinations found'
+            });
+        }
+
+        const controllers = [];
+
+        // Process inserts SEQUENTIALLY instead of parallel
+        for (const row of rows) {
+            const controllerData = {
+                center: row.center,
+                batchNo: row.batchNo,
+                departmentId: row.departmentId,
+                controller_code: null,
+                controller_name: '',
+                controller_contact: null,
+                controller_email: '',
+                controller_pass: generatePassword(row.batchNo, row.center),
+                district: null
+            };
+
+            try {
+                const insertQuery = `
           INSERT INTO controllerdb 
           (center, batchNo, departmentId, controller_code, controller_name, 
            controller_contact, controller_email, controller_pass, district)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        
-        await connection.query(insertQuery, [
-          controllerData.center,
-          controllerData.batchNo,
-          controllerData.departmentId,
-          controllerData.controller_code,
-          controllerData.controller_name,
-          controllerData.controller_contact,
-          controllerData.controller_email,
-          controllerData.controller_pass,
-          controllerData.district
-        ]);
-        
-        controllers.push(controllerData);
-      } catch (insertErr) {
-        // Skip duplicates
-        if (insertErr.code === 'ER_DUP_ENTRY') {
-          console.log(`Skipping duplicate: dept=${row.departmentId}, batch=${row.batchNo}, center=${row.center}`);
-        } else {
-          throw insertErr;
+
+                await connection.query(insertQuery, [
+                    controllerData.center,
+                    controllerData.batchNo,
+                    controllerData.departmentId,
+                    controllerData.controller_code,
+                    controllerData.controller_name,
+                    controllerData.controller_contact,
+                    controllerData.controller_email,
+                    controllerData.controller_pass,
+                    controllerData.district
+                ]);
+
+                controllers.push(controllerData);
+            } catch (insertErr) {
+                // Skip duplicates
+                if (insertErr.code === 'ER_DUP_ENTRY') {
+                    console.log(`Skipping duplicate: dept=${row.departmentId}, batch=${row.batchNo}, center=${row.center}`);
+                } else {
+                    throw insertErr;
+                }
+            }
         }
-      }
+
+        res.json({
+            success: true,
+            message: 'Controllers generated and saved successfully',
+            count: controllers.length,
+            data: controllers
+        });
+
+    } catch (err) {
+        console.error('Error generating/saving controllers:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
     }
-    
-    res.json({
-      success: true,
-      message: 'Controllers generated and saved successfully',
-      count: controllers.length,
-      data: controllers
-    });
-    
-  } catch (err) {
-    console.error('Error generating/saving controllers:', err);
-    res.status(500).json({ 
-      success: false,
-      message: 'Internal server error', 
-      error: err.message 
-    });
-  }
 };
 
 // Controller function to preview controllers (without saving)
 exports.generateControllers = async (req, res) => {
-  try {
-    // Get distinct combinations - exact query you specified
-    const query = `
+    try {
+        // Get distinct combinations - exact query you specified
+        const query = `
       SELECT DISTINCT departmentId, batchNo, center 
       FROM students 
       WHERE departmentId IS NOT NULL 
         AND batchNo IS NOT NULL 
         AND center IS NOT NULL
     `;
-    
-    const [rows] = await connection.query(query);
-    
-    if (rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No valid student combinations found'
-      });
+
+        const [rows] = await connection.query(query);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No valid student combinations found'
+            });
+        }
+
+        // Generate controller data for preview
+        const controllers = rows.map((row) => {
+            return {
+                departmentId: row.departmentId,
+                batchNo: row.batchNo,
+                center: row.center,
+                controller_code: '',  // Empty string
+                controller_contact: '',  // Empty string
+                controller_email: '',  // Empty string
+                controller_name: '',  // Empty string
+                controller_pass: generatePassword(row.batchNo, row.center)  // Password logic
+            };
+        });
+
+        res.json({
+            success: true,
+            message: 'Controllers generated successfully',
+            count: controllers.length,
+            data: controllers
+        });
+
+    } catch (err) {
+        console.error('Error generating controllers:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: err.message
+        });
     }
-    
-    // Generate controller data for preview
-    const controllers = rows.map((row) => {
-      return {
-        departmentId: row.departmentId,
-        batchNo: row.batchNo,
-        center: row.center,
-        controller_code: '',  // Empty string
-        controller_contact: '',  // Empty string
-        controller_email: '',  // Empty string
-        controller_name: '',  // Empty string
-        controller_pass: generatePassword(row.batchNo, row.center)  // Password logic
-      };
-    });
-    
-    res.json({
-      success: true,
-      message: 'Controllers generated successfully',
-      count: controllers.length,
-      data: controllers
-    });
-    
-  } catch (err) {
-    console.error('Error generating controllers:', err);
-    res.status(500).json({ 
-      success: false,
-      message: 'Internal server error', 
-      error: err.message 
-    });
-  }
 };
 
 
@@ -1151,115 +1152,115 @@ exports.generateControllers = async (req, res) => {
 
 // Check batch duplicates BEFORE upload
 exports.checkBatchDuplicates = async (req, res) => {
-  try {
-    const { batches } = req.body;
-    
-    if (!batches || !Array.isArray(batches)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid batches data',
-        duplicates: [] 
-      });
-    }
+    try {
+        const { batches } = req.body;
 
-    console.log('🔍 API: Checking batch duplicates for', batches.length, 'batches');
-    
-    const duplicates = [];
-
-    // Check each batch against database
-    for (const batch of batches) {
-      try {
-        const [existing] = await connection.query(
-          'SELECT departmentId, batchNo FROM batchdb WHERE departmentId = ? AND batchNo = ?',
-          [batch.departmentId, batch.batchNo]
-        );
-
-        if (existing.length > 0) {
-          console.log(`  ❌ Found duplicate: Dept ${batch.departmentId}, Batch ${batch.batchNo}`);
-          duplicates.push({
-            departmentId: batch.departmentId,
-            batchNo: batch.batchNo
-          });
+        if (!batches || !Array.isArray(batches)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid batches data',
+                duplicates: []
+            });
         }
-      } catch (error) {
-        console.error(`  ⚠️ Error checking batch ${batch.batchNo}:`, error.message);
-      }
-    }
 
-    console.log(`✅ API: Found ${duplicates.length} database duplicates`);
-    
-    res.json({ 
-      success: true, 
-      duplicates: duplicates,
-      totalChecked: batches.length,
-      totalDuplicates: duplicates.length
-    });
-    
-  } catch (error) {
-    console.error('❌ API Error checking batch duplicates:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      duplicates: [] 
-    });
-  }
+        console.log('🔍 API: Checking batch duplicates for', batches.length, 'batches');
+
+        const duplicates = [];
+
+        // Check each batch against database
+        for (const batch of batches) {
+            try {
+                const [existing] = await connection.query(
+                    'SELECT departmentId, batchNo FROM batchdb WHERE departmentId = ? AND batchNo = ?',
+                    [batch.departmentId, batch.batchNo]
+                );
+
+                if (existing.length > 0) {
+                    console.log(`  ❌ Found duplicate: Dept ${batch.departmentId}, Batch ${batch.batchNo}`);
+                    duplicates.push({
+                        departmentId: batch.departmentId,
+                        batchNo: batch.batchNo
+                    });
+                }
+            } catch (error) {
+                console.error(`  ⚠️ Error checking batch ${batch.batchNo}:`, error.message);
+            }
+        }
+
+        console.log(`✅ API: Found ${duplicates.length} database duplicates`);
+
+        res.json({
+            success: true,
+            duplicates: duplicates,
+            totalChecked: batches.length,
+            totalDuplicates: duplicates.length
+        });
+
+    } catch (error) {
+        console.error('❌ API Error checking batch duplicates:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            duplicates: []
+        });
+    }
 };
 
 // Check controller duplicates BEFORE upload
 exports.checkControllerDuplicates = async (req, res) => {
-  try {
-    const { controllers } = req.body;
-    
-    if (!controllers || !Array.isArray(controllers)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid controllers data',
-        duplicates: [] 
-      });
-    }
+    try {
+        const { controllers } = req.body;
 
-    console.log('🔍 API: Checking controller duplicates for', controllers.length, 'controllers');
-    
-    const duplicates = [];
-
-    // Check each controller against database
-    for (const controller of controllers) {
-      if (!controller.controller_email) continue;
-      
-      try {
-        const [existing] = await connection.query(
-          'SELECT controller_email FROM controllerdb WHERE LOWER(controller_email) = LOWER(?)',
-          [controller.controller_email]
-        );
-
-        if (existing.length > 0) {
-          console.log(`  ❌ Found duplicate email: ${controller.controller_email}`);
-          duplicates.push({
-            controller_email: controller.controller_email
-          });
+        if (!controllers || !Array.isArray(controllers)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid controllers data',
+                duplicates: []
+            });
         }
-      } catch (error) {
-        console.error(`  ⚠️ Error checking email ${controller.controller_email}:`, error.message);
-      }
-    }
 
-    console.log(`✅ API: Found ${duplicates.length} database duplicates`);
-    
-    res.json({ 
-      success: true, 
-      duplicates: duplicates,
-      totalChecked: controllers.length,
-      totalDuplicates: duplicates.length
-    });
-    
-  } catch (error) {
-    console.error('❌ API Error checking controller duplicates:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message,
-      duplicates: [] 
-    });
-  }
+        console.log('🔍 API: Checking controller duplicates for', controllers.length, 'controllers');
+
+        const duplicates = [];
+
+        // Check each controller against database
+        for (const controller of controllers) {
+            if (!controller.controller_email) continue;
+
+            try {
+                const [existing] = await connection.query(
+                    'SELECT controller_email FROM controllerdb WHERE LOWER(controller_email) = LOWER(?)',
+                    [controller.controller_email]
+                );
+
+                if (existing.length > 0) {
+                    console.log(`  ❌ Found duplicate email: ${controller.controller_email}`);
+                    duplicates.push({
+                        controller_email: controller.controller_email
+                    });
+                }
+            } catch (error) {
+                console.error(`  ⚠️ Error checking email ${controller.controller_email}:`, error.message);
+            }
+        }
+
+        console.log(`✅ API: Found ${duplicates.length} database duplicates`);
+
+        res.json({
+            success: true,
+            duplicates: duplicates,
+            totalChecked: controllers.length,
+            totalDuplicates: duplicates.length
+        });
+
+    } catch (error) {
+        console.error('❌ API Error checking controller duplicates:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            duplicates: []
+        });
+    }
 };
 
 
