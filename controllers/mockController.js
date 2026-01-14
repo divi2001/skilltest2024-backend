@@ -22,8 +22,9 @@ exports.previewMockData = async (req, res) => {
             const centerId = centerRow.center;
 
             // Get last student ID for this center (across all subjects) to ensure uniqueness
+            // Filter out anomalous (overly long) student IDs (e.g. >9 digits) to prevent sequence jumps
             const [lastStudent] = await connection.query(
-                'SELECT student_id FROM students WHERE center = ? ORDER BY student_id DESC LIMIT 1',
+                'SELECT student_id FROM students WHERE center = ? AND LENGTH(student_id) <= 9 ORDER BY student_id DESC LIMIT 1',
                 [centerId]
             );
 
