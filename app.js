@@ -37,12 +37,12 @@ const app = express();
 const PORT = 3000;
 
 // ✅ STEP 1: Set INCREASED body-parser limits FIRST (BEFORE any middleware)
-app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
-app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '500mb' }));
+app.use(bodyParser.json({ limit: '500mb' }));
 
 // ✅ STEP 2: Also use express with same limits
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ limit: '500mb', extended: true }));
 
 // ✅ STEP 3: CORS configuration
 const corsOptions = {
@@ -122,5 +122,5 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, 'localhost', () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`✅ Max payload size: 50mb`);
+  console.log(`✅ Max payload size: 500mb`);
 });

@@ -146,46 +146,52 @@ const createTableIfNotExists = async (tableName, columns) => {
 /**
  * Convert Excel date serial number to JavaScript Date
  * Excel stores dates as numbers (days since 1900-01-01)
+ * Returns YYYY-MM-DD formatted string for DATE fields
  */
 const convertExcelDate = (value) => {
+  let date = null;
+  
   // If it's already a valid date string, try parsing it
   if (typeof value === 'string') {
     // Try dd-mm-yyyy format first
     const ddmmyyyyMatch = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
     if (ddmmyyyyMatch) {
       const [, day, month, year] = ddmmyyyyMatch;
-      const date = new Date(year, month - 1, day);
-      if (!isNaN(date.getTime())) {
-        return date;
-      }
+      date = new Date(year, month - 1, day);
     }
     
     // Try yyyy-mm-dd format
-    const yyyymmddMatch = value.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-    if (yyyymmddMatch) {
-      const [, year, month, day] = yyyymmddMatch;
-      const date = new Date(year, month - 1, day);
-      if (!isNaN(date.getTime())) {
-        return date;
+    if (!date) {
+      const yyyymmddMatch = value.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+      if (yyyymmddMatch) {
+        const [, year, month, day] = yyyymmddMatch;
+        date = new Date(year, month - 1, day);
       }
     }
 
     // Try standard date parsing
-    const standardDate = new Date(value);
-    if (!isNaN(standardDate.getTime())) {
-      return standardDate;
+    if (!date) {
+      const standardDate = new Date(value);
+      if (!isNaN(standardDate.getTime())) {
+        date = standardDate;
+      }
     }
   }
   
   // If it's a number (Excel serial date)
-  if (typeof value === 'number' && value > 0) {
+  if (!date && typeof value === 'number' && value > 0) {
     // Excel date serial number (days since 1900-01-01)
     // Note: Excel incorrectly treats 1900 as a leap year
     const excelEpoch = new Date(1899, 11, 30); // Dec 30, 1899
-    const date = new Date(excelEpoch.getTime() + value * 86400000);
-    if (!isNaN(date.getTime())) {
-      return date;
-    }
+    date = new Date(excelEpoch.getTime() + value * 86400000);
+  }
+  
+  // If we successfully parsed a date, format it as YYYY-MM-DD
+  if (date && !isNaN(date.getTime())) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
   
   return null;

@@ -17,9 +17,10 @@ router.get('/fetch-table-names',adminFunctionController.fetchTableNames);
 router.post('/update-table-data',adminFunctionController.updateTableData);
 
 // NEW CRUD ROUTES
-router.post('/add-table-record', isAuthenticatedAdmin, adminFunctionController.addTableRecord);
-router.delete('/delete-table-record', isAuthenticatedAdmin, adminFunctionController.deleteTableRecord);
-router.put('/enhanced-update-table-data', isAuthenticatedAdmin, adminFunctionController.enhancedUpdateTableData);
+// TODO: Implement these controller functions before enabling these routes
+// router.post('/add-table-record', isAuthenticatedAdmin, adminFunctionController.addTableRecord);
+// router.delete('/delete-table-record', isAuthenticatedAdmin, adminFunctionController.deleteTableRecord);
+// router.put('/enhanced-update-table-data', isAuthenticatedAdmin, adminFunctionController.enhancedUpdateTableData);
 
 
 
