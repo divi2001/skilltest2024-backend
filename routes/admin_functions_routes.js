@@ -6,43 +6,43 @@ const adminFunctionController = require('../controllers/admin_functions');
 const isAuthenticatedAdmin = require('../middleware/isAuthAdmin')
 
 
-router.post('/admin-login',adminFunctionController.loginadmin);
+router.post('/admin-login', adminFunctionController.loginadmin);
 
-router.delete('/deletetable/:tableName',  adminFunctionController.deleteTable);
+router.delete('/deletetable/:tableName', adminFunctionController.deleteTable);
 
-router.get('/resetaudiologs',isAuthenticatedAdmin,adminFunctionController.resetAllAudioLogs)
+router.get('/resetaudiologs', isAuthenticatedAdmin, adminFunctionController.resetAllAudioLogs)
 
-router.post('/fetch-table-data',isAuthenticatedAdmin, adminFunctionController.fetchTableData);
-router.get('/fetch-table-names',adminFunctionController.fetchTableNames);
-router.post('/update-table-data',adminFunctionController.updateTableData);
+router.post('/fetch-table-data', isAuthenticatedAdmin, adminFunctionController.fetchTableData);
+router.get('/fetch-table-names', adminFunctionController.fetchTableNames);
+router.post('/update-table-data', adminFunctionController.updateTableData);
 
 // NEW CRUD ROUTES
 // TODO: Implement these controller functions before enabling these routes
 // router.post('/add-table-record', isAuthenticatedAdmin, adminFunctionController.addTableRecord);
 // router.delete('/delete-table-record', isAuthenticatedAdmin, adminFunctionController.deleteTableRecord);
-// router.put('/enhanced-update-table-data', isAuthenticatedAdmin, adminFunctionController.enhancedUpdateTableData);
+router.put('/enhanced-update-table-data', isAuthenticatedAdmin, adminFunctionController.enhancedUpdateTableData);
 
 
 
 
 // Route for updateAndRetrieveAudioLogs
-router.post('/audio-logs',isAuthenticatedAdmin, adminFunctionController.updateAndRetrieveAudioLogs);
+router.post('/audio-logs', isAuthenticatedAdmin, adminFunctionController.updateAndRetrieveAudioLogs);
 
 // Route for manageTextLogs
-router.post('/text-logs',isAuthenticatedAdmin, adminFunctionController.manageTextLogs);
+router.post('/text-logs', isAuthenticatedAdmin, adminFunctionController.manageTextLogs);
 
 // Route for manageFinalPassageSubmit
-router.post('/final-passage-submit',isAuthenticatedAdmin, adminFunctionController.manageFinalPassageSubmit);
+router.post('/final-passage-submit', isAuthenticatedAdmin, adminFunctionController.manageFinalPassageSubmit);
 
 // Route for manageTypingPassageLogs
-router.post('/typing-passage-logs',isAuthenticatedAdmin, adminFunctionController.manageTypingPassageLogs);
+router.post('/typing-passage-logs', isAuthenticatedAdmin, adminFunctionController.manageTypingPassageLogs);
 
 // Route for manageTypingPassage
-router.post('/typing-passage',isAuthenticatedAdmin, adminFunctionController.manageTypingPassage);
+router.post('/typing-passage', isAuthenticatedAdmin, adminFunctionController.manageTypingPassage);
 router.post('/reset-requests', adminFunctionController.createResetRequest);
 router.post('/admin/approve-reset-request', isAuthenticatedAdmin, adminFunctionController.approveResetRequest);
 router.get('/admin/center-request-data', adminFunctionController.getRequestData);
-router.post('/admin/student-data',adminFunctionController.getStudentData);
-router.get('/admin/attendance-reports',adminFunctionController.getAttendaceReports);
+router.post('/admin/student-data', adminFunctionController.getStudentData);
+router.get('/admin/attendance-reports', adminFunctionController.getAttendaceReports);
 
 module.exports = router;

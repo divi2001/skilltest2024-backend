@@ -54,7 +54,7 @@ exports.fetchTableData = async (req, res) => {
         console.log(`Fetching column information for table: ${tableName}`);
         // First, get the column information for the table
         const [columns] = await connection.query(`
-              SELECT COLUMN_NAME, DATA_TYPE 
+              SELECT COLUMN_NAME, DATA_TYPE, COLUMN_KEY 
               FROM INFORMATION_SCHEMA.COLUMNS 
               WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
           `, [tableName]);
@@ -64,6 +64,11 @@ exports.fetchTableData = async (req, res) => {
         if (columns.length === 0) {
             return res.status(404).send('Table not found or has no columns');
         }
+
+        // Find primary key
+        const primaryKeyColumn = columns.find(col => col.COLUMN_KEY === 'PRI');
+        const primaryKey = primaryKeyColumn ? primaryKeyColumn.COLUMN_NAME : null;
+        console.log(`Identified Primary Key: ${primaryKey}`);
 
         // Construct the SELECT part of the query, formatting DATE and DATETIME columns
         const selectParts = columns.map(column => {
@@ -84,7 +89,10 @@ exports.fetchTableData = async (req, res) => {
         const [results] = await connection.query(query);
         console.log(`Query executed successfully. Rows returned: ${results.length}`);
 
-        res.json(results);
+        res.json({
+            data: results,
+            primaryKey: primaryKey
+        });
     } catch (err) {
         console.error('Error fetching table data:', err);
         if (err.code === 'ER_NO_SUCH_TABLE') {
@@ -840,3 +848,117 @@ exports.getAttendaceReports = async (req, res) => {
         res.status(500).send('Internal server error');
     }
 }
+
+exports.enhancedUpdateTableData = async (req, res) => {
+    console.log("Enhanced updating table data for admin");
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const { tableName, updates } = req.body;
+
+    if (!tableName || !updates || !Array.isArray(updates)) {
+        return res.status(400).send('Invalid request: tableName and updates array are required');
+    }
+
+    const conn = await connection.getConnection();
+    const results = [];
+    let hasErrors = false;
+
+    try {
+        console.log(`[enhancedUpdateTableData] Processing ${updates.length} updates for table: ${tableName}`);
+
+        // Get detailed table information including primary key
+        const [tableInfo] = await conn.query(`
+            SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = ?
+        `, [tableName]);
+
+        if (tableInfo.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: `Table '${tableName}' not found`
+            });
+        }
+
+        // Find primary key column
+        const primaryKeyColumnData = tableInfo.find(col => col.COLUMN_KEY === 'PRI');
+        if (!primaryKeyColumnData) {
+            return res.status(400).json({
+                success: false,
+                message: `No primary key found for table ${tableName}`
+            });
+        }
+
+        const primaryKeyColumn = primaryKeyColumnData.COLUMN_NAME;
+        console.log(`[enhancedUpdateTableData] Using primary key: ${primaryKeyColumn}`);
+
+        // Process each update individually
+        for (const update of updates) {
+            try {
+                // Determine the primary key value from the update object
+                const primaryKeyValue = update[primaryKeyColumn];
+
+                if (primaryKeyValue === undefined || primaryKeyValue === null) {
+                    results.push({
+                        success: false,
+                        error: `Missing primary key value for ${primaryKeyColumn}`
+                    });
+                    hasErrors = true;
+                    continue;
+                }
+
+                const columnsToUpdate = Object.keys(update).filter(key => key !== 'key' && key !== '_temp_id' && key !== primaryKeyColumn);
+
+                if (columnsToUpdate.length === 0) {
+                    results.push({
+                        success: true,
+                        message: "No columns to update"
+                    });
+                    continue;
+                }
+
+                const values = columnsToUpdate.map(col => update[col]);
+
+                const updateQuery = `
+                    UPDATE ${mysql.escapeId(tableName)}
+                    SET ${columnsToUpdate.map(col => `${mysql.escapeId(col)} = ?`).join(', ')}
+                    WHERE ${mysql.escapeId(primaryKeyColumn)} = ?
+                `;
+
+                await conn.query(updateQuery, [...values, primaryKeyValue]);
+                results.push({ success: true, id: primaryKeyValue });
+
+            } catch (err) {
+                console.error(`Error updating row:`, err);
+                results.push({ success: false, error: err.message });
+                hasErrors = true;
+            }
+        }
+
+        const responseData = {
+            success: !hasErrors,
+            results: results,
+            message: hasErrors ? 'Some updates failed' : 'All updates successful'
+        };
+
+        // If some succeeded and some failed, return 207 Multi-Status, otherwise 200
+        if (hasErrors && results.some(r => r.success)) {
+            res.status(207).json(responseData);
+        } else if (hasErrors) {
+            res.status(400).json(responseData);
+        } else {
+            res.json(responseData);
+        }
+
+    } catch (err) {
+        console.error('Error in enhancedUpdateTableData:', err);
+        res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
+    } finally {
+        conn.release();
+    }
+};

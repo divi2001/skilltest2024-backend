@@ -1,5 +1,5 @@
 const connection = require('../../config/db1');
-const fs = require('fs').promises; 
+const fs = require('fs').promises;
 const xl = require('excel4node');
 
 const path = require('path');
@@ -8,7 +8,7 @@ const Buffer = require('buffer').Buffer;
 const archiver = require('archiver');
 const moment = require('moment-timezone');
 
-const { encrypt, decrypt } =require('../../config/encrypt');
+const { encrypt, decrypt } = require('../../config/encrypt');
 const { request } = require('http');
 const { json } = require('body-parser');
 
@@ -36,7 +36,7 @@ exports.loginStudent = async (req, res) => {
             WHERE ip_address = ? AND request_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)
         `;
         const [loginAttempts] = await connection.query(checkLoginAttemptsQuery, [defaultIpAddress]);
-``
+        ``
         if (loginAttempts[0].attempt_count > 30) {
             return res.status(429).send('Too many login attempts. Please try again later.');
         }
@@ -76,7 +76,7 @@ exports.loginStudent = async (req, res) => {
 
         const examCenterCode = student.center;
         const query4 = 'SELECT * FROM pcregistration WHERE center = ? AND mac_address=?';
-        const [registrations] = await connection.query(query4, [examCenterCode,macAddress]);
+        const [registrations] = await connection.query(query4, [examCenterCode, macAddress]);
         // console.log(registrations)
 
         // if (registrations.length===0) {
@@ -173,7 +173,7 @@ exports.logoutStudent = async (req, res) => {
 
 exports.getStudentDetails = async (req, res) => {
     // console.log('Starting getStudentDetails function');
-    const {studentId} = req.body;
+    const { studentId } = req.body;
     // console.log(studentId);
     // console.log('Student ID from :', studentId);
 
@@ -183,7 +183,7 @@ exports.getStudentDetails = async (req, res) => {
 
     try {
         // console.log('Querying student data');
-        const [students] = await connection.query(studentQuery,[studentId]);
+        const [students] = await connection.query(studentQuery, [studentId]);
 
         if (students.length === 0) {
             console.log('Student not found');
@@ -193,7 +193,7 @@ exports.getStudentDetails = async (req, res) => {
         // console.log('Student data retrieved');
         const batch = student.batchNo
 
-        const [batchs] = await connection.query(batchQuery,[batch]);
+        const [batchs] = await connection.query(batchQuery, [batch]);
 
         const batch1 = batchs[0]
         const batchDate1 = batch1.batchdate
@@ -218,7 +218,7 @@ exports.getStudentDetails = async (req, res) => {
         if (subjects.length === 0) {
             console.log('Subject not found');
             return res.status(404).send('Subject not found');
-            
+
         }
         const subject = subjects[0];
 
@@ -226,7 +226,7 @@ exports.getStudentDetails = async (req, res) => {
             ...student,
             ...subject,
             photo: student.base64,
-            batchdate :batchDate1
+            batchdate: batchDate1
         };
 
 
@@ -245,7 +245,7 @@ exports.getStudentDetails = async (req, res) => {
 
         // console.log('Sending encrypted response');
         // res.send(encryptedResponseData);
-        res.status(201).json({responseData})
+        res.status(201).json({ responseData })
     } catch (err) {
         console.error('Error in getStudentDetails:', err);
         res.status(500).send('Failed to fetch student details');
@@ -253,51 +253,51 @@ exports.getStudentDetails = async (req, res) => {
     // console.log('Ending getStudentDetails function');
 };
 
-exports.totalLoginCounts = async (req,res) => {
+exports.totalLoginCounts = async (req, res) => {
 
-    const {center ,batchNo , department} = req.body;
+    const { center, batchNo, department } = req.body;
     // console.log(req.body);
 
     try {
         let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 1 '
         let queryParams = [];
-        if(department){
-           query +=' AND departmentId = ?';
-           queryParams.push(department);
+        if (department) {
+            query += ' AND departmentId = ?';
+            queryParams.push(department);
         }
-        if(center){
+        if (center) {
             query += ' AND center = ?';
             queryParams.push(center);
         }
-        if(center && batchNo){
+        if (center && batchNo) {
             query += ' AND batchNo = ?';
             queryParams.push(batchNo);
         }
-        if(!center &&batchNo){
-            return res.status(404).json({"Message":"You should also provide center no. to get the login count of a perticular batch"})
+        if (!center && batchNo) {
+            return res.status(404).json({ "Message": "You should also provide center no. to get the login count of a perticular batch" })
         }
 
-        const [result] = await connection.query(query,queryParams);
+        const [result] = await connection.query(query, queryParams);
         // console.log(result[0]);
         res.status(200).json(result[0])
-        
+
     } catch (error) {
         console.log(error);
         res.status(500).json({})
     }
-    
+
 }
 
 exports.getStudentResetRequests = async (req, res) => {
     const { student_id, reason, controller_password } = req.body;
-    
+
     const reset_type = 're-login student';
     const currentTime = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
     if (!student_id || !reason || !controller_password) {
         return res.status(400).send('Bad Request: Missing required parameters');
     }
-    
+
     try {
         // First, get the student's information including center, batch, and departmentId
         const [students] = await connection.query(
@@ -335,7 +335,18 @@ exports.getStudentResetRequests = async (req, res) => {
         const controllerData = controllerResults[0];
 
         // Verify the controller password
-        if (controllerData.controller_pass !== controller_password) {
+        let decryptedStoredPassword = controllerData.controller_pass;
+        try {
+            // Attempt to decrypt if it looks encrypted (contains ':')
+            if (decryptedStoredPassword && decryptedStoredPassword.includes(':')) {
+                decryptedStoredPassword = decrypt(decryptedStoredPassword);
+            }
+        } catch (err) {
+            console.log("Controller password decryption failed:", err.message);
+        }
+
+        // Ensure we are comparing strings
+        if (String(decryptedStoredPassword) !== String(controller_password)) {
             return res.status(401).send('Unauthorized: Incorrect controller password');
         }
 
@@ -355,7 +366,7 @@ exports.getStudentResetRequests = async (req, res) => {
         await connection.query(updateStudentQuery, [student_id]);
         await connection.query(insertResetRequestQuery, [student_id, centerId, reason, reset_type, 'Controller', currentTime]);
 
-        res.json({ 
+        res.json({
             message: "Student can login again. Reset request approved.",
             requestTime: currentTime
         });

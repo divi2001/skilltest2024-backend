@@ -62,53 +62,69 @@ exports.previewMockData = async (req, res) => {
     }
 };
 
-// Helper: Insert data into DB
+// Helper: Insert data into DB (Optimized)
 const insertMockData = async (data, mode) => {
+    if (!data.length) return { inserted: 0 };
+
     const encryptedPassword = encrypt(DEFAULT_PASSWORD);
+    const connection = await require('../config/db1').getConnection(); // Get connection from pool
 
-    for (const student of data) {
-        if (mode === 'append') {
-            const [exists] = await connection.query(
-                'SELECT COUNT(*) as count FROM students WHERE student_id = ?',
-                [student.studentId]
-            );
-            if (exists[0].count > 0) continue; // skip duplicates
-        }
+    try {
+        await connection.beginTransaction();
 
+        // 1. Handle REPLACE mode: Delete existing records efficiently
         if (mode === 'replace') {
-            // delete old data for batch+center+subject
-            await connection.query(
-                'DELETE FROM students WHERE center = ? AND batchNo = ? AND subjectsId = ?',
-                [student.centerId, BATCH_NO, student.subjectId]
-            );
+            // Identify unique groups (Center + Subject) to delete
+            const uniqueGroups = new Set();
+            data.forEach(s => uniqueGroups.add(`${s.centerId}-${s.subjectId}`));
+
+            for (const group of uniqueGroups) {
+                const [centerId, subjectId] = group.split('-');
+                await connection.query(
+                    'DELETE FROM students WHERE center = ? AND batchNo = ? AND subjectsId = ?',
+                    [centerId, BATCH_NO, subjectId]
+                );
+            }
         }
 
-        await connection.query(
-            `INSERT INTO students 
-            (student_id, password, fullname, instituteId, batchNo, batchdate, subjectsId, courseId, batch_year, loggedin, done, center, departmentId, disability, IsShorthand, IsTypewriting) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                student.studentId,
-                encryptedPassword,
-                student.fullname,
-                student.centerId,
-                BATCH_NO,
-                student.batchdate,
-                student.subjectId,
-                1,
-                student.batch_year,
-                0,
-                0,
-                student.centerId,
-                DEPARTMENT_ID,
-                0,
-                1,
-                0
-            ]
-        );
-    }
+        // 2. Prepare Bulk Insert Data
+        // We use INSERT IGNORE to handle 'append' mode duplicates automatically
+        const values = data.map(s => [
+            s.studentId,
+            encryptedPassword,
+            s.fullname,
+            s.centerId,
+            BATCH_NO,
+            s.batchdate,
+            s.subjectId,
+            1, // courseId
+            s.batch_year,
+            0, // loggedin
+            0, // done
+            s.centerId, // center
+            DEPARTMENT_ID,
+            0, // disability
+            1, // IsShorthand
+            0  // IsTypewriting
+        ]);
 
-    return { inserted: data.length };
+        if (values.length > 0) {
+            const insertQuery = `INSERT IGNORE INTO students 
+            (student_id, password, fullname, instituteId, batchNo, batchdate, subjectsId, courseId, batch_year, loggedin, done, center, departmentId, disability, IsShorthand, IsTypewriting) 
+            VALUES ?`;
+
+            await connection.query(insertQuery, [values]);
+        }
+
+        await connection.commit();
+        return { inserted: values.length };
+
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };
 
 // Insert new mock data (replace old)

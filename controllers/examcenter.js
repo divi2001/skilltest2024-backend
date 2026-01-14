@@ -7,20 +7,18 @@ const { encrypt, decrypt } = require('../config/encrypt');
 
 exports.loginCenter = async (req, res) => {
     console.log("Trying center login");
-    const { centerId, centerPass, ipAddress, diskIdentifier, macAddress } = req.body;
-    console.log(`Received data - centerId: ${centerId}, centerPass: ${centerPass}, ipAddress: ${ipAddress}, diskIdentifier: ${diskIdentifier}, macAddress: ${macAddress}`);
+    const { centerId, centerPass, ipAddress, diskIdentifier, macAddress, processor, os, ram } = req.body;
+    console.log(`Received data - centerId: ${centerId}, centerPass: ${centerPass}, ipAddress: ${ipAddress}, diskIdentifier: ${diskIdentifier}, macAddress: ${macAddress}, processor: ${processor}, os: ${os}, ram: ${ram}`);
 
     try {
         // Check if PC registration feature is enabled
         const checkFeatureQuery = 'SELECT status FROM features WHERE feature = "pc_registration"';
         const [featureResult] = await connection.query(checkFeatureQuery);
-        
+
         if (featureResult.length === 0 || featureResult[0].status === 0) {
             console.log("PC registration feature is not available");
             return res.status(403).send('PC registration is not available at this time');
         }
-
-        console.log("PC registration feature is enabled");
 
         console.log("PC registration feature is enabled");
 
@@ -34,11 +32,33 @@ exports.loginCenter = async (req, res) => {
                 center VARCHAR(255) NOT NULL,
                 ip_address VARCHAR(255) NOT NULL,
                 disk_id VARCHAR(255) NOT NULL,
-                mac_address VARCHAR(255) NOT NULL
+                mac_address VARCHAR(255) NOT NULL,
+                processor VARCHAR(255),
+                os VARCHAR(255),
+                ram VARCHAR(255)
             )
         `;
         await connection.query(createTableQuery);
-        console.log("pcregistration table ensured");
+
+        // Attempt to add columns if they don't exist (for existing tables)
+        const alterQueries = [
+            "ALTER TABLE pcregistration ADD COLUMN processor VARCHAR(255)",
+            "ALTER TABLE pcregistration ADD COLUMN os VARCHAR(255)",
+            "ALTER TABLE pcregistration ADD COLUMN ram VARCHAR(255)"
+        ];
+
+        for (const query of alterQueries) {
+            try {
+                await connection.query(query);
+            } catch (err) {
+                // Ignore error if column already exists
+                if (err.code !== 'ER_DUP_FIELDNAME') {
+                    console.log(`Note: Column addition skipped or failed: ${err.message}`);
+                }
+            }
+        }
+
+        console.log("pcregistration table ensured and updated");
 
         console.log("Querying examcenterdb for centerId");
         const [results] = await connection.query(query1, [centerId]);
@@ -98,10 +118,10 @@ exports.loginCenter = async (req, res) => {
                     console.log("Registering new PC");
                     // Insert PC registration log
                     const insertLogQuery = `
-                        INSERT INTO pcregistration (center, ip_address, disk_id, mac_address)
-                        VALUES (?, ?, ?, ?)
+                        INSERT INTO pcregistration (center, ip_address, disk_id, mac_address, processor, os, ram)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                     `;
-                    await connection.query(insertLogQuery, [centerId, ipAddress, diskIdentifier, macAddress]);
+                    await connection.query(insertLogQuery, [centerId, ipAddress, diskIdentifier, macAddress, processor, os, ram]);
                     console.log("PC registered successfully");
                     return res.status(200).send('PC registered successfully for the center!');
                 } else {
@@ -225,7 +245,7 @@ exports.getCenterResetRequests = async (req, res) => {
             if (result.affectedRows > 0) {
                 // Fetch the newly created request
                 const [newRequest] = await connection.query('SELECT * FROM resetrequests WHERE id = ?', [result.insertId]);
-                
+
                 // Format the time for the new request
                 if (newRequest && newRequest[0] && newRequest[0].time) {
                     newRequest[0].time = moment(newRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
@@ -285,11 +305,11 @@ exports.getCenterBatchNumbers = async (req, res) => {
             start_time: moment(batch.start_time, 'HH:mm:ss').format('HH:mm:ss'),
             end_time: moment(batch.end_time, 'HH:mm:ss').format('HH:mm:ss')
         }));
-        
+
         console.log("Formatted batches:", formattedBatches);
 
         if (formattedBatches.length === 0) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 message: "No batches found for this center",
                 centerId: centerId
             });
@@ -298,9 +318,9 @@ exports.getCenterBatchNumbers = async (req, res) => {
         res.json(formattedBatches);
     } catch (err) {
         console.error('Database query error:', err);
-        res.status(500).json({ 
+        res.status(500).json({
             message: 'Internal server error',
-            error: err.message 
+            error: err.message
         });
     }
 };
@@ -343,7 +363,7 @@ exports.getCenterData = async (req, res) => {
 exports.uploadAttendanceReport = async (req, res) => {
     const center = req.session.centerId;
     const { batchNo, departmentId, present_count, absent_count, report_date } = req.body;
-    
+
     console.log('Upload attendance input values:', {
         center,
         batchNo,
@@ -352,16 +372,16 @@ exports.uploadAttendanceReport = async (req, res) => {
         absent_count,
         report_date
     });
-    
+
     if (!req.file) {
         return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
     // Validate required fields including departmentId
     if (!batchNo || !departmentId || !present_count || !absent_count) {
-        return res.status(400).json({ 
-            success: false, 
-            message: "All fields are required: batchNo, departmentId, present_count, absent_count" 
+        return res.status(400).json({
+            success: false,
+            message: "All fields are required: batchNo, departmentId, present_count, absent_count"
         });
     }
 
@@ -373,45 +393,45 @@ exports.uploadAttendanceReport = async (req, res) => {
             'SELECT departmentId, departmentName FROM departmentdb WHERE departmentId = ? AND departmentStatus = 1',
             [departmentId]
         );
-        
+
         if (deptCheck.length === 0) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 success: false,
-                message: "Invalid or inactive department selected" 
+                message: "Invalid or inactive department selected"
             });
         }
 
         const checkQuery = 'SELECT * from attendance_reports where center = ? AND batchNo = ? AND departmentId = ?;';
         const [check] = await connection.query(checkQuery, [center, batchNo, departmentId]);
         if (check.length > 0) {
-            return res.status(403).json({ 
-                "message": "Already added the data for this batch and department. Please Check!!" 
+            return res.status(403).json({
+                "message": "Already added the data for this batch and department. Please Check!!"
             });
         }
-        
+
         // UPDATED: Include department in filename
         const departmentName = deptCheck[0].departmentName.replace(/[^a-zA-Z0-9]/g, '_'); // Clean department name for filename
         const newFileName = `${center}_dept_${departmentId}_${departmentName}_batch_${batchNo}_attendance_report.pdf`;
-        
+
         // Date handling for MySQL DATETIME column
         let mysqlDateTime;
-        
+
         if (report_date) {
             console.log('Processing report_date:', report_date);
-            
+
             const parsedDate = moment(report_date, [
-                'YYYY-MM-DD', 'MM/DD/YYYY', 'YYYY-MM-DD', 
+                'YYYY-MM-DD', 'MM/DD/YYYY', 'YYYY-MM-DD',
                 'DD/MM/YYYY', 'MM-DD-YYYY', 'YYYY/MM/DD'
             ], true);
-            
+
             if (!parsedDate.isValid()) {
                 console.log('Invalid date format provided:', report_date);
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Invalid date format. Please use YYYY-MM-DD, MM/DD/YYYY, or YYYY-MM-DD format' 
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid date format. Please use YYYY-MM-DD, MM/DD/YYYY, or YYYY-MM-DD format'
                 });
             }
-            
+
             mysqlDateTime = parsedDate.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
         } else {
             mysqlDateTime = moment().tz("Asia/Kolkata").format('YYYY-MM-DD HH:mm:ss');
@@ -426,7 +446,7 @@ exports.uploadAttendanceReport = async (req, res) => {
         const newPath = path.join(path.dirname(oldPath), newFileName);
         fs.renameSync(oldPath, newPath);
         const url = `/uploads/${newFileName}`;
-        
+
         console.log('Executing SQL query:', insertQuery);
         console.log('Query parameters:', [
             center,
@@ -435,9 +455,9 @@ exports.uploadAttendanceReport = async (req, res) => {
             mysqlDateTime,
             present_count,
             absent_count,
-            url 
+            url
         ]);
-        
+
         const [result] = await connection.query(insertQuery, [
             center,
             batchNo,
@@ -445,12 +465,12 @@ exports.uploadAttendanceReport = async (req, res) => {
             mysqlDateTime,
             present_count,
             absent_count,
-            url 
+            url
         ]);
 
         if (result.affectedRows > 0) {
-            res.status(200).json({ 
-                success: true, 
+            res.status(200).json({
+                success: true,
                 message: 'Attendance report uploaded successfully',
                 reportId: result.insertId,
                 filename: newFileName
@@ -461,7 +481,7 @@ exports.uploadAttendanceReport = async (req, res) => {
 
     } catch (error) {
         console.error('Error uploading attendance report:', error);
-        
+
         // Clean up file if there was an error
         if (req.file && req.file.path && fs.existsSync(req.file.path)) {
             try {
@@ -471,38 +491,38 @@ exports.uploadAttendanceReport = async (req, res) => {
                 console.error('Error cleaning up uploaded file:', unlinkError);
             }
         }
-        
+
         res.status(500).json({ "message": error.message });
     }
 }
 
-exports.deleteAttendanceReport = async (req,res)=>{
+exports.deleteAttendanceReport = async (req, res) => {
     const { batchNo, departmentId } = req.body;  // Include departmentId
     const center = req.session.centerId;
-    
-    if(!batchNo || !departmentId){
+
+    if (!batchNo || !departmentId) {
         return res.status(400).json({
-            "message":"Please provide both batch number and department ID"
+            "message": "Please provide both batch number and department ID"
         })
     }
-    if(!center){
-        return res.status(400).json({"message":"Center admin is not logged in"})
+    if (!center) {
+        return res.status(400).json({ "message": "Center admin is not logged in" })
     }
-    
+
     try {
         // Updated query to include departmentId
         const getFileQuery = `SELECT attendance_pdf FROM attendance_reports WHERE batchNo = ? AND departmentId = ? AND center = ?`;
         const [fileResult] = await connection.query(getFileQuery, [batchNo, departmentId, center]);
-        
+
         if (fileResult.length === 0) {
-            return res.status(404).json({"message":"Attendance report not found"});
+            return res.status(404).json({ "message": "Attendance report not found" });
         }
-        
+
         const deleteQuery = `DELETE FROM attendance_reports WHERE batchNo = ? AND departmentId = ? AND center = ?`;
         const [response] = await connection.query(deleteQuery, [batchNo, departmentId, center]);
-        
-        if(response.affectedRows === 0){
-            return res.status(500).json({"message":"Failed to delete. Try Again!!"})
+
+        if (response.affectedRows === 0) {
+            return res.status(500).json({ "message": "Failed to delete. Try Again!!" })
         }
 
         // Delete the PDF file if it exists
@@ -518,15 +538,15 @@ exports.deleteAttendanceReport = async (req,res)=>{
             }
         }
 
-        res.status(200).json({"message":"Attendance report deleted successfully!!"})
+        res.status(200).json({ "message": "Attendance report deleted successfully!!" })
     } catch (error) {
         console.log(error);
         res.status(500).json({ "message": error.message });
     }
 }
-exports.getAllAttendanceReport = async (req,res) => {
+exports.getAllAttendanceReport = async (req, res) => {
     const center = req.session.centerId;
-    
+
     try {
         // Updated query to include department information
         const query = `
@@ -539,13 +559,13 @@ exports.getAllAttendanceReport = async (req,res) => {
             WHERE ar.center = ? 
             ORDER BY ar.report_date DESC
         `;
-        
+
         const [response] = await connection.query(query, [center]);
 
-        if(response.length === 0){
-            return res.status(404).json({"message":"Nothing Uploaded yet!!"})
+        if (response.length === 0) {
+            return res.status(404).json({ "message": "Nothing Uploaded yet!!" })
         }
-        
+
         // Format dates for display and ensure department info is included
         const formattedResponse = response.map(report => ({
             ...report,
@@ -553,11 +573,11 @@ exports.getAllAttendanceReport = async (req,res) => {
             departmentName: report.departmentName || 'Unknown Department',
             departmentId: report.departmentId || 'N/A'
         }));
-        
+
         console.log("Formatted attendance reports with departments:", formattedResponse);
         res.status(200).json({
-            "message":"Received all data successfully!!",
-            "Reports":formattedResponse
+            "message": "Received all data successfully!!",
+            "Reports": formattedResponse
         });
 
     } catch (error) {
