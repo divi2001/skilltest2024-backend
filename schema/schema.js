@@ -81,10 +81,10 @@ const schema = {
         center_address: 'VARCHAR(255)',
         pc_count: 'INT',
         max_pc: 'INT',
-        attendanceroll: 'LONGTEXT',
-        absenteereport: 'LONGTEXT',
-        answersheet: 'LONGTEXT',
-        blankanswersheet: 'LONGTEXT'
+        attendanceroll: 'LONGTEXT DEFAULT NULL',
+        absenteereport: 'LONGTEXT DEFAULT NULL',
+        answersheet: 'LONGTEXT DEFAULT NULL',
+        blankanswersheet: 'LONGTEXT DEFAULT NULL'
     },
     controllerdb: {
         center: 'INT REFERENCES examcenterdb(center)',

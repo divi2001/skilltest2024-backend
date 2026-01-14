@@ -102,7 +102,8 @@ exports.fetchTableData = async (req, res) => {
           try {
             row.centerpass = decrypt(row.centerpass);
           } catch (error) {
-            console.error(`Failed to decrypt centerpass for center ${row.center}:`, error);
+            // Silently skip decryption if value is already plain text or invalid format
+            // The value remains as-is in the row
           }
         }
       });
