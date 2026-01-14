@@ -21,26 +21,26 @@ exports.previewMockData = async (req, res) => {
         for (const centerRow of centers) {
             const centerId = centerRow.center;
 
+            // Get last student ID for this center (across all subjects) to ensure uniqueness
+            const [lastStudent] = await connection.query(
+                'SELECT student_id FROM students WHERE center = ? ORDER BY student_id DESC LIMIT 1',
+                [centerId]
+            );
+
+            // Start counter
+            let studentCounter = 1;
+            if (lastStudent.length > 0) {
+                // Extract numeric sequence from student_id
+                studentCounter = parseInt(lastStudent[0].student_id.toString().slice(centerId.toString().length)) + 1;
+            }
+
             for (const subjectId of SUBJECTS) {
-                // Get last student ID for this center and subject
-                const [lastStudent] = await connection.query(
-                    'SELECT student_id FROM students WHERE center = ? AND subjectsId = ? ORDER BY student_id DESC LIMIT 1',
-                    [centerId, subjectId]
-                );
-
-                // Start counter
-                let studentCounter = 1;
-                if (lastStudent.length > 0) {
-                    // Extract numeric sequence from student_id
-                    studentCounter = parseInt(lastStudent[0].student_id.toString().slice(centerId.toString().length)) + 1;
-                }
-
                 // Generate students
                 for (let i = 0; i < countPerSubject; i++) {
-                    const studentId = parseInt(`${centerId}${(studentCounter + i).toString().padStart(3, '0')}`);
+                    const studentId = parseInt(`${centerId}${studentCounter.toString().padStart(3, '0')}`);
                     previewData.push({
                         studentId,
-                        fullname: `Mock Student ${centerId}-${subjectId}-${studentCounter + i}`,
+                        fullname: `Mock Student ${centerId}-${subjectId}-${studentCounter}`,
                         password: DEFAULT_PASSWORD,
                         centerId,
                         subjectId,
@@ -48,6 +48,7 @@ exports.previewMockData = async (req, res) => {
                         batchdate: batchdate || '2025-07-09',
                         batch_year: batch_year || '2025'
                     });
+                    studentCounter++; // Increment for the next student
                 }
             }
         }
