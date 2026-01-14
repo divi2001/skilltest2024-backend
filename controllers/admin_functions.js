@@ -1,46 +1,6 @@
 const connection = require('../config/db1');
 const moment = require('moment-timezone');
 const { encrypt, decrypt } = require('../config/encrypt');
-const mysql = require('mysql2/promise');
-// exports.loginadmin = async (req, res) => {
-//     const { userId, password } = req.body;
-//     console.log('Login attempt - UserID:', userId);
-
-//     const query1 = 'SELECT * FROM admindb WHERE adminid = ?';
-
-//     try {
-//         const [results] = await connection.query(query1, [userId]);
-//         console.log(results);
-
-//         if (results.length > 0) {
-//             const admin = results[0];
-//             console.log('Admin found in database:', admin.adminid);
-
-//             // Direct comparison since database has plain text password
-//             const storedPassword = admin.password;
-
-//             console.log('Stored password:', storedPassword);
-//             const storedDecryptedPassword = decrypt(storedPassword);
-//             console.log('Provided password:', password);
-
-//             if (storedDecryptedPassword === password) {
-//                 console.log('Login successful for admin:', admin.adminid);
-//                 req.session.adminid = admin.adminid;
-//                 res.send('Logged in successfully as an admin!');
-//             } else {
-//                 console.log('Password mismatch for admin:', admin.adminid);
-//                 res.status(401).send('Invalid credentials for admin');
-//             }
-//         } else {
-//             console.log('Admin ID not found:', userId);
-//             res.status(404).send('admin not found');
-//         }
-//     } catch (err) {
-//         console.error('Database error:', err);
-//         res.status(500).send(err.message);
-//     }
-// };
-
 
 exports.loginadmin = async (req, res) => {
     const { userId, password } = req.body;
@@ -81,76 +41,59 @@ exports.loginadmin = async (req, res) => {
 
 
 exports.fetchTableData = async (req, res) => {
+    console.log("Fetching table data for admin");
     const { tableName } = req.body;
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
 
     try {
-        // Validate table name to prevent SQL injection
-        if (!tableName || !/^[a-zA-Z0-9_]+$/.test(tableName)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid table name'
-            });
+        console.log(`Fetching column information for table: ${tableName}`);
+        // First, get the column information for the table
+        const [columns] = await connection.query(`
+              SELECT COLUMN_NAME, DATA_TYPE 
+              FROM INFORMATION_SCHEMA.COLUMNS 
+              WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
+          `, [tableName]);
+
+        console.log(`Columns found:`, columns);
+
+        if (columns.length === 0) {
+            return res.status(404).send('Table not found or has no columns');
         }
 
-        // Fetch table data
-        const [rows] = await connection.query(`SELECT * FROM \`${tableName}\``);
-
-        // DECRYPT SENSITIVE DATA for departmentdb
-        if (tableName === 'departmentdb') {
-            rows.forEach(row => {
-                if (row.departmentPassword) {
-                    try {
-                        // Only attempt decrypt if it looks like our format
-                        if (row.departmentPassword.includes(':')) {
-                            row.departmentPassword = decrypt(row.departmentPassword);
-                        }
-                    } catch (e) {
-                        // Ignore decryption errors, display safe or original
-                        // console.error('Decryption failed for row', row.departmentId);
-                    }
-                }
-            });
-        }
-
-        // ✅ NEW: Fetch primary key(s) for the table
-        const [primaryKeyRows] = await connection.query(
-            `SELECT COLUMN_NAME 
-       FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-       WHERE TABLE_SCHEMA = DATABASE() 
-         AND TABLE_NAME = ? 
-         AND CONSTRAINT_NAME = 'PRIMARY'
-       ORDER BY ORDINAL_POSITION`,
-            [tableName]
-        );
-
-        // Extract primary key column name(s)
-        const primaryKeys = primaryKeyRows.map(row => row.COLUMN_NAME);
-        const primaryKey = primaryKeys.length > 0 ? primaryKeys[0] : null;
-
-        // If composite key, return all keys
-        const compositePrimaryKeys = primaryKeys.length > 1 ? primaryKeys : null;
-
-        console.log(`Table: ${tableName}, Primary Key: ${primaryKey || 'None found'}`);
-
-        // ✅ CHANGED: Return data with primary key information
-        res.json({
-            success: true,
-            data: rows,
-            primaryKey: primaryKey,  // ← Add this
-            compositePrimaryKeys: compositePrimaryKeys,  // ← Add this
-            metadata: {
-                tableName: tableName,
-                rowCount: rows.length
+        // Construct the SELECT part of the query, formatting DATE and DATETIME columns
+        const selectParts = columns.map(column => {
+            if (column.DATA_TYPE === 'date') {
+                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
+            } else if (column.DATA_TYPE === 'datetime') {
+                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
+            } else if (column.DATA_TYPE === 'timestamp') {
+                return `DATE_FORMAT(${mysql.escapeId(column.COLUMN_NAME)}, '%Y-%m-%d %H:%i:%s') AS ${mysql.escapeId(column.COLUMN_NAME)}`;
+            } else {
+                return mysql.escapeId(column.COLUMN_NAME);
             }
         });
 
-    } catch (error) {
-        console.error('Error fetching table data:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching table data',
-            error: error.message
-        });
+        const query = `SELECT ${selectParts.join(', ')} FROM ${mysql.escapeId(tableName)}`;
+        console.log('Executing query:', query);
+
+        const [results] = await connection.query(query);
+        console.log(`Query executed successfully. Rows returned: ${results.length}`);
+
+        res.json(results);
+    } catch (err) {
+        console.error('Error fetching table data:', err);
+        if (err.code === 'ER_NO_SUCH_TABLE') {
+            res.status(404).send('Table not found');
+        } else if (err.sql) {
+            console.error('SQL that caused the error:', err.sql);
+            res.status(500).send('Error executing SQL query');
+        } else {
+            res.status(500).send('Error fetching table data');
+        }
     }
 };
 
@@ -228,473 +171,27 @@ exports.updateTableData = async (req, res) => {
         let successfulUpdates = 0;
 
         for (const row of updatedRows) {
-            console.log(`[updateTableData] Processing row:`, row);
+            const columns = Object.keys(row).filter(key => key !== 'key' && key !== primaryKeyColumn);
+            const values = columns.map(col => row[col]);
 
-            // Check if primary key exists in the row data
-            if (!row[primaryKey] && row[primaryKey] !== 0) {
-                console.error(`[updateTableData] Missing primary key value for ${primaryKey}`);
-                results.push({
-                    success: false,
-                    message: `Missing primary key value for ${primaryKey}`,
-                    rowData: row
-                });
-                continue;
-            }
+            const updateQuery = `
+                UPDATE ${tableName}
+                SET ${columns.map(col => `${col} = ?`).join(', ')}
+                WHERE ${primaryKeyColumn} = ?
+            `;
 
-            // Filter out temporary fields and primary key from update fields
-            const updateFields = {};
-            for (const [key, value] of Object.entries(row)) {
-                // Skip temporary fields and primary key
-                if (key === '_temp_id' || key === 'key' || key === primaryKey) {
-                    continue;
-                }
-
-                // Check if column exists in table
-                const columnExists = tableInfo.find(col => col.COLUMN_NAME === key);
-                if (!columnExists) {
-                    console.warn(`[updateTableData] Column ${key} not found in table, skipping`);
-                    continue;
-                }
-
-                // Handle data type conversion
-                if (value === null || value === 'NULL' || value === '') {
-                    if (columnExists.IS_NULLABLE === 'NO') {
-                        console.warn(`[updateTableData] Column ${key} is not nullable, skipping null value`);
-                        continue;
-                    }
-                    updateFields[key] = null;
-                } else if (columnExists.DATA_TYPE.includes('int')) {
-                    updateFields[key] = parseInt(value) || 0;
-                } else if (columnExists.DATA_TYPE.includes('decimal') || columnExists.DATA_TYPE.includes('float')) {
-                    updateFields[key] = parseFloat(value) || 0.0;
-                } else {
-                    updateFields[key] = value;
-                }
-            }
-
-            // Check if there are any fields to update
-            if (Object.keys(updateFields).length === 0) {
-                console.warn(`[updateTableData] No valid fields to update for ${primaryKey}=${row[primaryKey]}`);
-                results.push({
-                    success: false,
-                    message: `No valid fields to update`,
-                    primaryKey: row[primaryKey],
-                    rowData: row
-                });
-                continue;
-            }
-
-            try {
-                // Build dynamic UPDATE query
-                const setClause = Object.keys(updateFields)
-                    .map(col => `${col} = ?`)
-                    .join(', ');
-
-                const values = [
-                    ...Object.values(updateFields),
-                    row[primaryKey] // WHERE clause value
-                ];
-
-                const updateQuery = `UPDATE ${tableName} SET ${setClause} WHERE ${primaryKey} = ?`;
-                console.log(`[updateTableData] Executing: ${updateQuery}`, values);
-
-                const [result] = await conn.query(updateQuery, values);
-
-                if (result.affectedRows > 0) {
-                    successfulUpdates++;
-                    results.push({
-                        success: true,
-                        primaryKey: row[primaryKey],
-                        affectedRows: result.affectedRows,
-                        updatedColumns: Object.keys(updateFields)
-                    });
-                    console.log(`[updateTableData] Successfully updated ${primaryKey}=${row[primaryKey]}`);
-                } else {
-                    results.push({
-                        success: false,
-                        primaryKey: row[primaryKey],
-                        message: 'No rows affected - record may not exist'
-                    });
-                    console.warn(`[updateTableData] No rows affected for ${primaryKey}=${row[primaryKey]}`);
-                }
-
-            } catch (error) {
-                console.error(`[updateTableData] Update failed for ${primaryKey}=${row[primaryKey]}:`, error);
-                results.push({
-                    success: false,
-                    primaryKey: row[primaryKey],
-                    error: error.message,
-                    sqlMessage: error.sqlMessage
-                });
-            }
+            await connection.query(updateQuery, [...values, row[primaryKeyColumn]]);
         }
 
-        // Check if any updates were successful
-        if (successfulUpdates === 0) {
-            await conn.rollback();
-            return res.status(400).json({
-                success: false,
-                message: 'No records were updated',
-                details: results
-            });
-        }
+        // Commit the transaction
+        await connection.query('COMMIT');
 
-        await conn.commit();
-        console.log(`[updateTableData] Successfully updated ${successfulUpdates} records`);
-
-        return res.json({
-            success: true,
-            message: `Updated ${successfulUpdates} of ${updatedRows.length} records in ${tableName}`,
-            results: results,
-            summary: {
-                total: updatedRows.length,
-                successful: successfulUpdates,
-                failed: updatedRows.length - successfulUpdates
-            }
-        });
-
-    } catch (error) {
-        console.error('[updateTableData] Transaction error:', error);
-        await conn.rollback();
-        return res.status(500).json({
-            success: false,
-            message: 'Database error during update',
-            error: error.message,
-            sqlMessage: error.sqlMessage
-        });
-    } finally {
-        conn.release();
-        console.log('[updateTableData] Connection released');
-    }
-};
-
-// NEW: Add Table Record (Create)
-exports.addTableRecord = async (req, res) => {
-    console.log("Adding new record to table");
-    const adminId = req.session.adminid;
-
-    if (!adminId) {
-        return res.status(401).send('Unauthorized: Admin not logged in');
-    }
-
-    const { tableName, newRecord } = req.body;
-    const MAX_IMAGE_SIZE = 50 * 1024; // 50KB
-
-    if (!tableName || !newRecord) {
-        return res.status(400).send('Invalid request: tableName and newRecord are required');
-    }
-
-    try {
-        // Validate table exists
-        const [tables] = await connection.query('SHOW TABLES');
-        const tableNames = tables.map(row => Object.values(row)[0]);
-
-        if (!tableNames.includes(tableName)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid table name'
-            });
-        }
-
-        // Process and validate any base64 image data
-        for (const [key, value] of Object.entries(newRecord)) {
-            if (typeof value === 'string' && value.startsWith('data:image')) {
-                // Calculate base64 string size
-                const base64Size = Math.ceil((value.length * 3) / 4);
-
-                if (base64Size > MAX_IMAGE_SIZE) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Image size for field '${key}' exceeds maximum limit of 50KB. Current size: ${(base64Size / 1024).toFixed(2)}KB`
-                    });
-                }
-            }
-        }
-
-        // Get table structure to handle auto-increment columns
-        const [columns] = await connection.query(`
-            SELECT COLUMN_NAME, EXTRA 
-            FROM INFORMATION_SCHEMA.COLUMNS 
-            WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
-        `, [tableName]);
-
-        // Filter out auto-increment columns from insert
-        const filteredRecord = { ...newRecord };
-        columns.forEach(col => {
-            if (col.EXTRA.includes('auto_increment')) {
-                delete filteredRecord[col.COLUMN_NAME];
-            }
-        });
-
-        // Prepare columns and values
-        const insertColumns = Object.keys(filteredRecord);
-        const values = Object.values(filteredRecord);
-
-        if (insertColumns.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No valid columns to insert'
-            });
-        }
-
-        const placeholders = values.map(() => '?').join(', ');
-        const query = `INSERT INTO ${tableName} (${insertColumns.join(', ')}) VALUES (${placeholders})`;
-
-        const [result] = await connection.query(query, values);
-
-        console.log("Record added successfully, ID:", result.insertId);
-
-        res.status(200).json({
-            success: true,
-            message: 'Record added successfully',
-            insertId: result.insertId
-        });
-
+        res.json({ success: true, message: 'Table data updated successfully' });
     } catch (err) {
-        console.error("Error adding record:", err);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to add record to DB',
-            details: err.message
-        });
-    }
-};
-
-// NEW: Delete Table Record
-exports.deleteTableRecord = async (req, res) => {
-    console.log("Deleting record from table");
-    const adminId = req.session.adminid;
-
-    if (!adminId) {
-        return res.status(401).send('Unauthorized: Admin not logged in');
-    }
-
-    const { tableName, rowData } = req.body;
-
-    if (!tableName || !rowData) {
-        return res.status(400).json({
-            success: false,
-            message: 'Table name and row data are required'
-        });
-    }
-
-    try {
-        // Validate table exists
-        const [tables] = await connection.query('SHOW TABLES');
-        const tableNames = tables.map(row => Object.values(row)[0]);
-
-        if (!tableNames.includes(tableName)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid table name'
-            });
-        }
-
-        const conn = await connection.getConnection();
-
-        try {
-            // Get table structure to find primary key
-            const [tableInfo] = await conn.query(`
-                SELECT COLUMN_NAME, COLUMN_KEY 
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
-            `, [tableName]);
-
-            if (tableInfo.length === 0) {
-                conn.release();
-                return res.status(404).json({
-                    success: false,
-                    message: 'Table not found'
-                });
-            }
-
-            // Find primary key or use first column as fallback
-            const primaryKeyColumn = tableInfo.find(col => col.COLUMN_KEY === 'PRI') || tableInfo[0];
-            const primaryKey = primaryKeyColumn.COLUMN_NAME;
-
-            if (!rowData[primaryKey]) {
-                conn.release();
-                return res.status(400).json({
-                    success: false,
-                    message: `Missing primary key value for column: ${primaryKey}`
-                });
-            }
-
-            // Delete the record
-            const [result] = await conn.query(
-                `DELETE FROM ${tableName} WHERE ${primaryKey} = ?`,
-                [rowData[primaryKey]]
-            );
-
-            conn.release();
-
-            if (result.affectedRows === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'No matching record found to delete'
-                });
-            }
-
-            return res.status(200).json({
-                success: true,
-                message: 'Record deleted successfully',
-                affectedRows: result.affectedRows
-            });
-
-        } catch (dbError) {
-            if (conn) conn.release();
-            throw dbError;
-        }
-
-    } catch (err) {
-        console.error('Delete operation failed:', err);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to delete record',
-            error: process.env.NODE_ENV === 'development' ? err.message : undefined
-        });
-    }
-};
-
-exports.enhancedUpdateTableData = async (req, res) => {
-    const { tableName, updates } = req.body;
-
-    try {
-        // Validate inputs
-        if (!tableName || !updates || !Array.isArray(updates)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid request data'
-            });
-        }
-
-        // Validate table name
-        if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid table name'
-            });
-        }
-
-        // ✅ NEW: Fetch primary key dynamically for the table
-        const [primaryKeyRows] = await connection.query(
-            `SELECT COLUMN_NAME 
-       FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-       WHERE TABLE_SCHEMA = DATABASE() 
-         AND TABLE_NAME = ? 
-         AND CONSTRAINT_NAME = 'PRIMARY'
-       ORDER BY ORDINAL_POSITION`,
-            [tableName]
-        );
-
-        if (primaryKeyRows.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: `No primary key found for table: ${tableName}`
-            });
-        }
-
-        const primaryKeyColumn = primaryKeyRows[0].COLUMN_NAME;
-        console.log(`Using primary key: ${primaryKeyColumn} for table: ${tableName}`);
-
-        const results = [];
-        let successCount = 0;
-        let failCount = 0;
-
-        // Process each update
-        for (const updateData of updates) {
-            try {
-                // ✅ CHANGED: Use dynamic primary key
-                const primaryKeyValue = updateData[primaryKeyColumn];
-
-                if (!primaryKeyValue && primaryKeyValue !== 0) {
-                    results.push({
-                        success: false,
-                        error: `Missing primary key value: ${primaryKeyColumn}`,
-                        data: updateData
-                    });
-                    failCount++;
-                    continue;
-                }
-
-                // Build UPDATE query dynamically
-                const fieldsToUpdate = { ...updateData };
-                delete fieldsToUpdate[primaryKeyColumn]; // Don't update primary key
-
-                const setClause = Object.keys(fieldsToUpdate)
-                    .map(key => `\`${key}\` = ?`)
-                    .join(', ');
-
-                const values = [...Object.values(fieldsToUpdate), primaryKeyValue];
-
-                const updateQuery = `
-          UPDATE \`${tableName}\` 
-          SET ${setClause} 
-          WHERE \`${primaryKeyColumn}\` = ?
-        `;
-
-                console.log('Executing update:', updateQuery);
-                console.log('Values:', values);
-
-                const [result] = await connection.query(updateQuery, values);
-
-                if (result.affectedRows > 0) {
-                    results.push({
-                        success: true,
-                        primaryKey: primaryKeyColumn,
-                        primaryKeyValue: primaryKeyValue,
-                        affectedRows: result.affectedRows
-                    });
-                    successCount++;
-                } else {
-                    results.push({
-                        success: false,
-                        error: 'No rows affected - record may not exist',
-                        primaryKey: primaryKeyColumn,
-                        primaryKeyValue: primaryKeyValue
-                    });
-                    failCount++;
-                }
-
-            } catch (updateError) {
-                console.error('Update error for record:', updateError);
-                results.push({
-                    success: false,
-                    error: updateError.message,
-                    data: updateData
-                });
-                failCount++;
-            }
-        }
-
-        // Determine response status
-        if (failCount === 0) {
-            res.json({
-                success: true,
-                message: `All ${successCount} updates completed successfully`,
-                results: results
-            });
-        } else if (successCount === 0) {
-            res.status(400).json({
-                success: false,
-                message: `All ${failCount} updates failed`,
-                results: results
-            });
-        } else {
-            res.status(207).json({
-                success: false,
-                message: `${successCount} of ${updates.length} updates succeeded, ${failCount} failed`,
-                results: results
-            });
-        }
-
-    } catch (error) {
-        console.error('Error in enhanced update:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error updating table data',
-            error: error.message
-        });
+        // If there's an error, rollback the transaction
+        await connection.query('ROLLBACK');
+        console.error('Error updating table data:', err);
+        res.status(500).json({ success: false, message: 'Error updating table data', error: err.message });
     }
 };
 
@@ -1287,25 +784,14 @@ exports.getStudentData = async (req, res) => {
 
         const [shorthandPassage] = await connection.query(shorthandPassageQuery, [student_id]);
         const [studentResults] = await connection.query(studentQuery, [student_id]);
-
-        // Handle typingPassage query separately with error handling
-        let typingPassage = [];
-        try {
-            const [typingPassageResult] = await connection.query(typingPassageQuery, [student_id]);
-            typingPassage = typingPassageResult;
-        } catch (typingError) {
-            console.log('Typing passage query failed, ignoring:', typingError.message);
-            // typingPassage remains empty array
-        }
-
+        const [typingPassage] = await connection.query(typingPassageQuery, [student_id]);
         const [audioLogs] = await connection.query(audioLogsQuery, [student_id]);
         const [examStages] = await connection.query(examStagesQuery, [student_id]);
         const [studentLogs] = await connection.query(studentLogsQuery, [student_id]);
-
+        // console.log(results);
         if (studentResults.length === 0) {
             return res.status(404).json({ "Message": "No Student Found for this id!!!" })
         }
-
         console.log(studentLogs);
         studentLogs[0].loginTime = formatDate(studentLogs[0].loginTime);
         studentLogs[0].trial_time = formatDate(studentLogs[0].trial_time);
@@ -1318,12 +804,7 @@ exports.getStudentData = async (req, res) => {
         studentLogs[0].feedback_time = formatDate(studentLogs[0].feedback_time);
 
         studentResults[0].batchdate = formatDate(studentResults[0].batchdate);
-
-        // Only format time if typingPassage has data
-        if (typingPassage.length > 0 && typingPassage[0].time) {
-            typingPassage[0].time = formatDate(typingPassage[0].time);
-        }
-
+        typingPassage[0].time = formatDate(typingPassage[0].time);
         res.status(201).json({ shorthandPassage, typingPassage, studentResults, audioLogs, examStages, studentLogs });
     } catch (error) {
         console.error('Database query error:', error);
