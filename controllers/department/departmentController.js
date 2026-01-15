@@ -15,7 +15,7 @@ exports.departementLogin = async (req, res) => {
         console.log(results);
         if (results.length > 0) {
             const admin = results[0];
-            console.log("data: "+admin);
+            console.log("data: " + admin);
             console.log(admin)
             let decryptedStoredPassword = await decrypt(admin.departmentPassword);
             console.log(decryptedStoredPassword);
@@ -25,7 +25,7 @@ exports.departementLogin = async (req, res) => {
                 console.log(error);
             }
 
-            if ( decryptedStoredPassword === password) {
+            if (decryptedStoredPassword === password) {
                 // Set institute session
                 req.session.departmentId = admin.departmentId;
                 console.log("Logged in successfully as an department admin!")
@@ -93,7 +93,7 @@ function convertDateFormat(dateString) {
 
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
     const departmentId = req.session.departmentId.toString();
-    console.log('Starting getStudentsTrack function',departmentId);
+    console.log('Starting getStudentsTrack function', departmentId);
     let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.query;
     console.log("Exam departmentId", departmentId);
     console.log("Batch no:", batchNo);
@@ -143,9 +143,14 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     FROM
         students s
     LEFT JOIN
-        subjectsdb sub ON s.subjectsId = sub.subjectId
+        departmentdb d ON s.departmentId = d.departmentId
     LEFT JOIN
-        audiologs a ON s.student_id = a.student_id
+        subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType
+    LEFT JOIN (
+        SELECT student_id, MAX(trial) as trial, MAX(passageA) as passageA, MAX(passageB) as passageB
+        FROM audiologs
+        GROUP BY student_id
+    ) a ON s.student_id = a.student_id
     LEFT JOIN (
         SELECT
             student_id,
@@ -279,7 +284,7 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 }
 
 // ... rest of the controller methods remain the same
-exports.getDepartmentDetails = async (req,res) => {
+exports.getDepartmentDetails = async (req, res) => {
     const department = req.session.departmentId.toString();
     console.log(department);
     if (!department) {
@@ -289,11 +294,11 @@ exports.getDepartmentDetails = async (req,res) => {
     let query = 'select departmentName , logo from departmentdb where departmentId = ?';
 
     try {
-        const [response] = await connection.query(query,[department]);
+        const [response] = await connection.query(query, [department]);
         if (response.length === 0) {
             return res.status(404).json({ message: "Department not found" });
         }
-        res.status(201).json({"message":"Department details found",departmentDetails:response[0]});
+        res.status(201).json({ "message": "Department details found", departmentDetails: response[0] });
     } catch (error) {
         console.error("Database query error:", error);
         res.status(500).json({ message: error.message });

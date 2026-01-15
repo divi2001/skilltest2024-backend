@@ -1,5 +1,5 @@
 const connection = require('../../config/db1');
-const StudentTrackDTO = require("../../dto/studentProgress"); 
+const StudentTrackDTO = require("../../dto/studentProgress");
 const moment = require('moment-timezone');
 
 function formatDate(dateString) {
@@ -10,12 +10,12 @@ function convertDateFormat(dateString) {
     const [day, month, year] = dateString.split('/');
     return moment.tz(`${day}/${month}/${year}`, 'YYYY-MM-DD', 'Asia/Kolkata').toDate();
 }
-exports.getAllStudentsTrack = async (req,res) => {
+exports.getAllStudentsTrack = async (req, res) => {
     // console.log('Starting getStudentsTrack function');
     const adminId = req.params.adminid;
     // console.log(adminId);
     // if(!adminId) return res.status(404).json({"message":"Admin is not logged in!!"});
-    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type , departmentId } = req.query;
+    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type, departmentId } = req.query;
     // console.log("Exam center code:", departmentId);
     // console.log("Batch no:", batchNo);
     // console.log("Subject:", subject_name);
@@ -66,9 +66,14 @@ exports.getAllStudentsTrack = async (req,res) => {
 FROM
     students s
 LEFT JOIN
-    subjectsdb sub ON s.subjectsId = sub.subjectId
+    departmentdb d ON s.departmentId = d.departmentId
 LEFT JOIN
-    audiologs a ON s.student_id = a.student_id
+    subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType
+LEFT JOIN (
+    SELECT student_id, MAX(trial) as trial, MAX(passageA) as passageA, MAX(passageB) as passageB
+    FROM audiologs
+    GROUP BY student_id
+) a ON s.student_id = a.student_id
 LEFT JOIN (
     SELECT
         student_id,
@@ -92,7 +97,7 @@ WHERE 1=1`;
     if (batchNo) {
         query += ' AND s.batchNo = ?';
         queryParams.push(batchNo);
-    } 
+    }
 
     if (subject_name) {
         query += ' AND sub.subject_name = ?';
@@ -112,20 +117,20 @@ WHERE 1=1`;
         }
     }
 
-    if(departmentId){
+    if (departmentId) {
         query += ' AND s.departmentId = ?';
         queryParams.push(departmentId);
     }
 
-    if(exam_type){
-        if(exam_type ==='shorthand'){
-            query+= ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0'
+    if (exam_type) {
+        if (exam_type === 'shorthand') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0'
         }
-        else if (exam_type === 'typewriting'){
-            query+=' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
+        else if (exam_type === 'typewriting') {
+            query += ' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
         }
-        else if(exam_type === 'both'){
-            query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
+        else if (exam_type === 'both') {
+            query += ' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
         }
     }
 
@@ -172,7 +177,7 @@ WHERE 1=1`;
                     result.trial_passage_time,
                     result.typing_passage_time
                 );
-                
+
                 if (typeof studentTrack.fullname === 'string') {
                     studentTrack.fullname = encryptionInterface.decrypt(studentTrack.fullname);
                 }
@@ -187,11 +192,11 @@ WHERE 1=1`;
 
             res.status(200).json(studentTrackDTOs);
         } else {
-            res.status(404).json({message: 'No records found!'});
+            res.status(404).json({ message: 'No records found!' });
         }
     } catch (err) {
         console.error("Database query error:", err);
-        res.status(500).json({message: err.message});
+        res.status(500).json({ message: err.message });
     }
 }
 
@@ -200,7 +205,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         const department = req.query.departmentId;
         const center = req.query.center;
         const batchNo = req.query.batchNo;
-        
+
         let filter = '';
         const queryParams = [];
 
@@ -208,11 +213,11 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             filter += ' AND s.batchNo = ?';
             queryParams.push(batchNo);
         }
-        if(center){
+        if (center) {
             filter += ' AND s.center = ?';
             queryParams.push(center);
         }
-        if(department){
+        if (department) {
             filter += ' AND s.departmentId = ?'
             queryParams.push(department);
         }
@@ -227,7 +232,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_completed
         `).join(', ');
 
-        const subjectNames = subjects.map(sub => 
+        const subjectNames = subjects.map(sub =>
             `'${sub.subject_name}' AS subject_${sub.subjectId}_name`
         ).join(', ');
 
