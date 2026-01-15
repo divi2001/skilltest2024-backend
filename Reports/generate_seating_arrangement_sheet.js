@@ -6,38 +6,38 @@ function formatTime(timeString) {
     if (!timeString) {
         return 'Not specified';
     }
-    
+
     // Convert to string
     const timeStr = timeString.toString();
-    
+
     // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
     if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
         const parts = timeStr.split(':');
         let hours = parseInt(parts[0], 10);
         const minutes = parts[1];
-        
+
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
         hours = hours ? hours : 12; // 0 should be 12
         const formattedHours = hours.toString().padStart(2, '0');
-        
+
         return `${formattedHours}:${minutes} ${ampm}`;
     }
-    
+
     // If it's in HH:MM format, convert to 12-hour format
     if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
         const parts = timeStr.split(':');
         let hours = parseInt(parts[0], 10);
         const minutes = parts[1];
-        
+
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
         hours = hours ? hours : 12; // 0 should be 12
         const formattedHours = hours.toString().padStart(2, '0');
-        
+
         return `${formattedHours}:${minutes} ${ampm}`;
     }
-    
+
     console.error('Unexpected time format:', timeString);
     return timeStr;
 }
@@ -45,7 +45,7 @@ function formatTime(timeString) {
 async function getData(center, batchNo) {
     try {
         // console.log(center, batchNo);
-        const query = 'SELECT s.student_id , d.departmentName, d.departmentExam,  d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
+        const query = 'SELECT s.student_id , d.departmentName, d.departmentExam,  d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? ORDER BY s.student_id ASC';
         const response = await connection.query(query, [batchNo, center]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
         const batchData = await connection.query(batchquery, [batchNo]);
@@ -53,13 +53,13 @@ async function getData(center, batchNo) {
 
         // Check if download is allowed
         // const isDownloadAllowed = checkDownloadAllowed(batchData[0][0].batchdate);
-        
+
         // if(!isDownloadAllowed) throw new Error("Download is not allowed at this time")
-       
-        
-        return { 
-            response: response[0], 
-            batchData: batchData[0], 
+
+
+        return {
+            response: response[0],
+            batchData: batchData[0],
             // isDownloadAllowed 
         };
     } catch (error) {
@@ -92,29 +92,29 @@ function addHeader(doc, data) {
 
     // Save the current position
     const currentY = yPosition + 10;
-    
+
     // Reset text state and position each element individually
     doc.text('', 0, 0); // Reset any previous text state
-    
+
     // Position each text element with explicit coordinates and no text flow
     doc.text(`CENTER CODE: ${data.centerCode}`, 50, currentY, {
         lineBreak: false,
         width: 130,
         align: 'left'
     });
-    
+
     doc.text(`BATCH: ${data.batch}`, 185, currentY, {
         lineBreak: false,
         width: 85,
         align: 'left'
     });
-    
+
     doc.text(`EXAM DATE: ${data.examDate}`, 275, currentY, {
         lineBreak: false,
         width: 145,
         align: 'left'
     });
-    
+
     doc.text(`EXAM TIME: ${data.examTime}`, 425, currentY, {
         lineBreak: false,
         width: 125,
@@ -123,7 +123,7 @@ function addHeader(doc, data) {
 
     // Manually set the Y position for the next content
     doc.y = currentY + 20;
-    
+
     return doc.y;
 }
 
@@ -165,7 +165,7 @@ function createTable(doc, seatNumbers, headerData) {
 
     for (let i = 0; i < seatNumbers.length; i += columnsPerRow) {
         if (rowsOnCurrentPage >= maxRowsPerPage) {
-            
+
             doc.addPage();
             addHeader(doc, headerData);
             currentY = tableTop;
@@ -192,17 +192,17 @@ function createTable(doc, seatNumbers, headerData) {
         currentY += cellHeight;
         rowsOnCurrentPage++;
     }
-    
+
     return currentY;
 }
 
 function createAttendanceReport(doc, data) {
     addHeader(doc, data);
     doc.fontSize(14).font('Helvetica-Bold')
-    .text('Seating Arrangement', 50, 170, {
-        width: 500,
-        align: 'center'
-    });
+        .text('Seating Arrangement', 50, 170, {
+            width: 500,
+            align: 'center'
+        });
     // doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
     createTable(doc, data.seatNumbers, data);
 }
@@ -223,12 +223,12 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
         'YYYY-MM-DD hh:mm A',
         kolkataZone
     );
-    
+
     // Get current time in Kolkata timezone
     const now = moment().tz(kolkataZone);
 
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
-    
+
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
     console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
@@ -258,7 +258,7 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
         // if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time, batchInfo.batchdate)) {
         //     throw new Error("Download not allowed at this time");
         // }
-        
+
         // Convert start_time to 12-hour format
         const formattedExamTime = formatTime(batchInfo.start_time);
 

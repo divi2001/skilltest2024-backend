@@ -7,38 +7,38 @@ function formatTime(timeString) {
     if (!timeString) {
         return 'Not specified';
     }
-    
+
     // Convert to string
     const timeStr = timeString.toString();
-    
+
     // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
     if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
         const parts = timeStr.split(':');
         let hours = parseInt(parts[0], 10);
         const minutes = parts[1];
-        
+
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
         hours = hours ? hours : 12; // 0 should be 12
         const formattedHours = hours.toString().padStart(2, '0');
-        
+
         return `${formattedHours}:${minutes} ${ampm}`;
     }
-    
+
     // If it's in HH:MM format, convert to 12-hour format
     if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
         const parts = timeStr.split(':');
         let hours = parseInt(parts[0], 10);
         const minutes = parts[1];
-        
+
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
         hours = hours ? hours : 12; // 0 should be 12
         const formattedHours = hours.toString().padStart(2, '0');
-        
+
         return `${formattedHours}:${minutes} ${ampm}`;
     }
-    
+
     console.error('Unexpected time format:', timeString);
     return timeStr;
 }
@@ -76,7 +76,7 @@ function createAttendanceReport(doc, data) {
         doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
         doc.moveDown();
-        const yPosition = doc.y-8;
+        const yPosition = doc.y - 8;
         const fontSize = 10;
         const spacer = '\u00A0\u00A0';
         doc.fontSize(fontSize).font('Helvetica');
@@ -101,10 +101,10 @@ function createAttendanceReport(doc, data) {
 
         doc.moveTo(leftLineX, y).lineTo(leftLineX + lineLength, y).stroke();
         doc.fontSize(10).font('Helvetica');
-        doc.text('Signature of Supervisor', leftLineX+50, y + textOffset, { align: 'left' });
+        doc.text('Signature of Supervisor', leftLineX + 50, y + textOffset, { align: 'left' });
 
         doc.moveTo(rightLineX, y).lineTo(rightLineX + lineLength, y).stroke();
-        doc.text('Signature of Center Head', rightLineX+50, y + textOffset, { align: 'left' });
+        doc.text('Signature of Center Head', rightLineX + 50, y + textOffset, { align: 'left' });
 
         return y + textOffset + 20;
     }
@@ -249,7 +249,7 @@ function createAttendanceReport(doc, data) {
         doc.text('', summaryTableLeft, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
         doc.text('', summaryTableLeft + summaryTableWidth / 3, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
         doc.text(totalStudents.toString(), summaryTableLeft + (summaryTableWidth / 3) * 2, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
-        
+
         return startY + summaryRowHeight * 3 + 30;
     }
 
@@ -258,16 +258,16 @@ function createAttendanceReport(doc, data) {
     const afterSummaryY = addCenteredSummaryTable(finalYPosition, data.students.length);
 }
 
-const getData = async(center, batchNo, departmentId) => {
+const getData = async (center, batchNo, departmentId) => {
     try {
         console.log(center, batchNo);
-        const query = 'SELECT s.fullname, s.student_id, s.base64, sub.subject_name_short, d.departmentName, d.departmentExam, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+        const query = 'SELECT s.fullname, s.student_id, s.base64, sub.subject_name_short, d.departmentName, d.departmentExam, d.logo FROM students s JOIN departmentdb d ON s.departmentId = d.departmentId JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
         const response = await connection.query(query, [center, batchNo, departmentId]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
         const batchData = await connection.query(batchquery, [batchNo, departmentId]);
-        
-        return { 
-            response: response[0], 
+
+        return {
+            response: response[0],
             batchData: batchData[0]
         };
     } catch (error) {
@@ -279,33 +279,33 @@ const getData = async(center, batchNo, departmentId) => {
 // Updated function to allow downloads 3 days before batch date
 function checkDownloadAllowed3Days(batchDate) {
     const kolkataZone = 'Asia/Kolkata';
-    
+
     // Parse the batchDate and convert to Kolkata timezone
     const batchDateKolkata = moment(batchDate).tz(kolkataZone).startOf('day');
-    
+
     // Get current time in Kolkata timezone
     const now = moment().tz(kolkataZone).startOf('day');
-    
+
     // Calculate difference in days
     const differenceInDays = batchDateKolkata.diff(now, 'days');
-    
+
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
     console.log('Current Date (Kolkata):', now.format('YYYY-MM-DD'));
     console.log('Difference in Days:', differenceInDays);
-    
+
     // Return true if current date is within 3 days before batch date (including batch date)
     return differenceInDays >= -1 && differenceInDays <= 4;
 }
 
-const AttendanceReport = async(doc, center, batchNo, departmentId) => {
+const AttendanceReport = async (doc, center, batchNo, departmentId) => {
     try {
         const Data = await getData(center, batchNo, departmentId);
-        
+
         if (!Data) {
             throw new Error('No data returned from getData');
         }
-        
+
         const response = Data.response;
         if (!Array.isArray(response) || response.length === 0) {
             throw new Error('No data returned from getData');
@@ -317,7 +317,7 @@ const AttendanceReport = async(doc, center, batchNo, departmentId) => {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
-        
+
         // Updated to use 3-day validation instead of 1-day
         // if(!checkDownloadAllowed3Days(batchInfo.batchdate)) {
         //     throw new Error("Download is only allowed within 3 days before the batch date");
@@ -343,7 +343,7 @@ const AttendanceReport = async(doc, center, batchNo, departmentId) => {
             departmentExam: response[0]?.departmentExam || '',
             departmentLogo: response[0]?.logo || null
         };
-        
+
         createAttendanceReport(doc, data);
     } catch (error) {
         console.error("Error generating report:", error);
