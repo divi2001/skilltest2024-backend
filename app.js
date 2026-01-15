@@ -57,7 +57,7 @@ app.use(cors(corsOptions));
 
 // Additional CORS for other origins
 app.use(cors({
-  origin: ['*', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'https://www.shorthandonlineexam.in', 'http://65.0.124.197:5000','http://65.0.124.197:5000/api/compare'],
+  origin: ['*', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'https://www.shorthandonlineexam.in', 'http://65.0.124.197:5000', 'http://65.0.124.197:5000/api/compare'],
   credentials: true
 }));
 
@@ -78,14 +78,14 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // ✅ STEP 6: Static files and uploads
-const uploadsDir = path.join(__dirname,'uploads');
+const uploadsDir = path.join(__dirname, 'uploads');
 
-if(!fs.existsSync(uploadsDir)){
+if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 app.use('/uploads', express.static('uploads'));
-app.use(express.static(path.join(__dirname,'uploads')));
+app.use(express.static(path.join(__dirname, 'uploads')));
 
 // ✅ STEP 7: All routes AFTER middleware
 app.use('/api/excel', excelDataUploadRoutes);
@@ -108,6 +108,7 @@ app.use('/api/hallticket-departments', hallticketDepartmentRoutes);
 app.use('/api/skilltest-halltickets', skilltestHallticketRoutes, hallticketDepartmentRoutes);
 app.use('/api', mockRoutes);
 app.use('/api/v1/evaluation', evaluationRoutes);
+app.use(require('./routes/report_settings_routes'));
 
 // Expert Routes
 app.use(expertLoginRoutes);

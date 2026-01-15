@@ -1,6 +1,7 @@
 const connection = require("../config/db1");
 const QRCode = require('qrcode');
 const moment = require('moment-timezone');
+const checkReportPermission = require('./reportPermission');
 
 // Helper function to format time to 12-hour format
 function formatTime(timeString) {
@@ -290,10 +291,11 @@ const generateAnswerSheets = async (doc, center, batchNo, student_id, department
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
 
-        // Updated to use 3-day validation instead of 1-day
-        // if(!checkDownloadAllowed3Days(batchInfo.batchdate)) {
-        //     throw new Error("Download is only allowed within 3 days before the batch date");
-        // }
+        // Check dynamic permissions
+        const isAllowed = await checkReportPermission('REPORT_ANSWER_SHEET', batchInfo.batchdate);
+        if (!isAllowed) {
+            throw new Error("Download is restricted for this batch at this time.");
+        }
 
         // Convert start_time to 12-hour format
         const formattedStartTime = formatTime(batchInfo.start_time);

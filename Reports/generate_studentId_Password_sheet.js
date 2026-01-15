@@ -1,44 +1,45 @@
 const connection = require("../config/db1");
 const moment = require('moment-timezone');
-const {decrypt} = require('../config/encrypt');
+const { decrypt } = require('../config/encrypt');
+const checkReportPermission = require('./reportPermission');
 
 // Helper function to format time to 12-hour format
 function formatTime(timeString) {
     if (!timeString) {
         return 'Not specified';
     }
-    
+
     // Convert to string
     const timeStr = timeString.toString();
-    
+
     // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
     if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
         const parts = timeStr.split(':');
         let hours = parseInt(parts[0], 10);
         const minutes = parts[1];
-        
+
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
         hours = hours ? hours : 12; // 0 should be 12
         const formattedHours = hours.toString().padStart(2, '0');
-        
+
         return `${formattedHours}:${minutes} ${ampm}`;
     }
-    
+
     // If it's in HH:MM format, convert to 12-hour format
     if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
         const parts = timeStr.split(':');
         let hours = parseInt(parts[0], 10);
         const minutes = parts[1];
-        
+
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
         hours = hours ? hours : 12; // 0 should be 12
         const formattedHours = hours.toString().padStart(2, '0');
-        
+
         return `${formattedHours}:${minutes} ${ampm}`;
     }
-    
+
     console.error('Unexpected time format:', timeString);
     return timeStr;
 }
@@ -64,11 +65,11 @@ async function getData(center, batchNo) {
             password: await decrypt(row.password)
         })));
 
-        return { 
-            response: decryptedResults, 
-            departmentName:results[0].departmentName,
-            departmentExam:results[0].departmentExam,
-            logo:results[0].logo,
+        return {
+            response: decryptedResults,
+            departmentName: results[0].departmentName,
+            departmentExam: results[0].departmentExam,
+            logo: results[0].logo,
             batchData: batchData
         };
     } catch (error) {
@@ -101,29 +102,29 @@ function addHeader(doc, data) {
 
     // Save the current position
     const currentY = yPosition + 10;
-    
+
     // Reset text state and position each element individually
     doc.text('', 0, 0); // Reset any previous text state
-    
+
     // Position each text element with explicit coordinates and no text flow
     doc.text(`CENTER CODE: ${data.centerCode}`, 50, currentY, {
         lineBreak: false,
         width: 130,
         align: 'left'
     });
-    
+
     doc.text(`BATCH: ${data.batch}`, 185, currentY, {
         lineBreak: false,
         width: 85,
         align: 'left'
     });
-    
+
     doc.text(`EXAM DATE: ${data.examDate}`, 275, currentY, {
         lineBreak: false,
         width: 145,
         align: 'left'
     });
-    
+
     doc.text(`EXAM TIME: ${data.examTime}`, 425, currentY, {
         lineBreak: false,
         width: 125,
@@ -132,7 +133,7 @@ function addHeader(doc, data) {
 
     // Manually set the Y position for the next content
     doc.y = currentY + 20;
-    
+
     return doc.y;
 }
 
@@ -149,8 +150,8 @@ function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
 
     // Add vertical line in header
     doc.moveTo(tableLeft + columnWidth, currentY)
-       .lineTo(tableLeft + columnWidth, currentY + rowHeight)
-       .stroke();
+        .lineTo(tableLeft + columnWidth, currentY + rowHeight)
+        .stroke();
 
     // Draw table rows
     doc.font('Helvetica').fontSize(10);
@@ -162,8 +163,8 @@ function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
 
         // Add vertical line in row
         doc.moveTo(tableLeft + columnWidth, rowY)
-           .lineTo(tableLeft + columnWidth, rowY + rowHeight)
-           .stroke();
+            .lineTo(tableLeft + columnWidth, rowY + rowHeight)
+            .stroke();
     });
 
     return currentY + rowHeight * (students.length + 1);
@@ -284,12 +285,12 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
         'YYYY-MM-DD hh:mm A',
         kolkataZone
     );
-    
+
     // Get current time in Kolkata timezone
     const now = moment().tz(kolkataZone);
 
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
-    
+
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
     console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
@@ -316,11 +317,12 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        
-        // Uncomment the following lines if you want to check download allowance
-        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time, batchInfo.batchdate)) {
-        //     throw new Error("Download not allowed at this time");
-        // }
+
+        // Check dynamic permissions
+        const isAllowed = await checkReportPermission('REPORT_PASSWORD_PDF', batchInfo.batchdate, batchInfo.start_time);
+        if (!isAllowed) {
+            throw new Error("Download is restricted for this batch at this time.");
+        }
 
         // Convert start_time to 12-hour format
         const formattedExamTime = formatTime(batchInfo.start_time);

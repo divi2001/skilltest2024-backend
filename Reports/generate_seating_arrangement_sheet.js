@@ -1,5 +1,6 @@
 const connection = require("../config/db1");
 const moment = require('moment-timezone'); // Make sure to install and import moment.js for easier date handling
+const checkReportPermission = require('./reportPermission');
 
 // Helper function to format time to 12-hour format
 function formatTime(timeString) {
@@ -255,9 +256,11 @@ async function generateSeatingArrangementReport(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time, batchInfo.batchdate)) {
-        //     throw new Error("Download not allowed at this time");
-        // }
+        // Check dynamic permissions
+        const isAllowed = await checkReportPermission('REPORT_SEATING', batchInfo.batchdate);
+        if (!isAllowed) {
+            throw new Error("Download is restricted for this batch at this time.");
+        }
 
         // Convert start_time to 12-hour format
         const formattedExamTime = formatTime(batchInfo.start_time);
