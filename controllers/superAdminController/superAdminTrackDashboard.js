@@ -10,6 +10,12 @@ function convertDateFormat(dateString) {
     const [day, month, year] = dateString.split('/');
     return moment.tz(`${day}/${month}/${year}`, 'YYYY-MM-DD', 'Asia/Kolkata').toDate();
 }
+function formatDateTimeIST(dateString) {
+    if (!dateString) return null;
+    const date = moment(dateString);
+    if (!date.isValid()) return null;
+    return date.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+}
 exports.getAllStudentsTrack = async (req, res) => {
     // console.log('Starting getStudentsTrack function');
     const adminId = req.params.adminid;
@@ -155,7 +161,7 @@ WHERE 1=1`;
                     result.center,
                     result.fullname,
                     result.batchNo,
-                    result.loginTime,
+                    formatDateTimeIST(result.loginTime),
                     result.login,
                     result.done,
                     result.Reporting_Time,
@@ -164,18 +170,18 @@ WHERE 1=1`;
                     result.trial,
                     result.passageA,
                     result.passageB,
-                    result.trial_time,
-                    result.audio1_time,
-                    result.passage1_time,
-                    result.audio2_time,
-                    result.passage2_time,
-                    result.feedback_time,
+                    formatDateTimeIST(result.trial_time),
+                    formatDateTimeIST(result.audio1_time),
+                    formatDateTimeIST(result.passage1_time),
+                    formatDateTimeIST(result.audio2_time),
+                    formatDateTimeIST(result.passage2_time),
+                    formatDateTimeIST(result.feedback_time),
                     result.subject_name,
                     result.subject_name_short,
                     formatDate(result.batchdate),
                     result.departmentId,
-                    result.trial_passage_time,
-                    result.typing_passage_time
+                    formatDateTimeIST(result.trial_passage_time),
+                    formatDateTimeIST(result.typing_passage_time)
                 );
 
                 if (typeof studentTrack.fullname === 'string') {

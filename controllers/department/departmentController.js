@@ -73,6 +73,14 @@ function formatTime(timeString) {
         console.error('Error formatting time:', error);
         return null;
     }
+    return null;
+}
+
+function formatDateTimeIST(dateString) {
+    if (!dateString) return null;
+    const date = moment(dateString);
+    if (!date.isValid()) return null;
+    return date.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 }
 
 function convertDateFormat(dateString) {
@@ -244,7 +252,7 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
                     formattedResult.center,
                     formattedResult.fullname,
                     formattedResult.batchNo,
-                    formattedResult.loginTime,
+                    formatDateTimeIST(formattedResult.loginTime),
                     formattedResult.login,
                     formattedResult.done,
                     formattedResult.Reporting_Time,
@@ -253,18 +261,18 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
                     formattedResult.trial,
                     formattedResult.passageA,
                     formattedResult.passageB,
-                    formattedResult.trial_time,
-                    formattedResult.audio1_time,
-                    formattedResult.passage1_time,
-                    formattedResult.audio2_time,
-                    formattedResult.passage2_time,
-                    formattedResult.feedback_time,
+                    formatDateTimeIST(formattedResult.trial_time),
+                    formatDateTimeIST(formattedResult.audio1_time),
+                    formatDateTimeIST(formattedResult.passage1_time),
+                    formatDateTimeIST(formattedResult.audio2_time),
+                    formatDateTimeIST(formattedResult.passage2_time),
+                    formatDateTimeIST(formattedResult.feedback_time),
                     formattedResult.subject_name,
                     formattedResult.subject_name_short,
                     formattedResult.batchdate,
                     formattedResult.departmentId,
-                    formattedResult.trial_passage_time,
-                    formattedResult.typing_passage_time
+                    formatDateTimeIST(formattedResult.trial_passage_time),
+                    formatDateTimeIST(formattedResult.typing_passage_time)
                 );
 
                 if (typeof studentTrack.fullname === 'string') {
