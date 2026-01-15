@@ -161,7 +161,7 @@ const generatePdf = (res, data, tempFilePath) => {
         doc.fontSize(16).font('fonts/NotoSansDevanagari-Bold.ttf')
             .text('महाराष्ट्र राज्य परीक्षा परिषद, पुणे', titleX, 60, { width: titleWidth, align: 'center' });
         doc.fontSize(14).font('Helvetica-Bold')
-            .text('GCC COMPUTER SHORTHAND EXAMINATION, JUNE 2025', titleX, 88, { width: titleWidth + 50, align: 'center' });
+            .text('GCC COMPUTER SHORTHAND EXAMINATION, DEC 2025', titleX, 88, { width: titleWidth + 50, align: 'center' });
         doc.fontSize(14).font('Helvetica-Bold')
             .text('CENTREWISE & SUBJECT WISE RESULT REGISTER', titleX, 110, { width: titleWidth, align: 'center' });
 
@@ -550,7 +550,7 @@ exports.generateStudentRegister = async (req, res) => {
 //         doc.fontSize(16).font('fonts/NotoSansDevanagari-Bold.ttf')
 //             .text('महाराष्ट्र राज्य परीक्षा परिषद, पुणे', titleX, 90, { width: titleWidth, align: 'center' });
 //         doc.fontSize(14).font('Helvetica-Bold')
-//             .text('GCC COMPUTER SHORTHAND EXAMINATION, JUNE 2025', titleX, 118, { width: titleWidth + 50, align: 'center' });
+//             .text('GCC COMPUTER SHORTHAND EXAMINATION, DEC 2025', titleX, 118, { width: titleWidth + 50, align: 'center' });
 //         doc.fontSize(14).font('Helvetica-Bold')
 //             .text('CENTREWISE & SUBJECT WISE RESULT REGISTER', titleX, 140, { width: titleWidth, align: 'center' });
 
