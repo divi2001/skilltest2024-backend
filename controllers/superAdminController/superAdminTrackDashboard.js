@@ -225,9 +225,16 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         const department = req.query.departmentId;
         const center = req.query.center;
         const batchNo = req.query.batchNo;
+        const studentType = req.query.studentType;
 
         let filter = '';
         const queryParams = [];
+
+        if (studentType === 'mock') {
+            filter += ' AND s.batchNo = 100';
+        } else if (studentType === 'regular') {
+            filter += ' AND s.batchNo != 100';
+        }
 
         if (batchNo) {
             filter += ' AND s.batchNo = ?';
