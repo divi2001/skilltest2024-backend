@@ -1,0 +1,966 @@
+{
+  "generated_at": "2026-01-17 18:35:26",
+  "total_records": 30,
+  "results": [
+    {
+      "id": 1,
+      "subjectId": 40,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Shorthand Mock English",
+      "subject_name_short": "Mock_Eng",
+      "language": "en",
+      "audios": [
+        {
+          "url": "mock1",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "mock2",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/trialeng.mp3",
+          "type": "testaudio",
+          "status": "success",
+          "transcription": "This is shorthand trial audio for mock exam, work has always been a central part of human life, but its meaning has changed significantly over time. In earlier societies, work was closely tied to survival. People farmed, hunted, or crafted goods mainly to meet basic needs. The value of work was measured by how well it sustained families and communities. Over time, with the rise of industries and cities, work became more structured, timed, and specialized.",
+          "detected_language": "en"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "subjectId": 40,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Shorthand Mock English",
+      "subject_name_short": "mock_eng",
+      "language": "en",
+      "audios": [
+        {
+          "url": "mock1",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "mock2",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/trialeng.mp3",
+          "type": "testaudio",
+          "status": "success",
+          "transcription": "This is shorthand trial audio for mock exam, work has always been a central part of human life, but its meaning has changed significantly over time. In earlier societies, work was closely tied to survival. People farmed, hunted, or crafted goods mainly to meet basic needs. The value of work was measured by how well it sustained families and communities. Over time, with the rise of industries and cities, work became more structured, timed, and specialized.",
+          "detected_language": "en"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "subjectId": 41,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Shorthand Mock Marathi",
+      "subject_name_short": "Mock_Mar",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "mockmar1",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "mockmar2",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/trialMarathi.mp3",
+          "type": "testaudio",
+          "status": "success",
+          "transcription": "हेमोक परिक्षे साथी शौर्थ्र सराव, Trial Audio है। अप्यष राश्पदग अइक्टाच अनेकांचा मनाथ भीती निर्माण होते। समाजात्यषाला गवृरवले जाते पन अप्यषा कडे दूर्लक्ष केले जाते। त्या मुइ अनेक लोक अप्यषाला कम्जोरी समस्थात् आणि त्यापासून दूर्पइनेचा प्रयतन करतात्। मात्र प्रत्यक्षात् अप्यष हे वयक्तिक विकासा साथी अथियंट आवश्यक अस्ते।",
+          "detected_language": "mr"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "subjectId": 41,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Shorthand Mock Marathi",
+      "subject_name_short": "mock_mar",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "mockmar1",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "mockmar2",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/trialMarathi.mp3",
+          "type": "testaudio",
+          "status": "success",
+          "transcription": "हेमोक परिक्षे साथी शौर्थ्र सराव, Trial Audio है। अप्यष राश्पदग अइक्टाच अनेकांचा मनाथ भीती निर्माण होते। समाजात्यषाला गवृरवले जाते पन अप्यषा कडे दूर्लक्ष केले जाते। त्यामुइ अनेक लोक अप्यषाला कम्जोरी समस्थात्टाट्ट आनी त्यापासून दूर्पाइनाचा प्रयत्न करतात्थ। मात्र प्रत्यक्षात् अप्यष है वयक्तिक विकासा साथी अत्यंत आवश्यक अस्ते।",
+          "detected_language": "mr"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "subjectId": 42,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Shorthand Small Audio",
+      "subject_name_short": "Mock_Small_Audio",
+      "language": "auto",
+      "audios": [
+        {
+          "url": "aud1",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "aud2",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://hgasggsgkd.s3.ap-south-1.amazonaws.com/marathi+testing+file.m4a",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "subjectId": 50,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 60 wpm",
+      "subject_name_short": "E-60",
+      "language": "en",
+      "audios": [
+        {
+          "url": "50_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "50_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/50_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "subjectId": 50,
+      "qset": 2,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 60 wpm",
+      "subject_name_short": "E-60",
+      "language": "en",
+      "audios": [
+        {
+          "url": "50_2A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "50_2B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/50_2T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "subjectId": 51,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 80 wpm",
+      "subject_name_short": "E-80",
+      "language": "en",
+      "audios": [
+        {
+          "url": "51_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "51_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "subjectId": 51,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 80 wpm",
+      "subject_name_short": "E80",
+      "language": "en",
+      "audios": [
+        {
+          "url": "51_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "51_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "subjectId": 51,
+      "qset": 2,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 80 wpm",
+      "subject_name_short": "E-80",
+      "language": "en",
+      "audios": [
+        {
+          "url": "51_2A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "51_2B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_2T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "subjectId": 51,
+      "qset": 2,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 80 wpm",
+      "subject_name_short": "E80",
+      "language": "en",
+      "audios": [
+        {
+          "url": "51_2A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "51_2B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_2T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "subjectId": 52,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 100 wpm",
+      "subject_name_short": "E-100",
+      "language": "en",
+      "audios": [
+        {
+          "url": "52_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "52_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "subjectId": 52,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 100 wpm",
+      "subject_name_short": "E100",
+      "language": "en",
+      "audios": [
+        {
+          "url": "52_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "52_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "subjectId": 52,
+      "qset": 2,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 100 wpm",
+      "subject_name_short": "E-100",
+      "language": "en",
+      "audios": [
+        {
+          "url": "52_2A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "52_2B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_2T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "subjectId": 52,
+      "qset": 2,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 100 wpm",
+      "subject_name_short": "E100",
+      "language": "en",
+      "audios": [
+        {
+          "url": "52_2A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "52_2B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_2T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "subjectId": 53,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 120 wpm",
+      "subject_name_short": "E-120",
+      "language": "en",
+      "audios": [
+        {
+          "url": "53_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "53_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "subjectId": 53,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 120 wpm",
+      "subject_name_short": "E120",
+      "language": "en",
+      "audios": [
+        {
+          "url": "53_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "53_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "subjectId": 53,
+      "qset": 2,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 120 wpm",
+      "subject_name_short": "E-120",
+      "language": "en",
+      "audios": [
+        {
+          "url": "53_2A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "53_2B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_2T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "subjectId": 53,
+      "qset": 2,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 120 wpm",
+      "subject_name_short": "E120",
+      "language": "en",
+      "audios": [
+        {
+          "url": "53_2A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "53_2B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_2T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "subjectId": 54,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "English Shorthand 130 wpm",
+      "subject_name_short": "E-130",
+      "language": "en",
+      "audios": [
+        {
+          "url": "54_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "54_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/54_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "subjectId": 60,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Marathi Shorthand 60 wpm",
+      "subject_name_short": "M-60",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "60_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "60_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/60_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "subjectId": 61,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Marathi Shorthand 80 wpm",
+      "subject_name_short": "M-80",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "61_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "61_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/61_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "subjectId": 61,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Marathi Shorthand 80 wpm",
+      "subject_name_short": "M80",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "61_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "61_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/61_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "subjectId": 62,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Marathi Shorthand 100 wpm",
+      "subject_name_short": "M-100",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "62_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "62_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/62_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "subjectId": 62,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Marathi Shorthand 100 wpm",
+      "subject_name_short": "M100",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "62_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "62_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/62_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "subjectId": 63,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Marathi Shorthand 120 wpm",
+      "subject_name_short": "M-120",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "63_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "63_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/63_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "subjectId": 63,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Marathi Shorthand 120 wpm",
+      "subject_name_short": "M120",
+      "language": "mr",
+      "audios": [
+        {
+          "url": "63_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "63_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/63_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "subjectId": 70,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Hindi Shorthand 60 wpm",
+      "subject_name_short": "H-60",
+      "language": "hi",
+      "audios": [
+        {
+          "url": "70_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "70_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/70_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "subjectId": 72,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Hindi Shorthand 100 wpm",
+      "subject_name_short": "H-100",
+      "language": "hi",
+      "audios": [
+        {
+          "url": "72_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "72_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/72_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "subjectId": 73,
+      "qset": 1,
+      "departmentId": 10,
+      "subject_name": "Hindi Shorthand 120 wpm",
+      "subject_name_short": "H-120",
+      "language": "hi",
+      "audios": [
+        {
+          "url": "73_1A.mp3",
+          "type": "audio1",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "73_1B.mp3",
+          "type": "audio2",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        },
+        {
+          "url": "https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/73_1T.mp3",
+          "type": "testaudio",
+          "status": "failed",
+          "reason": "Download failed",
+          "transcription": ""
+        }
+      ]
+    }
+  ]
+}

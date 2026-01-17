@@ -1,0 +1,840 @@
+====================================================================================================
+AUDIO TRANSCRIPTION REPORT (faster-whisper large-v3)
+====================================================================================================
+
+Generated: 2026-01-17 18:49:48
+Total Records Processed: 30
+
+--------------------------------------------------
+SUMMARY
+--------------------------------------------------
+Total Audio Files: 90
+✓ Successfully Transcribed: 12
+✗ Failed: 78
+○ Skipped (No URL): 0
+
+====================================================================================================
+DETAILED TRANSCRIPTIONS
+====================================================================================================
+
+--------------------------------------------------------------------------------
+Record ID: 1
+Subject: Shorthand Mock English (ID: 40)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/aeng.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  This is shorthand passage audio for mock exam, technology has transformed the wa
+  y humans connect  with one another. From handwritten letters to instant messagin
+  g, communication methods have  evolved rapidly. Today, a person can speak to som
+  eone on the other side of the world within  seconds. While this has made relatio
+  nships more accessible and convenient, it has also changed  their depth and natu
+  re in complex ways. One of the biggest advantages of technology is its ability  
+  to reduce distance.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/beng.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  This is shorthand passage B audio for mock exam. Failure is often seen as someth
+  ing to be avoided  at all costs. Society tends to celebrate success while ignori
+  ng the struggles behind it.  As a result, many people fear failure and view it a
+  s a sign of weakness or incompetence.  However, failure plays a crucial role in 
+  personal growth and long-term success.  One of the most important lessons failur
+  e teaches is resilience.  When people face setbacks, they are forced to
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/trialeng.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  This is shorthand trial audio for mock exam, work has always been a central part
+   of human life,  but its meaning has changed significantly over time. In earlier
+   societies, work was closely  tied to survival. People farmed, hunted, or crafte
+  d goods mainly to meet basic needs.  The value of work was measured by how well 
+  it sustained families and communities.  Over time, with the rise of industries a
+  nd cities, work became more structured,  timed, and specialized.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 1
+Subject: Shorthand Mock English (ID: 40)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/aeng.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  This is shorthand passage audio for mock exam, technology has transformed the wa
+  y humans connect  with one another. From handwritten letters to instant messagin
+  g, communication methods have  evolved rapidly. Today, a person can speak to som
+  eone on the other side of the world within  seconds. While this has made relatio
+  nships more accessible and convenient, it has also changed  their depth and natu
+  re in complex ways. One of the biggest advantages of technology is its ability  
+  to reduce distance.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/beng.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  This is shorthand passage B audio for mock exam. Failure is often seen as someth
+  ing to be avoided  at all costs. Society tends to celebrate success while ignori
+  ng the struggles behind it.  As a result, many people fear failure and view it a
+  s a sign of weakness or incompetence.  However, failure plays a crucial role in 
+  personal growth and long-term success.  One of the most important lessons failur
+  e teaches is resilience.  When people face setbacks, they are forced to
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/trialeng.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  This is shorthand trial audio for mock exam, work has always been a central part
+   of human life,  but its meaning has changed significantly over time. In earlier
+   societies, work was closely  tied to survival. People farmed, hunted, or crafte
+  d goods mainly to meet basic needs.  The value of work was measured by how well 
+  it sustained families and communities.  Over time, with the rise of industries a
+  nd cities, work became more structured,  timed, and specialized.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 2
+Subject: Shorthand Mock Marathi (ID: 41)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/Amar.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  हे मौक परिक्षे साथी शौठर उतारा अप पासेज अप चे आडियो आहे। तंत्रद्न्यानाने मानवी ज
+  ीवनात क्रांतिकारक बदल घड़बून आणले आहे। विशेष्टह सम्वादाच्या पद्धतीन मधे मोठा बदल
+   जाला आहे।  पूर्वी पत्र तार किम्मा प्रक्त्यक्ष भेटी वर अवलंबून असलेले नाते आज मु
+  बाईल, इंटरनेट आणी सोशल मेडिया मुले एका क्षणाद जोडले जाते। या बदला मुले नाते संबं
+  ध अधिक सोपे जाला आहे।
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/Bmar.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  हे मौक परिक्षे साथी शौठ्र उतारा बी, पासेज बी, चे आडियो आहे, काम हे मानवी जीवनाचा
+   अविभाज्य भाग राहिले आहे।  प्राचीन कालात कामाचा मुख्य उद्देश उपजीविके पूर्ता मर्
+  यादित होता।  शेती करने, शिकार करने किम्मा हस्तकला तयार करने ही कामे मानुस आपल्या
+   कुटुम्बाचा गर्जा भागवने साथी करत असे।
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/trialMarathi.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  हे मौक परिक्षे साथी शोट्र सराव, क्रायल, आडियो आहे. अप्यश हा शब्द अइकताच अनेकांचा
+   मनात भीती निर्मान होते. समाजात यशाला गवरवले जाते, पण अप्यशा कडे दुरलक्ष केले जा
+  ते. त्यामुले अनेक लोग अप्यशाला कमजोरी समझतात आ
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 2
+Subject: Shorthand Mock Marathi (ID: 41)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/Amar.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  हे मौक परिक्षे साथी शौठर उतारा अप पासेज अप चे आडियो आहे। तंत्रद्न्यानाने मानवी ज
+  ीवनात क्रांतिकारक बदल घड़बून आणले आहे। विशेष्टह सम्वादाच्या पद्धतीन मधे मोठा बदल
+   जाला आहे।  पूर्वी पत्र तार किम्मा प्रक्त्यक्ष भेटी वर अवलंबून असलेले नाते आज मु
+  बाईल, इंटरनेट आणी सोशल मेडिया मुले एका क्षणाद जोडले जाते। या बदला मुले नाते संबं
+  ध अधिक सोपे जाला आहे।
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/Bmar.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  हे मौक परिक्षे साथी शौठ्र उतारा बी, पासेज बी, चे आडियो आहे, काम हे मानवी जीवनाचा
+   अविभाज्य भाग राहिले आहे।  प्राचीन कालात कामाचा मुख्य उद्देश उपजीविके पूर्ता मर्
+  यादित होता।  शेती करने, शिकार करने किम्मा हस्तकला तयार करने ही कामे मानुस आपल्या
+   कुटुम्बाचा गर्जा भागवने साथी करत असे।
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio/trialMarathi.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription (First 30 seconds):
+  ----------------------------------------
+  हे मौक परिक्षे साथी शोट्र सराव, क्रायल, आडियो आहे. अप्यश हा शब्द अइकताच अनेकांचा
+   मनात भीती निर्मान होते. समाजात यशाला गवरवले जाते, पण अप्यशा कडे दुरलक्ष केले जा
+  ते. त्यामुले अनेक लोग अप्यशाला कमजोरी समझतात आ
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 3
+Subject: Shorthand Small Audio (ID: 42)
+QSet: 1
+Department ID: 10
+Target Language: None
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://hgasggsgkd.s3.ap-south-1.amazonaws.com/trialpassagemar.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://hgasggsgkd.s3.ap-south-1.amazonaws.com/This+is+testing+file+mar+eng+hin.m4a
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://hgasggsgkd.s3.ap-south-1.amazonaws.com/marathi+testing+file.m4a
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 4
+Subject: English Shorthand 60 wpm (ID: 50)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/50_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/50_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/50_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 5
+Subject: English Shorthand 60 wpm (ID: 50)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/50_2A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/50_2B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/50_2T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 6
+Subject: English Shorthand 80 wpm (ID: 51)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 6
+Subject: English Shorthand 80 wpm (ID: 51)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 7
+Subject: English Shorthand 80 wpm (ID: 51)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_2A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_2B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_2T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 7
+Subject: English Shorthand 80 wpm (ID: 51)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_2A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_2B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/51_2T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 8
+Subject: English Shorthand 100 wpm (ID: 52)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 8
+Subject: English Shorthand 100 wpm (ID: 52)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 9
+Subject: English Shorthand 100 wpm (ID: 52)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_2A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_2B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_2T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 9
+Subject: English Shorthand 100 wpm (ID: 52)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_2A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_2B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/52_2T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 10
+Subject: English Shorthand 120 wpm (ID: 53)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 10
+Subject: English Shorthand 120 wpm (ID: 53)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 11
+Subject: English Shorthand 120 wpm (ID: 53)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_2A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_2B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_2T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 11
+Subject: English Shorthand 120 wpm (ID: 53)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_2A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_2B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/53_2T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 12
+Subject: English Shorthand 130 wpm (ID: 54)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/54_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/54_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/54_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 13
+Subject: Marathi Shorthand 60 wpm (ID: 60)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/60_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/60_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/60_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 14
+Subject: Marathi Shorthand 80 wpm (ID: 61)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/61_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/61_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/61_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 14
+Subject: Marathi Shorthand 80 wpm (ID: 61)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/61_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/61_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/61_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 15
+Subject: Marathi Shorthand 100 wpm (ID: 62)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/62_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/62_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/62_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 15
+Subject: Marathi Shorthand 100 wpm (ID: 62)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/62_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/62_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/62_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 16
+Subject: Marathi Shorthand 120 wpm (ID: 63)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/63_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/63_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/63_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 16
+Subject: Marathi Shorthand 120 wpm (ID: 63)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/63_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/63_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/63_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 17
+Subject: Hindi Shorthand 60 wpm (ID: 70)
+QSet: 1
+Department ID: 10
+Target Language: hi
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/70_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/70_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/70_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 18
+Subject: Hindi Shorthand 100 wpm (ID: 72)
+QSet: 1
+Department ID: 10
+Target Language: hi
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/72_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/72_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/72_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 19
+Subject: Hindi Shorthand 120 wpm (ID: 73)
+QSet: 1
+Department ID: 10
+Target Language: hi
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/73_1A.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/73_1B.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://shorthandexam2024.s3.ap-south-1.amazonaws.com/Dec24/audio/73_1T.mp3
+  Status: FAILED
+  Reason: Download failed
+
+
+====================================================================================================
+END OF REPORT
+====================================================================================================
