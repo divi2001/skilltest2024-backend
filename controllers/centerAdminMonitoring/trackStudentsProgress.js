@@ -55,7 +55,7 @@ function formatDateTimeIST(dateString) {
     return date.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 }
 
-// Helper function to convert DD/MM/YYYY to MySQL DATE format with logging
+// Helper function to convert DD/MM/YYYY to MySQL DATE format string (YYYY-MM-DD)
 function convertDateFormat(dateString) {
     console.log('convertDateFormat input:', dateString);
 
@@ -73,7 +73,7 @@ function convertDateFormat(dateString) {
         return null;
     }
 
-    const convertedDate = momentDate.tz('Asia/Kolkata').toDate();
+    const convertedDate = momentDate.format('YYYY-MM-DD');
     console.log('convertDateFormat output:', convertedDate);
     return convertedDate;
 }
@@ -276,7 +276,7 @@ exports.getStudentsTrack = async (req, res) => {
 
             const formattedDate = convertDateFormat(batchDate);
             if (formattedDate) {
-                studentsConditionQuery += ` AND s.batchdate = ?`;
+                studentsConditionQuery += ` AND DATE(s.batchdate) = ?`;
                 queryParams.push(formattedDate);
                 console.log("Using formatted batch date:", formattedDate);
             } else {
@@ -404,7 +404,7 @@ exports.getStudentsTrack = async (req, res) => {
             (exam_type === 'shorthand' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0' :
                 exam_type === 'typewriting' ? ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0' :
                     exam_type === 'both' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1' : '') +
-            (batchDate && convertDateFormat(batchDate) ? ' AND s.batchdate = ?' : '');
+            (batchDate && convertDateFormat(batchDate) ? ' AND DATE(s.batchdate) = ?' : '');
 
         // Prepare final query parameters
         let finalQueryParams = [...targetDepartmentIds, examCenterCode];

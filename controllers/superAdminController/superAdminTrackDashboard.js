@@ -6,9 +6,23 @@ function formatDate(dateString) {
     return moment(dateString).tz('Asia/Kolkata').format('YYYY-MM-DD')
 }
 function convertDateFormat(dateString) {
-    // Expects YYYY-MM-DD
-    const [day, month, year] = dateString.split('/');
-    return moment.tz(`${day}/${month}/${year}`, 'YYYY-MM-DD', 'Asia/Kolkata').toDate();
+    if (!dateString) return null;
+    try {
+        // Handle DD/MM/YYYY format
+        if (dateString.includes('/')) {
+            const [day, month, year] = dateString.split('/');
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        // Handle YYYY-MM-DD format
+        const date = moment(dateString);
+        if (date.isValid()) {
+            return date.format('YYYY-MM-DD');
+        }
+        return null;
+    } catch (error) {
+        console.error('Error converting date format:', error);
+        return null;
+    }
 }
 function formatDateTimeIST(dateString) {
     if (!dateString) return null;
@@ -143,7 +157,7 @@ WHERE 1=1`;
     if (batchDate) {
         batchDate = convertDateFormat(batchDate);
         console.log("Formatted Batch date:", batchDate);
-        query += ' AND s.batchdate = ?';
+        query += ' AND DATE(s.batchdate) = ?';
         queryParams.push(batchDate);
     }
 
