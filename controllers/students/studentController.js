@@ -68,7 +68,7 @@ exports.loginStudent = async (req, res) => {
             return res.status(404).send('invalid credentials 2');
         }
 
-        // const batchStatus = batchResults[0].batchstatus;
+        const batchStatus = batchResults[0].batchstatus;
 
         if (batchStatus !== 1) {
             return res.status(401).send('invalid credentials 3');
@@ -79,7 +79,7 @@ exports.loginStudent = async (req, res) => {
         const [registrations] = await connection.query(query4, [examCenterCode, macAddress]);
         // console.log(registrations)
 
-        if (registrations.length===0) {
+        if (registrations.length === 0) {
             return res.status(401).send('pc not registered');
         }
 
