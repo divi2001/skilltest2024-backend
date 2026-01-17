@@ -520,7 +520,7 @@ exports.getBatchesByDepartment = async (req, res) => {
 
         // Get distinct batch numbers for the specific department and center
         const query = `
-            SELECT DISTINCT batchNo 
+            SELECT DISTINCT batchNo, batchdate 
             FROM students 
             WHERE center = ? AND departmentId = ? 
             ORDER BY batchNo`;

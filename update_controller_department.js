@@ -11,13 +11,13 @@ async function updateControllerDepartment() {
 
     try {
         console.log('Checking for records with departmentId 6...');
-        const [records] = await connection.query('SELECT * FROM controllerdb WHERE departmentId = 6');
+        const [records] = await connection.query('SELECT * FROM controllerdb WHERE departmentId = 10');
         console.log(`Found ${records.length} records with departmentId 6.`);
 
         if (records.length > 0) {
             console.log('Updating departmentId from 6 to 10...');
             const [result] = await connection.query(
-                'UPDATE controllerdb SET departmentId = 10 WHERE departmentId = 6'
+                'UPDATE controllerdb SET departmentId = 10 WHERE departmentId = 10'
             );
             console.log(`Updated ${result.affectedRows} rows.`);
         } else {
