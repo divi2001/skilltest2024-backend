@@ -13,7 +13,8 @@ exports.getPcRegistrations = async (req, res) => {
     try {
         const [results] = await connection.query(query, [centerCode]);
 
-        // console.log("result: "+results);
+        console.log("Fetched PC Registrations:", JSON.stringify(results, null, 2));
+
         if (results.length > 0) {
             const pcResitrationDto = results.map(result => {
                 const pcRegistrationDet = new pcRegistrationDTO(
