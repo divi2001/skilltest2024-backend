@@ -83,6 +83,13 @@ function formatDateTimeIST(dateString) {
     return date.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 }
 
+function formatDateIST(dateString) {
+    if (!dateString) return null;
+    const date = moment(dateString);
+    if (!date.isValid()) return null;
+    return date.tz('Asia/Kolkata').format('YYYY-MM-DD');
+}
+
 function convertDateFormat(dateString) {
     if (!dateString) return null;
     try {
@@ -269,7 +276,7 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
                     formatDateTimeIST(formattedResult.feedback_time),
                     formattedResult.subject_name,
                     formattedResult.subject_name_short,
-                    formattedResult.batchdate,
+                    formatDateIST(formattedResult.batchdate),
                     formattedResult.departmentId,
                     formatDateTimeIST(formattedResult.trial_passage_time),
                     formatDateTimeIST(formattedResult.typing_passage_time)
@@ -370,8 +377,10 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
 
         const [results] = await connection.query(query, queryParams);
 
-        // Don't format dates here - let frontend handle it
         results.forEach(result => {
+            if (result.batchdate) {
+                result.batchdate = formatDateIST(result.batchdate);
+            }
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({
                 id: sub.subjectId,
