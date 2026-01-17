@@ -8,7 +8,7 @@ exports.getPcRegistrations = async (req, res) => {
 
     // console.log("CenterCode: "+centerCode);
 
-    const query = 'select id, center, ip_address, disk_id, mac_address, os, ram from pcregistration where center = ?;';
+    const query = 'select id, center, ip_address, disk_id, mac_address, os, ram, processor from pcregistration where center = ?;';
 
     try {
         const [results] = await connection.query(query, [centerCode]);
@@ -23,7 +23,8 @@ exports.getPcRegistrations = async (req, res) => {
                     result.disk_id,
                     result.mac_address,
                     result.os || 'N/A',
-                    result.ram || 'N/A'
+                    result.ram || 'N/A',
+                    result.processor || 'N/A'
                 )
                 return pcRegistrationDet;
             }
