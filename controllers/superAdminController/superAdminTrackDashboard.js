@@ -35,7 +35,7 @@ exports.getAllStudentsTrack = async (req, res) => {
     const adminId = req.params.adminid;
     // console.log(adminId);
     // if(!adminId) return res.status(404).json({"message":"Admin is not logged in!!"});
-    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type, departmentId } = req.query;
+    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type, departmentId } = req.body;
     // console.log("Exam center code:", departmentId);
     // console.log("Batch no:", batchNo);
     // console.log("Subject:", subject_name);
@@ -243,13 +243,13 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         }
 
         // First, get all subject IDs and names
-        const [subjects] = await connection.query('SELECT subjectId, subject_name FROM subjectsdb');
+        const [subjects] = await connection.query('SELECT subjectId, MAX(subject_name) as subject_name FROM subjectsdb GROUP BY subjectId');
 
         // Construct dynamic parts of the query
         const subjectCounts = subjects.map(sub => `
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_count,
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_logged_in,
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_completed
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} THEN s.student_id END) AS subject_${sub.subjectId}_count,
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN s.student_id END) AS subject_${sub.subjectId}_logged_in,
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN s.student_id END) AS subject_${sub.subjectId}_completed
         `).join(', ');
 
         const subjectNames = subjects.map(sub =>
@@ -270,7 +270,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             ${subjectNames}
         FROM 
             students s
-        LEFT JOIN batchdb b ON b.batchNo = s.batchNo
+        LEFT JOIN batchdb b ON b.batchNo = s.batchNo AND b.departmentId = s.departmentId
         LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
         WHERE 
             1=1 ${filter}

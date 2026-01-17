@@ -776,6 +776,22 @@ exports.getStudentData = async (req, res) => {
     const { student_id } = req.body;
     console.log(student_id);
     try {
+        await connection.query(`CREATE TABLE IF NOT EXISTS typingpassagelogs (
+            student_id VARCHAR(50) PRIMARY KEY,
+            trial_time VARCHAR(255),
+            trial_passage MEDIUMTEXT,
+            passage_time VARCHAR(255),
+            passage MEDIUMTEXT,
+            time DATETIME
+        )`);
+
+        await connection.query(`CREATE TABLE IF NOT EXISTS typingpassage (
+            student_id VARCHAR(50) PRIMARY KEY,
+            trial_passage MEDIUMTEXT,
+            passage MEDIUMTEXT,
+            time DATETIME
+        )`);
+
         let studentQuery = `select student_id , base64 , batchNo , center , batchdate , fullname from students where student_id = ?`;
         let shorthandPassageQuery = `select tl.texta AS passage_a_log , tl.textb as passage_b_log , tl.mina , tl.minb , fps.passageA  AS final_passageA ,fps.passageB  AS final_passageB FROM 
                                        students s
