@@ -46,7 +46,7 @@ DB_CONFIG = {
     'charset': 'utf8mb4'
 }
 
-AUDIO_DURATION_SECONDS = 30
+
 SAMPLE_RATE = 16000
 
 def check_gpu():
@@ -98,15 +98,19 @@ def fetch_records(conn):
         a.audio1, a.audio2, a.testaudio,
         a.passage1, a.passage2,
         a.textPassageA, a.textPassageB,
-        s.subject_name, s.subject_name_short
+        s.subject_name
     FROM audiodb a
-    LEFT JOIN subjectsdb s ON a.subjectId = s.subjectId
+    LEFT JOIN (
+        SELECT subjectId, MAX(subject_name) as subject_name 
+        FROM subjectsdb 
+        GROUP BY subjectId
+    ) s ON a.subjectId = s.subjectId
     ORDER BY a.subjectId, a.qset
     """
     cursor.execute(query)
     records = cursor.fetchall()
     cursor.close()
-    print(f"✓ Fetched {len(records)} audio records\n")
+    print(f"✓ Fetched {len(records)} audio records (Joined with Subjects)\n")
     return records
 
 def detect_language(subject_name):
@@ -134,14 +138,15 @@ def download_audio(url):
         print(f"  ⚠ Download failed: {str(e)[:50]}")
         return None
 
-def extract_30_sec(audio_bytes, format="mp3"):
-    """Extract first 30 seconds of audio."""
+def prepare_audio(audio_bytes, format="mp3"):
+    """Prepare audio for transcription (convert to 16kHz mono WAV)."""
     try:
         audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format=format)
-        first_30 = audio[:30000].set_channels(1).set_frame_rate(16000)
+        # Convert to 16kHz mono, keep full duration
+        audio = audio.set_channels(1).set_frame_rate(16000)
         
         temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        first_30.export(temp_file.name, format="wav")
+        audio.export(temp_file.name, format="wav")
         temp_file.close()
         return temp_file.name
     except Exception as e:
@@ -190,9 +195,9 @@ def process_audio(model, url, audio_type, language):
     if not audio_bytes:
         return {'type': audio_type, 'status': 'failed', 'transcription': ''}
     
-    # Extract 30 seconds
+    # Prepare audio (convert/resample)
     format = 'mp3' if '.mp3' in url.lower() else 'wav'
-    audio_path = extract_30_sec(audio_bytes, format)
+    audio_path = prepare_audio(audio_bytes, format)
     if not audio_path:
         return {'type': audio_type, 'status': 'failed', 'transcription': ''}
     

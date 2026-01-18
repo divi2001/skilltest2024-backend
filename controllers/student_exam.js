@@ -233,13 +233,20 @@ exports.getaudios = async (req, res) => {
         }
         const student = students[0];
 
-        // Extract subjectsId and parse it to an array
-        const subjectsId = student.subjectsId;
+        // Extract subjectsId and parse it
+        let subjectsId;
+        try {
+            subjectsId = JSON.parse(student.subjectsId);
+        } catch (err) {
+            console.error('Error parsing subjectsId:', err);
+            subjectsId = student.subjectsId;
+        }
+
         const qset = student.qset;
         console.log(qset);
 
-        // Assuming you want the first subject from the array
-        const subjectId = student.subjectsId;
+        // Assuming you want the first subject from the array if it's an array
+        const subjectId = Array.isArray(subjectsId) ? subjectsId[0] : subjectsId;
         const [subjects] = await connection.query(subjectsQuery, [subjectId]);
         if (subjects.length === 0) {
             return res.status(404).send('Subject not found');
