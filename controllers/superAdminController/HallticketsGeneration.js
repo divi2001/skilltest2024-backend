@@ -118,13 +118,12 @@ async function generateStudentHallTicket(doc, studentData, assets) {
   const boxHeight = 85;
   doc.rect(boxX, boxY, boxWidth, boxHeight).stroke();
 
-  const maxImageWidth = boxWidth - 10;
-  const maxImageHeight = boxHeight - 10;
-
   try {
     if (studentData.image) {
       const base64Data = studentData.image.replace(/^data:image\/\w+;base64,/, '');
       const imageBuffer = Buffer.from(base64Data, 'base64');
+      
+      // Stretch image to fill entire box exactly
       doc.image(imageBuffer, boxX, boxY, {
         width: boxWidth,
         height: boxHeight
@@ -201,15 +200,15 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     });
 
-  if (signFile) {
-    doc.image(signFile, boxX + 20, 240, {
-      width: maxImageWidth+45,
-      height: maxImageHeight+45,
-      fit: [maxImageWidth+40, maxImageHeight+40],
-      align: 'center',
-      valign: 'center'
-    });
-  }
+  // if (signFile) {
+  //   doc.image(signFile, boxX + 20, 240, {
+  //     width: maxImageWidth+45,
+  //     height: maxImageHeight+45,
+  //     fit: [maxImageWidth+40, maxImageHeight+40],
+  //     align: 'center',
+  //     valign: 'center'
+  //   });
+  // }
 
   // Commissioner details
   doc

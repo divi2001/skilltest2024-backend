@@ -27,11 +27,13 @@ except ImportError:
     OPENPYXL_AVAILABLE = False
 
 try:
-    from faster_whisper import WhisperModel
-    FASTER_WHISPER_AVAILABLE = True
+    import torch
+    import torchaudio
+    from transformers import AutoModel, AutoProcessor, pipeline
+    TRANSFORMERS_AVAILABLE = True
 except ImportError:
-    FASTER_WHISPER_AVAILABLE = False
-    print("faster-whisper not installed. Installing now...")
+    TRANSFORMERS_AVAILABLE = False
+    print("Transformers/Torch/Torchaudio not installed. Installing now...")
 
 # Database configuration
 DB_CONFIG = {
@@ -44,15 +46,17 @@ DB_CONFIG = {
 }
 
 # Audio processing configuration
-AUDIO_DURATION_SECONDS = 30
+# Audio processing configuration
+AUDIO_DURATION_SECONDS = None  # Set to None for full audio
 SAMPLE_RATE = 16000
+HF_TOKEN = os.getenv("HF_TOKEN")
 
-def install_faster_whisper():
-    """Install faster-whisper package."""
+def install_dependencies():
+    """Install required packages."""
     import subprocess
-    print("Installing faster-whisper...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "faster-whisper"])
-    print("✓ faster-whisper installed successfully")
+    print("Installing transformers torch torchaudio...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "transformers", "torch", "torchaudio", "accel-brain-base"])
+    print("✓ Dependencies installed successfully")
 
 def check_gpu_availability():
     """Check if GPU is available for processing."""
@@ -66,28 +70,55 @@ def check_gpu_availability():
         print("✗ GPU not available. Using CPU (slower).")
         return False
 
-def load_faster_whisper_model(model_size: str = "large-v3"):
-    """Load faster-whisper model with GPU support."""
-    from faster_whisper import WhisperModel
+def load_indic_model():
+    """Load AI4Bharat Indic Conformer model (for Hindi/Marathi)."""
     
     # Check GPU availability
-    import torch
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    compute_type = "float16" if device == "cuda" else "int8"
     
-    print(f"Loading faster-whisper '{model_size}' model on {device.upper()} (compute_type: {compute_type})...")
+    print(f"Loading AI4Bharat Indic-Conformer-600M on {device.upper()} (for Hindi/Marathi)...")
     
-    # Load model with GPU support
-    model = WhisperModel(
-        model_size, 
-        device=device,
-        compute_type=compute_type,
-        download_root=None,  # Use default cache
-        num_workers=4  # Parallel processing
-    )
+    try:
+        model = AutoModel.from_pretrained(
+            "ai4bharat/indic-conformer-600m-multilingual", 
+            trust_remote_code=True
+        )
+        model.to(device)
+        model.eval()
+        
+        print(f"✓ Indic Model loaded successfully on {device.upper()}")
+        return {
+            'model': model,
+            'device': device,
+            'type': 'indic'
+        }
+    except Exception as e:
+        print(f"✗ Failed to load Indic model: {e}")
+        sys.exit(1)
+
+def load_english_model():
+    """Load English Model (Distil-Whisper Large-v2) - PyTorch."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     
-    print(f"✓ Model loaded successfully on {device.upper()}")
-    return model
+    print(f"Loading English Model (Distil-Whisper Large-v2) on {device.upper()}...")
+    try:
+        # Use simple pipeline for speed and ease - strictly PyTorch
+        # We explicitly set framework='pt' to avoid Keras checks if TF is installed
+        pipe = pipeline(
+            "automatic-speech-recognition",
+            model="distil-whisper/distil-large-v2",
+            dtype=torch.float16 if device == "cuda" else torch.float32,
+            device=device,
+            framework="pt"
+        )
+        print(f"✓ English Model loaded successfully")
+        return {
+            'model': pipe,
+            'type': 'english-pipeline'
+        }
+    except Exception as e:
+        print(f"✗ Failed to load English model: {e}")
+        sys.exit(1)
 
 def connect_to_database():
     """Establish connection to MySQL database."""
@@ -105,24 +136,18 @@ def fetch_audio_records(connection) -> List[Dict]:
     
     query = """
     SELECT 
-        a.id,
-        a.subjectId,
-        a.qset,
-        a.departmentId,
-        a.code_a,
-        a.code_b,
-        a.code_t,
-        a.audio1,
-        a.audio2,
-        a.testaudio,
-        a.passage1,
-        a.passage2,
-        a.textPassageA,
-        a.textPassageB,
-        s.subject_name,
-        s.subject_name_short
+        a.id, a.subjectId, a.qset, a.departmentId,
+        a.code_a, a.code_b, a.code_t,
+        a.audio1, a.audio2, a.testaudio,
+        a.passage1, a.passage2,
+        a.textPassageA, a.textPassageB,
+        s.subject_name
     FROM audiodb a
-    LEFT JOIN subjectsdb s ON a.subjectId = s.subjectId
+    LEFT JOIN (
+        SELECT subjectId, MAX(subject_name) as subject_name 
+        FROM subjectsdb 
+        GROUP BY subjectId
+    ) s ON a.subjectId = s.subjectId
     ORDER BY a.subjectId, a.qset
     """
     cursor.execute(query)
@@ -161,22 +186,23 @@ def download_audio(url: str, timeout: int = 60) -> Optional[bytes]:
         print(f"  ⚠ Failed to download audio: {e}")
         return None
 
-def extract_first_30_seconds(audio_bytes: bytes, format: str = "mp3") -> Optional[str]:
-    """Extract first 30 seconds from audio file and save to temp file."""
+def extract_audio_content(audio_bytes: bytes, format: str = "mp3") -> Optional[str]:
+    """Extract audio content and save to temp file (supports full length)."""
     try:
         # Load audio from bytes
         audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format=format)
         
-        # Extract first 30 seconds
-        duration_ms = AUDIO_DURATION_SECONDS * 1000
-        first_30_sec = audio[:duration_ms]
+        # Truncate if limit set
+        if AUDIO_DURATION_SECONDS is not None:
+             duration_ms = AUDIO_DURATION_SECONDS * 1000
+             audio = audio[:duration_ms]
         
         # Convert to mono and set sample rate
-        first_30_sec = first_30_sec.set_channels(1).set_frame_rate(SAMPLE_RATE)
+        audio = audio.set_channels(1).set_frame_rate(SAMPLE_RATE)
         
-        # Save to temporary file (faster-whisper needs file path)
+        # Save to temporary file
         temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        first_30_sec.export(temp_file.name, format="wav")
+        audio.export(temp_file.name, format="wav")  # Ensure WAV for librosa if needed
         temp_file.close()
         
         return temp_file.name
@@ -184,47 +210,94 @@ def extract_first_30_seconds(audio_bytes: bytes, format: str = "mp3") -> Optiona
         print(f"  ⚠ Failed to process audio: {e}")
         return None
 
-def transcribe_audio(model, audio_path: str, language: Optional[str] = None) -> Dict:
-    """Transcribe audio using faster-whisper model."""
+def transcribe_indic(model_dict, audio_path: str, language: Optional[str] = None) -> Dict:
+    """Transcribe audio using Indic Conformer model."""
     try:
-        # Transcribe with language hint
-        segments, info = model.transcribe(
-            audio_path,
-            language=language,  # Can be None for auto-detection
-            beam_size=5,
-            best_of=5,
-            temperature=0.0,
-            vad_filter=True,  # Voice activity detection
-            vad_parameters=dict(min_silence_duration_ms=500)
-        )
+        model = model_dict['model']
+        device = model_dict['device']
         
-        # Collect all segments
-        transcription = ""
-        segment_list = []
+        # Load audio using torchaudio
+        wav, sr = torchaudio.load(audio_path)
         
-        for segment in segments:
-            transcription += segment.text + " "
-            segment_list.append({
-                'start': segment.start,
-                'end': segment.end,
-                'text': segment.text
-            })
+        # Resample if needed (target 16000)
+        target_sr = 16000
+        if sr != target_sr:
+            resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=target_sr)
+            wav = resampler(wav)
+            
+        # Ensure mono
+        if wav.shape[0] > 1:
+            wav = torch.mean(wav, dim=0, keepdim=True)
+            
+        # Move to device
+        wav = wav.to(device)
+        
+        if language in ['hi', 'mr']:
+            lang_code = language
+        else:
+            # Fallback for Indic model: default to Hindi
+            # Note: We theoretically shouldn't be here for English if routing works
+            lang_code = 'hi'
+        
+        with torch.no_grad():
+            transcription = model(wav, lang_code, "ctc")
         
         return {
             'success': True,
-            'text': transcription.strip(),
-            'language': info.language,
-            'language_probability': info.language_probability,
-            'segments': segment_list
+            'text': str(transcription),
+            'language': lang_code, 
+            'language_probability': 1.0,
+            'segments': []
         }
             
     except Exception as e:
+        return {'success': False, 'error': str(e), 'text': '', 'language': language}
+
+def transcribe_english(model_dict, audio_path: str, language: Optional[str] = None) -> Dict:
+    """Transcribe using English Pipeline."""
+    try:
+        pipe = model_dict['model']
+        
+        # Pipeline handles loading and processing internally
+        result = pipe(
+            audio_path,
+            chunk_length_s=30,
+            batch_size=8,
+            generate_kwargs={"language": "english"} # Force English
+        )
+        
         return {
-            'success': False,
-            'error': str(e),
-            'text': '',
-            'language': language
+            'success': True,
+            'text': result['text'].strip(),
+            'language': 'en',
+            'language_probability': 1.0,
+            'segments': []
         }
+    except Exception as e:
+        return {'success': False, 'error': str(e), 'text': '', 'language': language}
+
+def transcribe_whisper(model_dict, audio_path: str, language: Optional[str] = None) -> Dict:
+    """Transcribe using Distil-Whisper Pipeline."""
+    try:
+        pipe = model_dict['model']
+        
+        # Pipeline handles loading and processing internally
+        result = pipe(
+            audio_path,
+            chunk_length_s=30,
+            batch_size=8,
+            generate_kwargs={"language": "english"} # Force English for distil-whisper
+        )
+        
+        return {
+            'success': True,
+            'text': result['text'].strip(),
+            'language': 'en',
+            'language_probability': 1.0,
+            'segments': []
+        }
+    except Exception as e:
+        return {'success': False, 'error': str(e), 'text': '', 'language': language}
 
 def get_audio_format_from_url(url: str) -> str:
     """Detect audio format from URL."""
@@ -240,8 +313,18 @@ def get_audio_format_from_url(url: str) -> str:
     else:
         return 'mp3'
 
-def process_single_audio(model, url: str, audio_type: str, language: Optional[str]) -> Dict:
-    """Process a single audio file: download, extract 30s, transcribe."""
+def process_single_audio(models_collection, url: str, audio_type: str, language: Optional[str]) -> Dict:
+    """Process a single audio file: download, extract, transcribe."""
+    
+    # Route based on language
+    if language == 'en':
+        model_dict = models_collection['english']
+        transcribe_func = transcribe_english
+    else:
+        # Hindi, Marathi, or Unknown (assume Indic)
+        model_dict = models_collection['indic']
+        transcribe_func = transcribe_indic
+    
     if not url or url.strip() == '':
         return {
             'url': url,
@@ -264,9 +347,9 @@ def process_single_audio(model, url: str, audio_type: str, language: Optional[st
             'transcription': ''
         }
     
-    # Extract first 30 seconds
+    # Extract audio content (full or truncated based on config)
     audio_format = get_audio_format_from_url(url)
-    audio_path = extract_first_30_seconds(audio_bytes, audio_format)
+    audio_path = extract_audio_content(audio_bytes, audio_format)
     if audio_path is None:
         return {
             'url': url,
@@ -278,7 +361,7 @@ def process_single_audio(model, url: str, audio_type: str, language: Optional[st
     
     try:
         # Transcribe
-        result = transcribe_audio(model, audio_path, language)
+        result = transcribe_func(model_dict, audio_path, language)
         
         if result['success']:
             return {
@@ -308,7 +391,7 @@ def generate_report(results: List[Dict], output_path: str):
     
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write("=" * 100 + "\n")
-        f.write("AUDIO TRANSCRIPTION REPORT (faster-whisper large-v3)\n")
+        f.write("AUDIO TRANSCRIPTION REPORT (Hybrid: Whisper + IndicConformer)\n")
         f.write("=" * 100 + "\n\n")
         f.write(f"Generated: {timestamp}\n")
         f.write(f"Total Records Processed: {len(results)}\n\n")
@@ -363,7 +446,7 @@ def generate_report(results: List[Dict], output_path: str):
                         f.write(f" (confidence: {prob:.2%})\n")
                     else:
                         f.write("\n")
-                    f.write(f"  Transcription (First 30 seconds):\n")
+                    f.write(f"  Transcription:\n")
                     f.write(f"  {'-' * 40}\n")
                     text = audio['transcription']
                     for i in range(0, len(text), 80):
@@ -390,7 +473,7 @@ def generate_json_report(results: List[Dict], output_path: str):
     
     report = {
         'generated_at': timestamp,
-        'model': 'faster-whisper large-v3',
+        'model': 'Hybrid (English: Distil-Whisper-v2 | Indic: AI4Bharat-Conformer)',
         'total_records': len(results),
         'results': results
     }
@@ -536,22 +619,28 @@ def generate_excel_report(records_with_transcriptions: List[Dict], output_path: 
 def main():
     print("\n" + "=" * 60)
     print("AUDIO TRANSCRIPTION REPORT GENERATOR V2")
-    print("Using GPU-Accelerated faster-whisper (large-v3)")
-    print("Optimized for Hindi, Marathi, and English")
+    print("Hybrid Mode Activated:")
+    print("1. English       -> Distil-Whisper Large-v2 (Fast, PyTorch)")
+    print("2. Hindi/Marathi -> AI4Bharat Indic-Conformer-600M")
     print("=" * 60 + "\n")
     
-    # Check if faster-whisper is installed
-    if not FASTER_WHISPER_AVAILABLE:
-        install_faster_whisper()
+    # Check if transformers is installed
+    if not TRANSFORMERS_AVAILABLE:
+        install_dependencies()
         print("Please restart the script after installation.")
         return
     
     # Check GPU availability
     has_gpu = check_gpu_availability()
     
-    # Load faster-whisper model
-    # large-v3 has excellent multilingual support including Hindi/Marathi
-    model = load_faster_whisper_model("large-v3")
+    # Load Models
+    indic_model = load_indic_model()
+    english_model = load_english_model()
+    
+    models_collection = {
+        'indic': indic_model,
+        'english': english_model
+    }
     
     # Connect to database
     connection = connect_to_database()
@@ -581,24 +670,33 @@ def main():
             
             # Passage 1
             if record.get('passage1'):
-                audio_result = process_single_audio(model, record['passage1'], 'passage1', language)
+                audio_result = process_single_audio(models_collection, record['passage1'], 'passage1', language)
                 audios.append(audio_result)
                 if audio_result['status'] == 'success':
                     print(f"    ✓ Passage1 transcribed ({len(audio_result['transcription'])} chars)")
+                    print(f"      Text: {audio_result['transcription'][:100]}..." if len(audio_result['transcription']) > 100 else f"      Text: {audio_result['transcription']}")
+                else:
+                    print(f"    ✗ Passage1 Failed: {audio_result.get('reason', 'Unknown error')}")
             
             # Passage 2
             if record.get('passage2'):
-                audio_result = process_single_audio(model, record['passage2'], 'passage2', language)
+                audio_result = process_single_audio(models_collection, record['passage2'], 'passage2', language)
                 audios.append(audio_result)
                 if audio_result['status'] == 'success':
                     print(f"    ✓ Passage2 transcribed ({len(audio_result['transcription'])} chars)")
+                    print(f"      Text: {audio_result['transcription'][:100]}..." if len(audio_result['transcription']) > 100 else f"      Text: {audio_result['transcription']}")
+                else:
+                    print(f"    ✗ Passage2 Failed: {audio_result.get('reason', 'Unknown error')}")
             
             # Test Audio
             if record.get('testaudio'):
-                audio_result = process_single_audio(model, record['testaudio'], 'testaudio', language)
+                audio_result = process_single_audio(models_collection, record['testaudio'], 'testaudio', language)
                 audios.append(audio_result)
                 if audio_result['status'] == 'success':
                     print(f"    ✓ TestAudio transcribed ({len(audio_result['transcription'])} chars)")
+                    print(f"      Text: {audio_result['transcription'][:100]}..." if len(audio_result['transcription']) > 100 else f"      Text: {audio_result['transcription']}")
+                else:
+                    print(f"    ✗ TestAudio Failed: {audio_result.get('reason', 'Unknown error')}")
             
             results.append({
                 'id': record['id'],

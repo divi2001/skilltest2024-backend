@@ -15,7 +15,7 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     );
     const now = moment().tz(kolkataZone);
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
-    
+
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
     console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD HH:mm:ss'));
@@ -64,7 +64,7 @@ exports.getControllerPassForCenter = async (req, res) => {
     try {
         const [results] = await connection.query(query, queryParams);
         console.log("Raw query results:", results);
-        
+
         if (results.length > 0) {
             console.log("Controller passwords found in database:");
             results.forEach((result, index) => {
@@ -79,23 +79,29 @@ exports.getControllerPassForCenter = async (req, res) => {
 
             if (filteredResults.length > 0) {
                 console.log("===== CONTROLLER PASSWORDS WILL BE RETURNED =====");
-                let controller_pass_decrypted;
-                filteredResults.forEach((result, index) => {
+                console.log("===== CONTROLLER PASSWORDS WILL BE RETURNED =====");
+
+                const controllerPassDto = filteredResults.map((result, index) => {
                     console.log(`Filtered Batch ${index + 1}:`);
                     console.log(`  BatchNo: ${result.batchNo}`);
                     console.log(`  DepartmentId: ${result.departmentId}`);
                     console.log(`  Department: ${result.departmentName}`);
                     console.log(`  Center: ${result.center}`);
 
+                    let controller_pass_decrypted;
+                    try {
+                        controller_pass_decrypted = decrypt(result.controller_pass);
+                    } catch (e) {
+                        console.error(`Decryption failed for batch ${result.batchNo}:`, e);
+                        controller_pass_decrypted = result.controller_pass; // Fallback to raw if decryption fails
+                    }
+
                     console.log(`  Controller Password: ${result.controller_pass}`);
-                    controller_pass_decrypted = decrypt(result.controller_pass);
                     console.log(`  Controller Password Decrypted : ${controller_pass_decrypted}`);
                     console.log(`  Start Time: ${result.Start_time}`);
                     console.log(`  Batch Date: ${result.batchdate}`);
                     console.log("---");
-                });
 
-                const controllerPassDto = filteredResults.map(result => {
                     const formattedBatchDate = moment(result.batchdate).format('YYYY-MM-DD');
                     return {
                         ...new ControllerPasswordDTO(
@@ -108,12 +114,12 @@ exports.getControllerPassForCenter = async (req, res) => {
                         ),
                         departmentId: result.departmentId,
                         departmentName: result.departmentName,
-                        batchDate: formattedBatchDate  // Added batch date
+                        batchDate: formattedBatchDate
                     };
                 });
 
                 console.log("Final DTO response:", controllerPassDto);
-                res.status(200).json({controllerPassDto});
+                res.status(200).json({ controllerPassDto });
             } else {
                 console.log("No batches are within the time limit for password access");
                 res.status(404).send('No records found!');
@@ -131,7 +137,7 @@ exports.getControllerPassForCenter = async (req, res) => {
 // Add new endpoint to get departments
 exports.getDepartmentsForCenter = async (req, res) => {
     const centerCode = req.session.centerId;
-    
+
     try {
         const query = `SELECT DISTINCT d.departmentId, d.departmentName 
                       FROM departmentdb d 
@@ -139,18 +145,18 @@ exports.getDepartmentsForCenter = async (req, res) => {
                       INNER JOIN controllerdb c ON b.batchNo = c.batchNo
                       WHERE c.center = ? AND d.departmentStatus = 1
                       ORDER BY d.departmentName ASC`;
-        
+
         const [results] = await connection.query(query, [centerCode]);
-        res.status(200).json({departments: results});
+        res.status(200).json({ departments: results });
     } catch (err) {
         console.error("Error in getDepartmentsForCenter:", err);
         res.status(500).send(err.message);
     }
 };
 
-exports.getBatchwiseControllerPassForCenter = async(req, res) => {
+exports.getBatchwiseControllerPassForCenter = async (req, res) => {
     const center = req.session.centerId;
-    const {batchNo, departmentId} = req.body; // Add departmentId
+    const { batchNo, departmentId } = req.body; // Add departmentId
 
     console.log(`===== GETTING CONTROLLER PASSWORD FOR SPECIFIC BATCH =====`);
     console.log(`Center: ${center}, BatchNo: ${batchNo}, DepartmentId: ${departmentId}`);
@@ -164,13 +170,13 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
             console.log("Batch not found in database");
             return res.status(404).json({ "message": "Batch not found" });
         }
-        
+
         const today = moment().startOf('day');
         const batchMoment = moment(batchData[0].batchdate).tz('Asia/Kolkata').startOf('day');
-        
+
         console.log(`Today: ${today.format('YYYY-MM-DD')}`);
         console.log(`Batch Date: ${batchMoment.format('YYYY-MM-DD')}`);
-        
+
         if (!today.isSame(batchMoment)) {
             console.log("Download not allowed - not the same day as batch");
             return res.status(403).json({ "message": "Download is only allowed on the day of the batch" });
@@ -178,14 +184,14 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
 
         const timeAllowed = checkIfIsInTimeLimit(batchData[0].start_time);
         console.log(`Time check result: ${timeAllowed}`);
-        
+
         if (!timeAllowed) {
             console.log("Download not allowed - outside time limit");
             return res.status(403).json({ "message": "Download not allowed at this time" });
         }
 
         console.log("===== TIME CHECKS PASSED - FETCHING CONTROLLER PASSWORD =====");
-        
+
         const query = `SELECT c.controller_pass, d.departmentName, b.batchdate 
                       FROM controllerdb c
                       INNER JOIN batchdb b ON c.batchNo = b.batchNo
@@ -206,10 +212,10 @@ exports.getBatchwiseControllerPassForCenter = async(req, res) => {
             console.log("No controller password found for this batch, center and department");
         }
 
-        res.status(200).json({results});
+        res.status(200).json({ results });
     } catch (error) {
         console.error("Error in getBatchwiseControllerPassForCenter:", error);
-        res.status(500).json({"Error":error});
+        res.status(500).json({ "Error": error });
     }
 };
 

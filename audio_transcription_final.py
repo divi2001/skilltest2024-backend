@@ -36,6 +36,18 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "faster-whisper"])
     from faster_whisper import WhisperModel
 
+try:
+    import torch
+    import librosa
+    from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+except ImportError:
+    print("Installing transformers torch librosa...")
+    import subprocess
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "transformers", "torch", "librosa"])
+    import torch
+    import librosa
+    from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+
 # Database configuration
 DB_CONFIG = {
     'host': '13.204.48.33',
@@ -51,32 +63,53 @@ SAMPLE_RATE = 16000
 
 def check_gpu():
     """Check GPU availability."""
-    import torch
     if torch.cuda.is_available():
         gpu_name = torch.cuda.get_device_name(0)
         print(f"✓ GPU Available: {gpu_name}")
-        return True
+        return "cuda"
     print("✗ Using CPU (slower)")
-    return False
+    return "cpu"
 
-def load_model():
-    """Load faster-whisper large-v3-turbo model."""
-    import torch
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    compute_type = "float16" if device == "cuda" else "int8"
+def load_models(device_type):
+    """Load both Whisper (English/Default) and Wav2Vec2 (Hindi/Marathi) models."""
+    models = {}
     
-    print(f"\nLoading Whisper large-v3-turbo on {device.upper()}...")
-    print("Model: 8× faster, excellent Hindi/Marathi/English support")
-    
-    model = WhisperModel(
-        "large-v3-turbo",
-        device=device,
-        compute_type=compute_type,
-        num_workers=4
-    )
-    
-    print(f"✓ Model loaded on {device.upper()}\n")
-    return model
+    # 1. Load Faster Whisper
+    compute_type = "float16" if device_type == "cuda" else "int8"
+    print(f"\nLoading Whisper large-v3-turbo on {device_type.upper()} (for English)...")
+    try:
+        models['whisper'] = WhisperModel(
+            "large-v3-turbo",
+            device=device_type,
+            compute_type=compute_type,
+            num_workers=4
+        )
+        print(f"✓ Whisper loaded")
+    except Exception as e:
+        print(f"✗ Failed to load Whisper: {e}")
+        models['whisper'] = None
+
+    # 2. Load Wav2Vec2 for Hindi/Marathi
+    print(f"Loading AI4Bharat IndicWav2Vec on {device_type.upper()}...")
+    try:
+        # Using AI4Bharat model which is generally more accurate than the previous one
+        # Note: This is the Transformers-compatible version of their work
+        model_name = "ai4bharat/indicwav2vec_v1_ada_rom_ft"
+        processor = Wav2Vec2Processor.from_pretrained(model_name)
+        model = Wav2Vec2ForCTC.from_pretrained(model_name)
+        model.to(device_type)
+        
+        models['hindi'] = {
+            'model': model,
+            'processor': processor,
+            'device': device_type
+        }
+        print(f"✓ AI4Bharat IndicWav2Vec loaded")
+    except Exception as e:
+        print(f"✗ Failed to load Wav2Vec2: {e}")
+        models['hindi'] = None
+        
+    return models
 
 def connect_db():
     """Connect to MySQL database."""
@@ -153,8 +186,8 @@ def prepare_audio(audio_bytes, format="mp3"):
         print(f"  ⚠ Audio processing failed: {str(e)[:50]}")
         return None
 
-def transcribe(model, audio_path, language=None):
-    """Transcribe audio file."""
+def transcribe_whisper(model, audio_path, language=None):
+    """Transcribe using Whisper."""
     try:
         segments, info = model.transcribe(
             audio_path,
@@ -162,9 +195,7 @@ def transcribe(model, audio_path, language=None):
             beam_size=5,
             vad_filter=True
         )
-        
         text = " ".join([seg.text for seg in segments]).strip()
-        
         return {
             'success': True,
             'text': text,
@@ -172,12 +203,61 @@ def transcribe(model, audio_path, language=None):
             'probability': info.language_probability
         }
     except Exception as e:
+        return {'success': False, 'error': str(e), 'text': '', 'language': language}
+
+def transcribe_wav2vec2(model_dict, audio_path):
+    """Transcribe using Wav2Vec2 for Hindi/Marathi."""
+    try:
+        model = model_dict['model']
+        processor = model_dict['processor']
+        device = model_dict['device']
+        
+        # Load audio using librosa (resample to 16k)
+        audio_input, sr = librosa.load(audio_path, sr=16000)
+        
+        # Tokenize
+        inputs = processor(audio_input, sampling_rate=16000, return_tensors="pt", padding=True)
+        
+        # Move to device
+        inputs = inputs.to(device)
+        
+        # Inference
+        with torch.no_grad():
+            logits = model(inputs.input_values).logits
+            
+        # Decode
+        predicted_ids = torch.argmax(logits, dim=-1)
+        transcription = processor.batch_decode(predicted_ids)[0]
+        
         return {
-            'success': False,
-            'error': str(e),
-            'text': '',
-            'language': language
+            'success': True,
+            'text': transcription,
+            'language': 'hi/mr', # grouped
+            'probability': 1.0
         }
+    except Exception as e:
+        return {'success': False, 'error': str(e), 'text': '', 'language': 'hi/mr'}
+
+def transcribe(models, audio_path, language=None):
+    """Dispatch transcription based on language."""
+    # Logic: If language is English or Unknown -> Whisper
+    # If language is Hindi or Marathi -> Wav2Vec2 (if available), else Whisper
+    
+    use_hindi_model = False
+    if language in ['hi', 'mr'] and models.get('hindi'):
+        use_hindi_model = True
+        
+    if use_hindi_model:
+        return transcribe_wav2vec2(models['hindi'], audio_path)
+    else:
+        if models.get('whisper'):
+            # For whisper, if language is 'hi' or 'mr' but we are here, it means hindi model failed loading?
+            # Or if language is None/en.
+            # Convert 'hi'/'mr' to None if we are falling back to Whisper so it auto-detects or explicitly pass it?
+            # Whisper handles 'hi'/'mr' well too, but user specifically requested the other model.
+            return transcribe_whisper(models['whisper'], audio_path, language)
+        else:
+            return {'success': False, 'error': "No suitable model loaded", 'text': '', 'language': language}
 
 def process_audio(model, url, audio_type, language):
     """Process single audio: download, extract, transcribe."""
@@ -315,10 +395,10 @@ def main():
     print("=" * 70 + "\n")
     
     # Check GPU
-    check_gpu()
+    device_type = check_gpu()
     
-    # Load model
-    model = load_model()
+    # Load models
+    models = load_models(device_type)
     
     # Connect to database
     conn = connect_db()
@@ -343,15 +423,15 @@ def main():
             
             # Process passage1
             if record.get('passage1'):
-                audios.append(process_audio(model, record['passage1'], 'passage1', language))
+                audios.append(process_audio(models, record['passage1'], 'passage1', language))
             
             # Process passage2
             if record.get('passage2'):
-                audios.append(process_audio(model, record['passage2'], 'passage2', language))
+                audios.append(process_audio(models, record['passage2'], 'passage2', language))
             
             # Process testaudio
             if record.get('testaudio'):
-                audios.append(process_audio(model, record['testaudio'], 'testaudio', language))
+                audios.append(process_audio(models, record['testaudio'], 'testaudio', language))
             
             results.append({
                 'original_record': record,
