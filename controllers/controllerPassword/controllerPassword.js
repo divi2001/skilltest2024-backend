@@ -5,7 +5,7 @@ const encryptionInterface = require('../../config/encrypt');
 const moment = require('moment');
 const { decrypt } = require('../../config/encrypt');
 
-function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
+function checkDownloadAllowedStudentLoginPass(startTime, batchDate, minutesBeforeStart = 30) {
     const kolkataZone = 'Asia/Kolkata';
     const batchDateKolkata = moment(batchDate).tz(kolkataZone);
     const startDateTime = moment.tz(
@@ -21,8 +21,9 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD HH:mm:ss'));
     console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD HH:mm:ss'));
     console.log('Difference in Minutes:', differenceInMinutes);
+    console.log('Minutes Before Start (Timer):', minutesBeforeStart);
 
-    return differenceInMinutes <= 30;
+    return differenceInMinutes <= minutesBeforeStart;
 }
 
 exports.getControllerPassForCenter = async (req, res) => {
@@ -32,7 +33,30 @@ exports.getControllerPassForCenter = async (req, res) => {
     console.log("CenterCode: " + centerCode);
     console.log("Department Filter: " + departmentId);
 
-    let query = `SELECT 
+    try {
+        // Fetch controller password timer setting from system_settings
+        let controllerPassTimer = 30; // Default to 30 minutes
+        try {
+            const [settingRows] = await connection.query(
+                'SELECT setting_value FROM system_settings WHERE setting_key = ?',
+                ['CONTROLLER_PASSWORD_TIMER']
+            );
+
+            if (settingRows && settingRows.length > 0) {
+                const settingValue = JSON.parse(settingRows[0].setting_value);
+                if (settingValue.enabled && settingValue.type === 'minutes_before' && settingValue.value) {
+                    controllerPassTimer = parseInt(settingValue.value);
+                    console.log(`Controller Password Timer set to ${controllerPassTimer} minutes from settings`);
+                }
+            } else {
+                console.log('No controller password timer setting found, using default 30 minutes');
+            }
+        } catch (settingError) {
+            console.error('Error fetching controller password timer setting:', settingError);
+            console.log('Using default 30 minutes timer');
+        }
+
+        let query = `SELECT 
             c.center, 
             c.batchNo, 
             c.controller_pass, 
@@ -49,19 +73,18 @@ exports.getControllerPassForCenter = async (req, res) => {
         INNER JOIN departmentdb d ON b.departmentId = d.departmentId
         WHERE c.center = ? AND d.departmentStatus = 1`;
 
-    let queryParams = [centerCode];
+        let queryParams = [centerCode];
 
-    // Add department filter if provided
-    if (departmentId && departmentId !== 'all') {
-        query += ` AND b.departmentId = ?`;
-        queryParams.push(departmentId);
-    }
+        // Add department filter if provided
+        if (departmentId && departmentId !== 'all') {
+            query += ` AND b.departmentId = ?`;
+            queryParams.push(departmentId);
+        }
 
-    query += ` GROUP BY c.center, c.batchNo, c.controller_pass, b.Start_time, b.End_Time, b.batchstatus, b.batchdate, b.departmentId, d.departmentName
+        query += ` GROUP BY c.center, c.batchNo, c.controller_pass, b.Start_time, b.End_Time, b.batchstatus, b.batchdate, b.departmentId, d.departmentName
         HAVING studentCount > 0
         ORDER BY b.batchNo DESC, b.departmentId ASC;`;
 
-    try {
         const [results] = await connection.query(query, queryParams);
         console.log("Raw query results:", results);
 
@@ -72,7 +95,7 @@ exports.getControllerPassForCenter = async (req, res) => {
             });
 
             const filteredResults = results.filter(result => {
-                const isAllowed = checkDownloadAllowedStudentLoginPass(result.Start_time, result.batchdate);
+                const isAllowed = checkDownloadAllowedStudentLoginPass(result.Start_time, result.batchdate, controllerPassTimer);
                 console.log(`BatchNo ${result.batchNo} (Dept: ${result.departmentId}): Download allowed: ${isAllowed}`);
                 return isAllowed;
             });

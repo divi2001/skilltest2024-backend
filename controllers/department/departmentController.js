@@ -107,6 +107,9 @@ function convertDateFormat(dateString) {
 }
 
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
+    if (!req.session.departmentId) {
+        return res.status(401).json({ "message": "Department admin is not logged in" });
+    }
     const departmentId = req.session.departmentId.toString();
     console.log('Starting getStudentsTrack function', departmentId);
     let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.body;
@@ -203,9 +206,11 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 
     if (loginStatus) {
         if (loginStatus === 'loggedin') {
-            query += ' AND s.loggedin = 1';
+            // Logged in AND has not submitted feedback
+            query += ' AND s.loggedin = 1 AND sl.feedback_time IS NULL';
         } else if (loginStatus === 'loggedout') {
-            query += ' AND s.loggedin = 0';
+            // Logged out OR (Logged in BUT has submitted feedback)
+            query += ' AND (s.loggedin = 0 OR (s.loggedin = 1 AND sl.feedback_time IS NOT NULL))';
         }
     }
 
@@ -445,3 +450,82 @@ exports.updateDepartmentStatus = async (req, res) => {
         res.status(500).json({ "message": "Internal server error" });
     }
 };
+
+exports.getStageCounts = async (req, res) => {
+    if (!req.session.departmentId) {
+        return res.status(401).json({ "message": "Department admin is not logged in" });
+    }
+    const departmentId = req.session.departmentId.toString();
+    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.body;
+
+    let query = `SELECT 
+        COUNT(CASE WHEN sl.loginTime IS NOT NULL THEN 1 END) as login_count,
+        COUNT(CASE WHEN sl.trial_time IS NOT NULL THEN 1 END) as trial_count,
+        COUNT(CASE WHEN sl.audio1_time IS NOT NULL THEN 1 END) as audio1_count,
+        COUNT(CASE WHEN sl.passage1_time IS NOT NULL THEN 1 END) as passage1_count,
+        COUNT(CASE WHEN sl.audio2_time IS NOT NULL THEN 1 END) as audio2_count,
+        COUNT(CASE WHEN sl.passage2_time IS NOT NULL THEN 1 END) as passage2_count,
+        COUNT(CASE WHEN sl.feedback_time IS NOT NULL THEN 1 END) as feedback_count
+    FROM
+        students s
+    LEFT JOIN
+        departmentdb d ON s.departmentId = d.departmentId
+    LEFT JOIN
+        subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType
+    LEFT JOIN 
+        studentlogs sl ON s.student_id = sl.student_id
+    WHERE s.departmentId = ?`;
+
+    const queryParams = [departmentId];
+
+    if (batchNo) {
+        query += ' AND s.batchNo = ?';
+        queryParams.push(batchNo);
+    }
+
+    if (subject_name) {
+        query += ' AND sub.subject_name = ?';
+        queryParams.push(subject_name);
+    }
+
+    if (center) {
+        query += ' AND s.center = ?';
+        queryParams.push(center);
+    }
+
+    if (loginStatus) {
+        if (loginStatus === 'loggedin') {
+            query += ' AND s.loggedin = 1 AND sl.feedback_time IS NULL';
+        } else if (loginStatus === 'loggedout') {
+            query += ' AND (s.loggedin = 0 OR (s.loggedin = 1 AND sl.feedback_time IS NOT NULL))';
+        }
+    }
+
+    if (exam_type) {
+        if (exam_type === 'shorthand') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
+        }
+        else if (exam_type === 'typewriting') {
+            query += ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0';
+        }
+        else if (exam_type === 'both') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1';
+        }
+    }
+
+    if (batchDate) {
+        const formattedBatchDate = convertDateFormat(batchDate);
+        if (formattedBatchDate) {
+            query += ' AND DATE(s.batchdate) = ?';
+            queryParams.push(formattedBatchDate);
+        }
+    }
+
+    try {
+        const [results] = await connection.query(query, queryParams);
+        res.status(200).json(results[0]);
+    } catch (err) {
+        console.error("Database query error:", err);
+        res.status(500).json({ message: err.message });
+    }
+}

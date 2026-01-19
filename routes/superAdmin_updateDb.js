@@ -95,9 +95,9 @@ const updateTableController = require('../controllers/superAdminController/updat
 const resetStudentLogs = require("../controllers/superAdminController/resetStudentLogs");
 const { populateExpertReviewLog } = require("../controllers/superAdminController/populateExpertReviewLog");
 const { populateModReviewLog } = require("../controllers/superAdminController/populateModReviewLog");
-const { getAllStudentsTrack, getCurrentStudentDetailsDepartmentWise } = require('../controllers/superAdminController/superAdminTrackDashboard');
+const { getAllStudentsTrack, getCurrentStudentDetailsDepartmentWise, getSuperAdminStageCounts } = require('../controllers/superAdminController/superAdminTrackDashboard');
 const { getStudentsFromExpertReviewlog, getStudentsFromModReviewlog } = require('../controllers/superAdminController/fetchStudentsForChecking');
-const { getAllExperts, updateExpertsdb, insertExpert, getStudentsforExperts, assignExpertToStudents, assignedStudentsSummary ,unassignExpertFromStudents,submmitedByExperts ,copyQsetToModqset } = require('../controllers/superAdminController/experts_functions');
+const { getAllExperts, updateExpertsdb, insertExpert, getStudentsforExperts, assignExpertToStudents, assignedStudentsSummary, unassignExpertFromStudents, submmitedByExperts, copyQsetToModqset } = require('../controllers/superAdminController/experts_functions');
 const HallticketsGeneration = require('../controllers/superAdminController/HallticketsGeneration');
 const { expertdb } = require('../schema/schema');
 const { getAllBatches, updateBatchStatus } = require('../controllers/superAdminController/batchController');
@@ -112,10 +112,11 @@ router.post('/fetch-update-tables', fetchUpdateTableController.fetchUpdateTable)
 router.put('/update-table/:table_name/:id', updateTableController.updateTable);
 router.post('/super-admin-student-track-dashboard', getAllStudentsTrack);
 router.get('/get-super-admin-student-count', getCurrentStudentDetailsDepartmentWise);
+router.post('/super-admin-get-stage-counts', getSuperAdminStageCounts);
 router.post('/super-admin-reset-student-logs', resetStudentLogs.resetStudentProgress);
-router.get('/get-pending-requests',resetStudentLogs.getResetRequests);
-router.get("/reset-centers",resetStudentLogs.getResetCenters);
-router.post("/reject-reset-request",resetStudentLogs.rejectResetRequest);
+router.get('/get-pending-requests', resetStudentLogs.getResetRequests);
+router.get("/reset-centers", resetStudentLogs.getResetCenters);
+router.post("/reject-reset-request", resetStudentLogs.rejectResetRequest);
 
 //Paper-checking related routes
 router.post('/populate-expert-review-log', populateExpertReviewLog);
@@ -124,8 +125,8 @@ router.post('/update-experts', updateExpertsdb);
 router.post('/insert-expert', insertExpert);
 router.post('/assign-expert', assignExpertToStudents);
 router.post('/unassign-expert', unassignExpertFromStudents);
-router.post("/qset-to-modqset",copyQsetToModqset);
-router.post("/update-batch-status",updateBatchStatus);
+router.post("/qset-to-modqset", copyQsetToModqset);
+router.post("/update-batch-status", updateBatchStatus);
 
 router.get('/get-expert-review-logs', getStudentsFromExpertReviewlog);
 router.get('/get-mod-review-logs', getStudentsFromModReviewlog);

@@ -978,3 +978,36 @@ exports.enhancedUpdateTableData = async (req, res) => {
         conn.release();
     }
 };
+exports.getAttendaceReports = async (req, res) => {
+    try {
+        const { batch, center, batchDate, departmentId } = req.query;
+        let query = 'SELECT * FROM attendance_reports WHERE 1=1';
+        const queryParams = [];
+
+        if (batch) {
+            query += ' AND batchNo = ?';
+            queryParams.push(batch);
+        }
+        if (center) {
+            query += ' AND center = ?';
+            queryParams.push(center);
+        }
+        if (batchDate) {
+            // Compare DATE part only in case report_date is DATETIME
+            query += ' AND DATE(report_date) = ?';
+            queryParams.push(batchDate);
+        }
+        if (departmentId) {
+            query += ' AND departmentId = ?';
+            queryParams.push(departmentId);
+        }
+
+        query += ' ORDER BY report_date DESC';
+
+        const [results] = await connection.query(query, queryParams);
+        res.json({ attendance_reports: results });
+    } catch (error) {
+        console.error('Error fetching attendance reports:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

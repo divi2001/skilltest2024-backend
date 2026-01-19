@@ -254,38 +254,75 @@ exports.getStudentDetails = async (req, res) => {
 };
 
 exports.totalLoginCounts = async (req, res) => {
+    let { center, batchNo, department, subject_name, exam_type, batchDate } = req.body;
 
-    const { center, batchNo, department } = req.body;
-    // console.log(req.body);
+    // Determine departmentId from body or session
+    let departmentId = department;
+    if (!departmentId && req.session.departmentId) {
+        departmentId = req.session.departmentId;
+    }
 
     try {
-        let query = 'SELECT COUNT(student_id) as total_count FROM students WHERE loggedin = 1 '
+        let query = 'SELECT COUNT(s.student_id) as total_count FROM students s ';
         let queryParams = [];
-        if (department) {
-            query += ' AND departmentId = ?';
-            queryParams.push(department);
+
+        // Join subjectsdb if filtering by subject
+        if (subject_name && subject_name.trim()) {
+            query += ' JOIN subjectsdb sub ON s.subjectsId = sub.subjectId ';
         }
-        if (center) {
-            query += ' AND center = ?';
+
+        query += ' WHERE s.loggedin = 1 ';
+
+        if (departmentId) {
+            query += ' AND s.departmentId = ?';
+            queryParams.push(departmentId);
+        }
+        if (center && center.trim()) {
+            query += ' AND s.center = ?';
             queryParams.push(center);
         }
-        if (center && batchNo) {
-            query += ' AND batchNo = ?';
+        if (batchNo && batchNo.trim()) {
+            query += ' AND s.batchNo = ?';
             queryParams.push(batchNo);
         }
-        if (!center && batchNo) {
-            return res.status(404).json({ "Message": "You should also provide center no. to get the login count of a perticular batch" })
+        if (subject_name && subject_name.trim()) {
+            query += ' AND sub.subject_name = ?';
+            queryParams.push(subject_name);
+        }
+
+        if (exam_type) {
+            if (exam_type === 'shorthand') {
+                query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
+            } else if (exam_type === 'typewriting') {
+                query += ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0';
+            } else if (exam_type === 'both') {
+                query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1';
+            }
+        }
+
+        if (batchDate && batchDate.trim()) {
+            let formattedDate = batchDate.trim();
+            // Simple format conversion if needed (DD/MM/YYYY -> YYYY-MM-DD)
+            if (formattedDate.includes('/')) {
+                const [day, month, year] = formattedDate.split('/');
+                formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+            // If it contains 'T', take the date part
+            if (formattedDate.includes('T')) {
+                formattedDate = formattedDate.split('T')[0];
+            }
+
+            query += ' AND DATE(s.batchdate) = ?';
+            queryParams.push(formattedDate);
         }
 
         const [result] = await connection.query(query, queryParams);
-        // console.log(result[0]);
         res.status(200).json(result[0])
 
     } catch (error) {
         console.log(error);
         res.status(500).json({})
     }
-
 }
 
 exports.getStudentResetRequests = async (req, res) => {

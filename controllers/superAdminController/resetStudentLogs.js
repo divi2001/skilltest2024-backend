@@ -8,15 +8,15 @@ exports.resetStudentProgress = async (req, res) => {
     // if (!reset_id || !student_id) {
     //     return res.status(400).json({ "message": "Missing reset_id or student_id." });
     // }
-    let commonQuery ="";
-    if(reset_id){
+    let commonQuery = "";
+    if (reset_id) {
         commonQuery = `
         UPDATE resetrequests 
         SET approved = "Approved", reseted_by = "super-admin" 
         WHERE id = ? AND student_id = ?
     `;
     }
-    
+
 
     const queries = {
         studentLogin: [
@@ -174,24 +174,24 @@ exports.getResetCenters = async (req, res) => {
                               FROM examcenterdb e
                               JOIN resetrequests r ON e.center = r.center
                               WHERE r.approved = "Pending";`
-        
+
         const [result] = await connection.query(query);
 
-        if(result.length == 0){
-            return res.status(404).json({"message":"No centers Found!!"})
+        if (result.length == 0) {
+            return res.status(404).json({ "message": "No centers Found!!" })
         }
-        res.status(201).json({"message":"Centers Found!!!",result});
+        res.status(201).json({ "message": "Centers Found!!!", result });
     } catch (error) {
         console.error('Database query error:', err);
         res.status(500).send('Internal server error');
     }
 }
 
-exports.rejectResetRequest = async (req,res) => {
+exports.rejectResetRequest = async (req, res) => {
 
-    const {reset_id , student_id} = req.body;
-    
-    if(!reset_id || !student_id) return res.status(404).json({"message":"Please Provide Reset request id and student id"});
+    const { reset_id, student_id } = req.body;
+
+    if (!reset_id || !student_id) return res.status(404).json({ "message": "Please Provide Reset request id and student id" });
 
     try {
 
@@ -199,17 +199,17 @@ exports.rejectResetRequest = async (req,res) => {
         SET approved = "Rejected"
         WHERE id = ? AND student_id = ?`;
 
-        const [response] = await connection.query(query,[reset_id,student_id]);
+        const [response] = await connection.query(query, [reset_id, student_id]);
 
-        if(response.affectedRows == 0){
-            return res.status(404).json({"message":"Request not found"});
+        if (response.affectedRows == 0) {
+            return res.status(404).json({ "message": "Request not found" });
         }
 
-        res.status(201).json({"message":"Request rejected successfully"});
+        res.status(201).json({ "message": "Request rejected successfully" });
 
     } catch (error) {
         console.error("Error executing query:", error);
         res.status(500).json({ "error": error.message });
     }
-    
+
 }
