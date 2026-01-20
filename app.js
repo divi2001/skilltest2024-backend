@@ -20,6 +20,7 @@ const answerSheetRoutes = require("./routes/answerSheet_routes");
 const typingRoutes = require('./routes/students/typingRoutes')
 const excelRouter = require('./routes/dataImportExport/excelImportRoutes')
 const superAdminTrackDashboardRoute = require('./routes/superAdmin_updateDb');
+const blankPassageRoutes = require('./routes/blank_passage_routes');
 
 // ExpertRoutes
 const expertLoginRoutes = require('./routes/expertsCheckingRoutes/expertsAuthRoutes'); //ExpertLoginRoutes
@@ -108,6 +109,7 @@ app.use('/api/hallticket-departments', hallticketDepartmentRoutes);
 app.use('/api/skilltest-halltickets', skilltestHallticketRoutes, hallticketDepartmentRoutes);
 app.use('/api', mockRoutes);
 app.use('/api/v1/evaluation', evaluationRoutes);
+app.use('/api/blank-submissions', blankPassageRoutes);
 app.use(require('./routes/report_settings_routes'));
 
 // Expert Routes

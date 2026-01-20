@@ -1,7 +1,7 @@
 // Reset student 5151524885 - Clear all logs and set loggedIn to 0
 const connection = require('./config/db1');
 
-const STUDENT_ID = 5151524885;
+const STUDENT_ID = 4151513166;
 
 async function resetStudent() {
     try {

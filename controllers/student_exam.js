@@ -450,6 +450,47 @@ exports.updatePassageFinalLogs = async (req, res) => {
             await connection.query(insertAudioLogQuery, [studentId, text]);
         }
 
+        // Check if passage is blank or empty
+        const isBlank = !text || text.trim() === '' || /^\s*$/.test(text);
+
+        if (isBlank) {
+            // Log blank submission to blank_passage_submissions table
+            // But first check if we already logged this to avoid duplicates
+            const checkBlankQuery = `
+                SELECT id FROM blank_passage_submissions
+                WHERE student_id = ? AND passage_type = ?
+            `;
+
+            try {
+                const [existingBlank] = await connection.query(checkBlankQuery, [studentId, passage_type]);
+
+                if (existingBlank.length === 0) {
+                    // Only insert if not already logged
+                    const blankSubmissionQuery = `
+                        INSERT INTO blank_passage_submissions
+                        (student_id, passage_type, submitted_at, center, batchNo)
+                        VALUES (?, ?, ?, ?, ?)
+                    `;
+                    const submittedAt = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
+                    await connection.query(blankSubmissionQuery, [
+                        studentId,
+                        passage_type,
+                        submittedAt,
+                        examCenterCode,
+                        batchNo
+                    ]);
+                    console.log(`⚠️ Blank passage detected and logged for student ${studentId}, ${passage_type}`);
+                } else {
+                    console.log(`⚠️ Blank passage detected for student ${studentId}, ${passage_type} (already logged, skipping duplicate)`);
+                }
+            } catch (blankLogError) {
+                console.error('Failed to log blank submission:', blankLogError);
+                // Don't fail the submission if logging fails
+            }
+        }
+
+
         const currentTime = moment().tz('Asia/Kolkata').format('YYYYMMDD_HHmmss');
         const sanitizedPassageType = passage_type.replace(/\s+/g, '_');
         const fileName = `${studentId}_${examCenterCode}_${currentTime}_${batchNo}_${sanitizedPassageType}_${mac}`;
@@ -788,7 +829,7 @@ exports.logTextInput = async (req, res) => {
             const updatePassageTimeQuery = `
                 UPDATE studentlogs 
                 SET ${timeColumn} = ?
-                WHERE student_id = ? AND (${timeColumn} IS NULL OR ${timeColumn} = '')
+                WHERE student_id = ? AND ${timeColumn} IS NULL
             `;
 
             queries.push(connection.query(updatePassageTimeQuery, [currentTime, studentId]));

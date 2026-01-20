@@ -7,8 +7,8 @@ const { encrypt, decrypt } = require('../config/encrypt');
 
 exports.loginCenter = async (req, res) => {
     console.log("Trying center login");
-    const { centerId, centerPass, ipAddress, diskIdentifier, macAddress, processor, os, ram } = req.body;
-    console.log(`Received data - centerId: ${centerId}, centerPass: ${centerPass}, ipAddress: ${ipAddress}, diskIdentifier: ${diskIdentifier}, macAddress: ${macAddress}, processor: ${processor}, os: ${os}, ram: ${ram}`);
+    const { centerId, centerPass, ipAddress, diskIdentifier, macAddress, processor, os, ram, totalStorage, availableStorage } = req.body;
+    console.log(`Received data - centerId: ${centerId}, centerPass: ${centerPass}, ipAddress: ${ipAddress}, diskIdentifier: ${diskIdentifier}, macAddress: ${macAddress}, processor: ${processor}, os: ${os}, ram: ${ram}, totalStorage: ${totalStorage}, availableStorage: ${availableStorage}`);
 
     try {
         // Check if PC registration feature is enabled
@@ -35,7 +35,9 @@ exports.loginCenter = async (req, res) => {
                 mac_address VARCHAR(255) NOT NULL,
                 processor VARCHAR(255),
                 os VARCHAR(255),
-                ram VARCHAR(255)
+                ram VARCHAR(255),
+                total_storage VARCHAR(255),
+                available_storage VARCHAR(255)
             )
         `;
         await connection.query(createTableQuery);
@@ -44,7 +46,9 @@ exports.loginCenter = async (req, res) => {
         const alterQueries = [
             "ALTER TABLE pcregistration ADD COLUMN processor VARCHAR(255)",
             "ALTER TABLE pcregistration ADD COLUMN os VARCHAR(255)",
-            "ALTER TABLE pcregistration ADD COLUMN ram VARCHAR(255)"
+            "ALTER TABLE pcregistration ADD COLUMN ram VARCHAR(255)",
+            "ALTER TABLE pcregistration ADD COLUMN total_storage VARCHAR(255)",
+            "ALTER TABLE pcregistration ADD COLUMN available_storage VARCHAR(255)"
         ];
 
         for (const query of alterQueries) {
@@ -118,10 +122,10 @@ exports.loginCenter = async (req, res) => {
                     console.log("Registering new PC");
                     // Insert PC registration log
                     const insertLogQuery = `
-                        INSERT INTO pcregistration (center, ip_address, disk_id, mac_address, processor, os, ram)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO pcregistration (center, ip_address, disk_id, mac_address, processor, os, ram, total_storage, available_storage)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     `;
-                    await connection.query(insertLogQuery, [centerId, ipAddress, diskIdentifier, macAddress, processor, os, ram]);
+                    await connection.query(insertLogQuery, [centerId, ipAddress, diskIdentifier, macAddress, processor, os, ram, totalStorage, availableStorage]);
                     console.log("PC registered successfully");
                     return res.status(200).send('PC registered successfully for the center!');
                 } else {

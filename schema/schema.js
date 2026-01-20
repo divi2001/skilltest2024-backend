@@ -306,7 +306,7 @@ const schema = {
         upload_date: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
     },
 
-   
+
     attendance_reports: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         center: 'INT REFERENCES examcenterdb(center)',
@@ -333,6 +333,19 @@ const schema = {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         feature: 'TEXT',
         status: 'BOOLEAN'
+    },
+    blank_passage_submissions: {
+        id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
+        student_id: 'BIGINT NOT NULL',
+        passage_type: "ENUM('passageA', 'passageB') NOT NULL",
+        submitted_at: 'DATETIME NOT NULL',
+        center: 'INT',
+        batchNo: 'INT',
+        center_comment: 'LONGTEXT NULL',
+        commented_by: 'VARCHAR(255) NULL',
+        commented_at: 'DATETIME NULL',
+        viewed_by_admin: 'BOOLEAN DEFAULT FALSE',
+        INDEX: '(student_id), (center), (batchNo), (submitted_at)'
     }
 };
 

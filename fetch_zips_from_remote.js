@@ -8,7 +8,7 @@ const DOWNLOAD_DIR = path.join(__dirname, 'downloaded_passage_logs');
 
 // ========== BATCH CONFIGURATION ==========
 // Specify which batches to fetch. Set to null to fetch all batches.
-const BATCHES_TO_FETCH = [101, 102, 103, 104]; // Only fetch these specific batches
+const BATCHES_TO_FETCH = [204]; // Only fetch these specific batches
 // const BATCHES_TO_FETCH = null; // Uncomment to fetch ALL batches
 // =========================================
 

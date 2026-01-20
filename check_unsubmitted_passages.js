@@ -22,7 +22,7 @@ async function checkUnsubmittedPassages() {
             WHERE tl.texta IS NOT NULL 
                 AND tl.texta != ''
                 AND (fps.passageA IS NULL OR fps.passageA = '')
-                AND s.batchNo != 100
+                AND s.batchNo IN (201, 202)
             ORDER BY tl.student_id
         `);
 
@@ -57,7 +57,7 @@ async function checkUnsubmittedPassages() {
             WHERE tl.textb IS NOT NULL 
                 AND tl.textb != ''
                 AND (fps.passageB IS NULL OR fps.passageB = '')
-                AND s.batchNo != 100
+                AND s.batchNo IN (201, 202)
             ORDER BY tl.student_id
         `);
 
