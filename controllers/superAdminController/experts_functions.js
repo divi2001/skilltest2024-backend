@@ -95,7 +95,7 @@ exports.insertExpert = async (req, res) => {
 }
 exports.getStudentsforExperts = async (req, res) => {
     const { department ,subject, stage_1, stage_3 } = req.query;
-    console.log(typeof department);
+    console.log('Received parameters:', { department, subject, stage_1, stage_3 });
     try {
         let query, queryParams = [];
         if (!stage_1 && !stage_3) {

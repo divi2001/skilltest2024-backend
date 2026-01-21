@@ -3,7 +3,6 @@ const connection = require("../config/db1");
 
 exports.fetchSubject = async (req, res) => {
   try {
-
     const [rows] = await connection.execute('SELECT * FROM subjectsdb');
 
     // Transform the data to include only necessary fields

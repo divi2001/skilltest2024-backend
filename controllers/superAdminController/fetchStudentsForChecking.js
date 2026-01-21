@@ -1,11 +1,15 @@
 // controllers\superAdminController\fetchStudentsForChecking.js
 const connection = require("../../config/db1");
+const createTableIfNotExists = require("../../utils/createTableIfNotExists");
 
 exports.getStudentsFromExpertReviewlog = async (req,res) => {
 
     const {department} = req.query;
 
     try {
+        // ✅ Ensure expertreviewlog table exists
+        await createTableIfNotExists(connection, "expertreviewlog");
+        
         let query = `select erl.*,s.departmentId from expertreviewlog erl join students s on s.student_id = erl.student_id where s.departmentId = ?;`;
 
 
@@ -14,7 +18,7 @@ exports.getStudentsFromExpertReviewlog = async (req,res) => {
         if (results.length === 0) {
             return res.status(404).json({ "message": "No expert review logs found for this department" });
         }
-        console.log(results.length);
+        console.log(`${results.length} students fetched from expert review log for department ${department}`);
         res.status(201).json(results)
     } catch (error) {
         console.error('Error fetching expert review logs:', error);
@@ -28,6 +32,9 @@ exports.getStudentsFromModReviewlog = async (req,res) => {
     const {department} = req.query;
 
     try {
+        // ✅ Ensure modreviewlog table exists
+        await createTableIfNotExists(connection, "modreviewlog");
+        
         let query = `select mrl.*,s.departmentId from modreviewlog mrl join students s on s.student_id = mrl.student_id where s.departmentId = ?;`;
 
 

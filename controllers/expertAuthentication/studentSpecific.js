@@ -1,8 +1,9 @@
-// controllers/expertAuthentication/studentSpecific.js
+// src/controllers/expertAuthentication/studentSpecific.js
 const connection = require('../../config/db1');
 const moment = require('moment-timezone');
 
 exports.getAllSubjects = async (req, res) => {
+    console.log("getAllSubjects called");
     if (!req.session.expertId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -281,10 +282,10 @@ exports.getExpertAssignedPassages = async (req, res) => {
             query = `
                 SELECT subjectId, qset, textPassageA, textPassageB
                 FROM audiodb
-                WHERE subjectId = ? AND qset = ?
+                WHERE subjectId = ? AND qset = ? AND departmentId = ?
                 LIMIT 1
             `;
-            const [results] = await connection.query(query, [subjectId, qset]);
+            const [results] = await connection.query(query, [subjectId, qset, departmentId]);
 
             if (results.length > 0) {
                 console.log(`Fetched passages for subject ${subjectId}, qset ${qset}, department ${departmentId} from audiodb`);
@@ -298,13 +299,69 @@ exports.getExpertAssignedPassages = async (req, res) => {
             } else {
                 res.status(404).json({ error: 'No passages found' });
             }
-        } else {
+        } else if (paper_check === 1) {
+            // For expertreviewlog - JOIN with audiodb for question passages and finalPassageSubmit/textlogs for student answers
             query = `
-                SELECT ${tableName}.passageA, ${tableName}.passageB, ${tableName}.ansPassageA, ${tableName}.ansPassageB, ${tableName}.student_id, s.departmentId
-                FROM ${tableName} 
-                JOIN students s ON ${tableName}.student_id = s.student_id
-                WHERE ${tableName}.subjectId = ? AND ${tableName}.qset = ? AND ${tableName}.expertId = ? AND s.departmentId = ?
-                ORDER BY ${tableName}.loggedin DESC
+                SELECT 
+                    erl.student_id,
+                    erl.subjectId,
+                    erl.qset,
+                    s.departmentId,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB
+                FROM ${tableName} erl
+                JOIN students s ON erl.student_id = s.student_id
+                JOIN audiodb aud ON erl.subjectId = aud.subjectId 
+                    AND erl.qset = aud.qset 
+                    AND erl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON erl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON erl.student_id = tl.student_id
+                WHERE erl.subjectId = ? 
+                    AND erl.qset = ? 
+                    AND erl.expertId = ? 
+                    AND s.departmentId = ?
+                ORDER BY erl.loggedin DESC
+                LIMIT 1
+            `;
+            const [results] = await connection.query(query, [subjectId, qset, expertId, departmentId]);
+
+            if (results.length > 0) {
+                console.log(`Assigned student_id: ${results[0].student_id}, departmentId: ${results[0].departmentId}`);
+                res.status(200).json({
+                    student_id: results[0].student_id,
+                    departmentId: results[0].departmentId,
+                    passageA: results[0].passageA,
+                    passageB: results[0].passageB,
+                    ansPassageA: results[0].ansPassageA,
+                    ansPassageB: results[0].ansPassageB
+                });
+            } else {
+                res.status(404).json({ error: 'No assigned passages found for this department' });
+            }
+        } else if (super_mod === 1) {
+            // For modreviewlog - JOIN with audiodb for question passages
+            query = `
+                SELECT 
+                    mrl.student_id,
+                    mrl.subjectId,
+                    mrl.qset,
+                    s.departmentId,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
+                    mrl.passageA,
+                    mrl.passageB
+                FROM ${tableName} mrl
+                JOIN students s ON mrl.student_id = s.student_id
+                JOIN audiodb aud ON mrl.subjectId = aud.subjectId 
+                    AND mrl.qset = aud.qset 
+                    AND s.departmentId = aud.departmentId
+                WHERE mrl.subjectId = ? 
+                    AND mrl.qset = ? 
+                    AND mrl.expertId = ? 
+                    AND s.departmentId = ?
+                ORDER BY mrl.loggedin DESC
                 LIMIT 1
             `;
             const [results] = await connection.query(query, [subjectId, qset, expertId, departmentId]);
