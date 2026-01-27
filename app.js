@@ -58,7 +58,7 @@ app.use(cors(corsOptions));
 
 // Additional CORS for other origins
 app.use(cors({
-  origin: ['*', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'https://www.shorthandonlineexam.in', 'http://65.0.124.197:5000', 'http://65.0.124.197:5000/api/compare'],
+  origin: ['*', 'http://3.109.1.101:3000', 'http://3.109.1.101:3001', 'http://3.109.1.101:3002', 'http://43.204.22.53:5000', 'https://www.shorthandonlineexam.in', 'http://65.0.124.197:5000', 'http://65.0.124.197:5000/api/compare', 'http://checking.shorthandonlineexam.in', 'https://checking.shorthandonlineexam.in/'],
   credentials: true
 }));
 
