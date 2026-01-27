@@ -2049,3 +2049,184 @@ exports.submitPassageReview = async (req, res) => {
         if (conn) conn.release();
     }
 };
+
+// Get student passages from expertreviewlog with filters
+exports.getStudentPassagesWithFilters = async (req, res) => {
+    const { 
+        student_id, 
+        subjectId, 
+        examType, 
+        qset, 
+        departmentId, 
+        expertId, 
+        subm_done,
+        table 
+    } = req.query;
+
+    console.log("getStudentPassages called with filters:", req.query);
+
+    // Validate table parameter
+    if (!table || (table !== 'expertreviewlog' && table !== 'modreviewlog')) {
+        return res.status(400).json({ 
+            error: 'Invalid or missing table parameter. Must be either "expertreviewlog" or "modreviewlog"' 
+        });
+    }
+
+    try {
+        // Build the WHERE clause dynamically based on provided filters
+        let whereClauses = [];
+        let queryParams = [];
+
+        if (student_id && student_id !== 'All') {
+            whereClauses.push('e.student_id = ?');
+            queryParams.push(student_id);
+        }
+
+        if (subjectId) {
+            whereClauses.push('e.subjectId = ?');
+            queryParams.push(subjectId);
+        }
+
+        if (examType) {
+            whereClauses.push('e.examType = ?');
+            queryParams.push(examType);
+        }
+
+        if (qset) {
+            whereClauses.push('e.qset = ?');
+            queryParams.push(qset);
+        }
+
+        if (departmentId) {
+            whereClauses.push('e.departmentId = ?');
+            queryParams.push(departmentId);
+        }
+
+        if (expertId) {
+            whereClauses.push('e.expertId = ?');
+            queryParams.push(expertId);
+        }
+
+        if (subm_done !== undefined && subm_done !== null && subm_done !== '') {
+            whereClauses.push('e.subm_done = ?');
+            queryParams.push(subm_done);
+        }
+
+        const whereClause = whereClauses.length > 0 
+            ? 'WHERE ' + whereClauses.join(' AND ') 
+            : '';
+
+        // Helper function to generate CASE statements for qsetdb columns
+        const generateQSetCaseStatement = (passage, maxQSets = 8) => {
+            const cases = [];
+            for (let i = 1; i <= maxQSets; i++) {
+                cases.push(`WHEN ${i} THEN q.Q${i}P${passage}`);
+            }
+            return `CASE e.qset\n                        ${cases.join('\n                        ')}\n                    END AS QP${passage}`;
+        };
+
+        // Build query with dynamic table name - always includes ignored words
+        const query = `
+            SELECT 
+                e.id,
+                e.student_id,
+                e.subjectId,
+                s.subject_name,
+                e.examType,
+                e.qset,
+                e.departmentId,
+                e.expertId,
+                e.subm_done,
+                COALESCE(t.texta, f.passageA) AS passageA,
+                COALESCE(t.textb, f.passageB) AS passageB,
+                aud.textPassageA AS ansPassageA,
+                aud.textPassageB AS ansPassageB,
+                ${generateQSetCaseStatement('A')},
+                ${generateQSetCaseStatement('B')}
+            FROM 
+                ${table} e
+            LEFT JOIN 
+                subjectsdb s 
+                    ON e.subjectId = s.subjectId 
+                    AND e.examType = s.examType
+            LEFT JOIN 
+                textlogs t ON e.student_id = t.student_id
+            LEFT JOIN 
+                finalPassageSubmit f ON e.student_id = f.student_id
+            LEFT JOIN 
+                audiodb aud ON e.subjectId = aud.subjectId 
+                    AND e.qset = aud.qset 
+                    AND e.departmentId = aud.departmentId
+            LEFT JOIN 
+                qsetdb q ON e.subjectId = q.subjectId 
+                    AND e.departmentId = q.departmentId
+            ${whereClause}
+            ORDER BY 
+                e.id ASC
+        `;
+
+
+        console.log("Executing query for table:", table);
+        console.log("With parameters:", queryParams);
+
+        const [results] = await connection.query(query, queryParams);
+
+        console.log(`Found ${results.length} records from ${table}`);
+        
+        // Get count of appeared students if departmentId is provided
+        let appearedStudents = 0;
+        let subjectWiseCount = [];
+        
+        if (departmentId) {
+            // Total appeared students
+            const countQuery = `
+                SELECT COUNT(*) as count 
+                FROM students 
+                WHERE departmentId = ? AND batchNo != 100
+            `;
+            const [countResult] = await connection.query(countQuery, [departmentId]);
+            appearedStudents = countResult[0].count;
+            console.log(`Found ${appearedStudents} appeared students in department ${departmentId}`);
+
+            // Subject-wise count of students
+            const subjectIdsQuery = `
+                SELECT DISTINCT subjectId 
+                FROM audiodb 
+                WHERE departmentId = ?
+                ORDER BY subjectId
+            `;
+            const [subjectIds] = await connection.query(subjectIdsQuery, [departmentId]);
+            
+            for (const row of subjectIds) {
+                const subjectCountQuery = `
+                    SELECT COUNT(student_id) as count 
+                    FROM students 
+                    WHERE subjectsId = ? AND departmentId = ? AND batchNo != 100
+                `;
+                const [subjectCountResult] = await connection.query(subjectCountQuery, [row.subjectId, departmentId]);
+                subjectWiseCount.push({
+                    subjectId: row.subjectId,
+                    count: subjectCountResult[0].count
+                });
+            }
+            console.log(`Subject-wise count:`, subjectWiseCount);
+        }
+        
+        res.status(200).json({
+            success: true,
+            count: results.length,
+            table: table,
+            appeared_students: appearedStudents,
+            subject_wise_count: subjectWiseCount,
+            data: results
+        });
+
+    } catch (err) {
+        console.error("Error fetching student passages:", err);
+        res.status(500).json({ 
+            error: 'Error fetching student passages',
+            details: err.message 
+        });
+    }
+};
+

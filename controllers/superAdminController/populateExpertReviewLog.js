@@ -29,12 +29,12 @@ exports.populateExpertReviewLog = async (req, res) => {
             SELECT 
                 s.student_id,
                 s.subjectsId,
-                sub.examType,
+                d.examType,
                 s.qset,
                 s.departmentId
             FROM students s
-            LEFT JOIN subjectsdb sub 
-                ON s.subjectsId = sub.subjectId
+            LEFT JOIN departmentdb d 
+                ON s.departmentId = d.departmentId
             LEFT JOIN finalPassageSubmit fps 
                 ON s.student_id = fps.student_id
             LEFT JOIN textlogs tl 

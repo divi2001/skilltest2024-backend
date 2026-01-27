@@ -112,18 +112,23 @@ exports.getPassagesByStudentId = async (req, res) => {
         try {
             const query = `
                 SELECT 
-                    erl.passageA, 
-                    erl.passageB, 
-                    erl.ansPassageA, 
-                    erl.ansPassageB, 
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
                     erl.student_id, 
                     erl.subjectId, 
                     erl.qset,
                     s.departmentId,
                     d.examType
                 FROM expertreviewlog erl
-                LEFT JOIN students s ON erl.student_id = s.student_id
-                LEFT JOIN departmentdb d ON s.departmentId = d.departmentId
+                JOIN students s ON erl.student_id = s.student_id
+                JOIN departmentdb d ON s.departmentId = d.departmentId
+                LEFT JOIN audiodb aud ON erl.subjectId = aud.subjectId 
+                    AND erl.qset = aud.qset 
+                    AND erl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON erl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON erl.student_id = tl.student_id
                 WHERE erl.student_id = ?
             `;
             const [results] = await connection.query(query, [studentId]);
@@ -190,9 +195,19 @@ exports.getStudentPassages = async (req, res) => {
     if(expertId === 8){
         try {
             const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id
-                FROM expertreviewlog 
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
+                SELECT 
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
+                    erl.student_id
+                FROM expertreviewlog erl
+                LEFT JOIN audiodb aud ON erl.subjectId = aud.subjectId 
+                    AND erl.qset = aud.qset 
+                    AND erl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON erl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON erl.student_id = tl.student_id
+                WHERE erl.subjectId = ? AND erl.qset = ? AND erl.student_id = ?
                 LIMIT 1
             `;
             const [results] = await connection.query(query, [subjectId, qset, studentId]);

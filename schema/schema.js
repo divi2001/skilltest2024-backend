@@ -46,6 +46,8 @@ const schema = {
     },
     departmentdb: {
         departmentId: 'INT PRIMARY KEY',
+        login_id: 'INT UNIQUE',
+        examType: "ENUM('GCC', 'SKILL')",
         departmentName: 'VARCHAR(255)',
         departmentPassword: 'LONGTEXT',
         logo: 'LONGTEXT',
