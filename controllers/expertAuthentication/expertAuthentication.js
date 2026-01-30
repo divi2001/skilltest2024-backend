@@ -5,48 +5,69 @@ const moment = require('moment-timezone');
 // Authentication functions
 exports.loginExpertAdmin = async (req, res) => {
     console.log("Trying expert admin login");
+
     const { expertId, password } = req.body;
-    console.log("expertId: "+ expertId + " password: "+ password);
-    const expertQuery = 'SELECT expertId, password, expert_name, paper_check, paper_mod, super_mod FROM expertdb WHERE expertId = ?';
+
+    const expertQuery = `
+        SELECT expertId, password, expert_name,
+               paper_check, paper_mod, super_mod
+        FROM expertdb
+        WHERE expertId = ?
+    `;
 
     try {
         const [results] = await connection.query(expertQuery, [expertId]);
 
-        if (results.length > 0) {
-            const expert = results[0];
-            console.log("data: "+ expert);
-            console.log(expert)
-            
-            if (expert.password === password) {
-                if (expert.paper_check === 1 || expert.paper_mod === 1 || expert.super_mod === 1) {
-                    // Set expert session
-                    req.session.expertId = expert.expertId;
-                    req.session.expert_name = expert.expert_name;
-                    req.session.paper_check = expert.paper_check;
-                    req.session.paper_mod = expert.paper_mod;
-                    req.session.super_mod = expert.super_mod;
-
-                    res.status(200).json({
-                        message: 'Logged in successfully as an expert!',
-                        expertId: expert.expertId
-                    });
-                }
-                else{
-                    res.status(200).json({
-                        message: 'Not yet allowed for any stages!',
-                    });
-                }
-            } else {
-                res.status(401).send('Invalid credentials for expert');
-            }
-        } else {
-            res.status(404).send('Expert not found');
+        if (results.length === 0) {
+            return res.status(404).json({
+                message: 'Expert not found'
+            });
         }
+
+        const expert = results[0];
+
+        // Password check
+        if (expert.password !== password) {
+            return res.status(401).json({
+                message: 'Invalid credentials for expert'
+            });
+        }
+
+        const hasAccess =
+            expert.paper_check === 1 ||
+            expert.paper_mod === 1 ||
+            expert.super_mod === 1;
+
+        // 🚫 No permissions
+        if (!hasAccess) {
+            return res.status(403).json({
+                message: 'No access rights assigned'
+            });
+        }
+
+        // ✅ Create session only when allowed
+        req.session.expertId = expert.expertId;
+        req.session.expert_name = expert.expert_name;
+
+        if (expert.paper_check === 1) req.session.paper_check = 1;
+        if (expert.paper_mod === 1) req.session.paper_mod = 1;
+        if (expert.super_mod === 1) req.session.super_mod = 1;
+
+        return res.status(200).json({
+            message: 'Logged in successfully as an expert!',
+            expertId: expert.expertId
+        });
+
     } catch (err) {
         console.error("Error during login:", err);
-        res.status(500).send(err.message);
+
+        return res.status(500).json({
+            message: 'Internal server error',
+            error: err.message
+        });
     }
 };
+
 
 
 exports.logoutExpert = async (req, res) => {

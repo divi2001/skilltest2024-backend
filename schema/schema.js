@@ -274,6 +274,7 @@ const schema = {
     qsetdb: {
         id: 'INT PRIMARY KEY AUTO_INCREMENT',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        departmentId: 'INT REFERENCES departmentdb(departmentId)',
         Q1PA: 'TEXT',
         Q1PB: 'TEXT',
         Q2PA: 'TEXT',
@@ -286,6 +287,7 @@ const schema = {
     modqsetdb: {
         id: 'INT PRIMARY KEY AUTO_INCREMENT',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
+        departmentId: 'INT REFERENCES departmentdb(departmentId)',
         Q1PA: 'TEXT',
         Q1PB: 'TEXT',
         Q2PA: 'TEXT',

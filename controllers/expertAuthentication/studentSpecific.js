@@ -1,6 +1,7 @@
 // src/controllers/expertAuthentication/studentSpecific.js
 const connection = require('../../config/db1');
 const moment = require('moment-timezone');
+const { ensureQsetdbEntryForSubject } = require('../../utils/qsetdbHandler');
 
 exports.getAllSubjects = async (req, res) => {
     console.log("getAllSubjects called");
@@ -725,6 +726,9 @@ exports.getIgnoreList = async (req, res) => {
 
     if (paper_check === 1 || paper_mod === 1){ 
         try {
+            // Ensure qsetdb entries exist for this departmentId
+            await ensureQsetdbEntryForSubject(departmentId, subjectId);
+
             const columnName = `Q${qset}P${activePassage}`;
             
             const query = `
@@ -860,6 +864,9 @@ exports.getStudentIgnoreList = async (req, res) => {
     if (expertId === 8) {
         console.log("📋 Processing with qsetdb table (expertId = 8)");
         try {
+            // Ensure qsetdb entries exist for this departmentId
+            await ensureQsetdbEntryForSubject(departmentId, subjectId);
+
             const columnName = `Q${qset}P${activePassage}`;
             console.log(`Using column: ${columnName}`);
             
@@ -1016,6 +1023,7 @@ exports.addToIgnoreList = async (req, res) => {
     }
 
     const { subjectId, qset, activePassage, newWord, departmentId } = req.body;
+    console.log("Request body for addToIgnoreList:", req.body);
     const expertId = req.session.expertId;
 
     // Input validation
@@ -1039,6 +1047,9 @@ exports.addToIgnoreList = async (req, res) => {
 
     if (paper_check === 1 || paper_mod === 1){
         try {
+            // Ensure qsetdb entries exist for this departmentId
+            await ensureQsetdbEntryForSubject(departmentId, subjectId);
+
             conn = await connection.getConnection();
             await conn.beginTransaction();
     
@@ -1173,6 +1184,9 @@ exports.addToStudentIgnoreList = async (req, res) => {
 
     if(expertId === 8){
         try {
+            // Ensure qsetdb entries exist for this departmentId
+            await ensureQsetdbEntryForSubject(departmentId, subjectId);
+
             conn = await connection.getConnection();
             await conn.beginTransaction();
     
@@ -1326,6 +1340,9 @@ exports.removeFromIgnoreList = async (req, res) => {
 
     if (paper_check === 1 || paper_mod === 1){
         try {
+            // Ensure qsetdb entries exist for this departmentId
+            await ensureQsetdbEntryForSubject(departmentId, subjectId);
+
             conn = await connection.getConnection();
             await conn.beginTransaction();
     
@@ -1457,6 +1474,9 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
     let conn;
     if(expertId === 8){
         try {
+            // Ensure qsetdb entries exist for this departmentId
+            await ensureQsetdbEntryForSubject(departmentId, subjectId);
+
             conn = await connection.getConnection();
             await conn.beginTransaction();
     

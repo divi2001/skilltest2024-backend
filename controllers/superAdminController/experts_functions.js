@@ -460,25 +460,44 @@ exports.submmitedByExperts = async (req, res) => {
 
 
     const query = `
-    SELECT 
-        e.expertId,
-        e.expert_name,
-        s.subjectId,
-        s.subject_name,
-        st.departmentId,
-        erl.qset,
-        COUNT(DISTINCT erl.student_id) AS expert_assigned_count,
-        SUM(CASE WHEN erl.subm_done = 1 THEN 1 ELSE 0 END) AS submitted_students,
-        SUM(CASE WHEN erl.subm_done = 0 THEN 1 ELSE 0 END) AS pending_students
-    FROM 
-        expertdb e
-    JOIN ${tableName} erl ON e.expertId = erl.expertId
-    JOIN subjectsdb s ON erl.subjectId = s.subjectId
-    JOIN students st ON erl.student_id = st.student_id
-    GROUP BY 
-        e.expertId, e.expert_name, s.subjectId, s.subject_name, st.departmentId, erl.qset
-    ORDER BY 
-        st.departmentId, e.expertId, s.subjectId, erl.qset;`;
+        SELECT 
+            e.expertId,
+            e.expert_name,
+            s.subjectId,
+            s.subject_name,
+            st.departmentId,
+            erl.qset,
+
+            COUNT(DISTINCT erl.student_id) AS expert_assigned_count,
+
+            COUNT(DISTINCT CASE 
+                WHEN erl.subm_done = 1 THEN erl.student_id 
+            END) AS submitted_students,
+
+            COUNT(DISTINCT CASE 
+                WHEN erl.subm_done = 0 THEN erl.student_id 
+            END) AS pending_students
+
+        FROM expertdb e
+
+        JOIN ${tableName} erl 
+            ON e.expertId = erl.expertId
+
+        JOIN subjectsdb s 
+            ON erl.subjectId = s.subjectId
+        AND erl.examType = s.examType
+
+        JOIN students st 
+            ON erl.student_id = st.student_id
+
+        GROUP BY 
+            e.expertId, e.expert_name,
+            s.subjectId, s.subject_name,
+            st.departmentId, erl.qset
+
+        ORDER BY 
+            st.departmentId, e.expertId, s.subjectId, erl.qset;
+        `;
 
     try {
         const [results] = await connection.query(query);
