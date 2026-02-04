@@ -41,7 +41,7 @@ exports.getAllSubjects = async (req, res) => {
             JOIN 
                 students st ON s.subjectId = st.subjectsId
             JOIN 
-                departmentdb d ON st.departmentId = d.departmentId
+                departmentdb d ON st.departmentId = d.departmentId AND s.examType = d.examType
             WHERE 
                 d.departmentStatus = 1
             GROUP BY
@@ -76,7 +76,7 @@ exports.getAllSubjects = async (req, res) => {
             JOIN 
                 students st ON s.subjectId = st.subjectsId
             JOIN 
-                departmentdb d ON st.departmentId = d.departmentId
+                departmentdb d ON st.departmentId = d.departmentId AND s.examType = d.examType
             LEFT JOIN 
                 ${tableName} m ON s.subjectId = m.subjectId 
                     AND m.student_id = st.student_id 
