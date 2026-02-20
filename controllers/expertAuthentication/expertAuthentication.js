@@ -169,10 +169,10 @@ exports.getPassagesByStudentId = async (req, res) => {
         try {
             const query = `
                 SELECT 
-                    mrl.passageA, 
-                    mrl.passageB, 
-                    mrl.ansPassageA, 
-                    mrl.ansPassageB, 
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
                     mrl.student_id, 
                     mrl.subjectId, 
                     mrl.qset, 
@@ -183,6 +183,11 @@ exports.getPassagesByStudentId = async (req, res) => {
                 FROM modreviewlog mrl
                 LEFT JOIN students s ON mrl.student_id = s.student_id
                 LEFT JOIN departmentdb d ON s.departmentId = d.departmentId
+                LEFT JOIN audiodb aud ON mrl.subjectId = aud.subjectId
+                    AND mrl.qset = aud.qset
+                    AND mrl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON mrl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON mrl.student_id = tl.student_id
                 WHERE mrl.student_id = ?
             `;
             const [results] = await connection.query(query, [studentId]);
@@ -244,37 +249,28 @@ exports.getStudentPassages = async (req, res) => {
             res.status(500).json({ error: 'Error fetching student passages' });
         }
     }
-    else if(expertId === 100){
+    else if(expertId === 100 || expertId === 101){
         try {
             const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id, QPA, QPB
-                FROM modreviewlog 
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
+                SELECT 
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
+                    mrl.student_id,
+                    mrl.QPA,
+                    mrl.QPB
+                FROM modreviewlog mrl
+                LEFT JOIN audiodb aud ON mrl.subjectId = aud.subjectId
+                    AND mrl.qset = aud.qset
+                    AND mrl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON mrl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON mrl.student_id = tl.student_id
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ?
                 LIMIT 1
             `;
             const [results] = await connection.query(query, [subjectId, qset, studentId]);
-    
-            if (results.length > 0) {
-                console.log("Fetched student_id:", results[0].student_id);
-                res.status(200).json({...results[0], departmentId}); // Include departmentId in response
-            } else {
-                res.status(404).json({ error: 'No passages found for this student' });
-            }
-        } catch (err) {
-            console.error("Error fetching student passages:", err);
-            res.status(500).json({ error: 'Error fetching student passages' });
-        }
-    }
-    if(expertId === 101){
-        try {
-            const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id, QPA, QPB
-                FROM modreviewlog 
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
-                LIMIT 1
-            `;
-            const [results] = await connection.query(query, [subjectId, qset, studentId]);
-    
+
             if (results.length > 0) {
                 console.log("Fetched student_id:", results[0].student_id);
                 res.status(200).json({...results[0], departmentId}); // Include departmentId in response
