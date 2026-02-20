@@ -27,6 +27,7 @@ router.post('/student-clear-ignore-list', examExpertAdminStudentSpecificControll
 
 // Passage review submission route (updated to include departmentId)
 router.post('/submit-passage-review/:subjectId/:qset/:departmentId', examExpertAdminStudentSpecificController.submitPassageReview);
+router.post('/hold-passage-review/:subjectId/:qset/:departmentId', examExpertAdminStudentSpecificController.holdPassageReview);
 
 // Get student passages with filters
 router.get('/student-passages-with-filters', examExpertAdminStudentSpecificController.getStudentPassagesWithFilters);

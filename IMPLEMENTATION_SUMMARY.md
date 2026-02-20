@@ -33,7 +33,7 @@ const { ensureQsetdbEntryForSubject } = require('../../utils/qsetdbHandler');
 Integrated validation into 7 functions that interact with `qsetdb`:
 
 1. **getIgnoreList** (paper_check/paper_mod paths)
-   - Added validation before fetching ignore list from qsetdb/modqsetdb
+   - Added validation before fetching ignore list from qsetdb/qsetdb
    
 2. **getStudentIgnoreList** (expertId === 8 path)
    - Added validation before fetching student-specific ignore list

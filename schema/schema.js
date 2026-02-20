@@ -204,29 +204,18 @@ const schema = {
     modreviewlog: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
         student_id: 'BIGINT',
-        passageA: 'TEXT',
-        passageB: 'TEXT',
-        passageA_word_count: 'INT',
-        passageB_word_count: 'INT',
-        ansPassageA: 'TEXT',
-        ansPassageB: 'TEXT',
         subjectId: 'INT',
         examType: "ENUM('GCC', 'SKILL')",
         qset: 'INT',
+        departmentId: 'INT',
         expertId: 'INT',
         loggedin: 'DATETIME',
         status: 'BOOLEAN',
         subm_done: 'BOOLEAN DEFAULT 0',
         subm_time: 'DATETIME',
+        hold: 'BOOLEAN DEFAULT 0',
         QPA: 'TEXT',
-        QPB: 'TEXT',
-        spelling: 'INT DEFAULT 0',
-        missed: 'INT DEFAULT 0',
-        added: 'INT DEFAULT 0',
-        grammar: 'INT DEFAULT 0',
-        total_mistakes: 'DECIMAL(5,2) DEFAULT 0.00',
-        total_marks: 'DECIMAL(5,2) DEFAULT 0.00'
-
+        QPB: 'TEXT'
     },
     typingpassagelogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
@@ -284,7 +273,7 @@ const schema = {
         Q4PA: 'TEXT',
         Q4PB: 'TEXT'
     },
-    modqsetdb: {
+    qsetdb: {
         id: 'INT PRIMARY KEY AUTO_INCREMENT',
         subjectId: 'INT REFERENCES subjectsdb(subjectId)',
         departmentId: 'INT REFERENCES departmentdb(departmentId)',

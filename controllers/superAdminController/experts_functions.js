@@ -565,16 +565,16 @@ exports.submmitedByExperts = async (req, res) => {
 
 exports.copyQsetToModqset = async (req, res) => {
     try {
-        // First, add a unique constraint to subjectId in modqsetdb
+        // First, add a unique constraint to subjectId in qsetdb
         const addUniqueConstraintQuery = `
-            ALTER TABLE modqsetdb ADD UNIQUE (subjectId);
+            ALTER TABLE qsetdb ADD UNIQUE (subjectId);
         `;
         
         await connection.query(addUniqueConstraintQuery);
 
         // Now, run your original query
         const query = `
-            INSERT INTO modqsetdb (subjectId, Q1PA, Q1PB, Q2PA, Q2PB, Q3PA, Q3PB, Q4PA, Q4PB)
+            INSERT INTO qsetdb (subjectId, Q1PA, Q1PB, Q2PA, Q2PB, Q3PA, Q3PB, Q4PA, Q4PB)
             SELECT subjectId, Q1PA, Q1PB, Q2PA, Q2PB, Q3PA, Q3PB, Q4PA, Q4PB
             FROM qsetdb
             ON DUPLICATE KEY UPDATE
@@ -597,7 +597,7 @@ exports.copyQsetToModqset = async (req, res) => {
             updatedRows: result.changedRows
         });
     } catch (error) {
-        console.error('Error updating or copying data from qsetdb to modqsetdb:', error);
+        console.error('Error updating or copying data from qsetdb to qsetdb:', error);
         res.status(500).json({ error: error.message });
     }
 };

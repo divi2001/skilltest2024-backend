@@ -53,8 +53,7 @@ exports.getAllSubjects = async (req, res) => {
             ORDER BY 
                 s.subjectId, st.departmentId;
         `;
-    } else {
-        // Fixed query without held column references
+    } else if (paper_check === 1) {
         subjectsQuery = `
             SELECT 
                 s.subjectId, 
@@ -98,6 +97,62 @@ exports.getAllSubjects = async (req, res) => {
             ORDER BY 
                 s.subjectId, st.departmentId;
         `;
+    } else if (super_mod === 1) {
+        subjectsQuery = `
+            SELECT 
+                s.subjectId, 
+                s.subject_name, 
+                s.subject_name_short, 
+                s.daily_timer, 
+                s.passage_timer, 
+                s.demo_timer,
+                st.departmentId,
+                d.departmentName,
+                d.examType,
+                COUNT(DISTINCT CASE 
+                    WHEN (m.subm_done IS NULL OR m.subm_done = 0) AND (m.hold IS NULL OR m.hold = 0)
+                    THEN m.student_id 
+                END) AS incomplete_count,
+                COUNT(DISTINCT m.student_id) AS total_count,
+                COUNT(DISTINCT CASE 
+                    WHEN m.hold = 1 
+                    THEN m.student_id 
+                END) AS hold_count,
+                COUNT(DISTINCT CASE 
+                    WHEN m.hold = 1 AND (m.subm_done IS NULL OR m.subm_done = 0)
+                    THEN m.student_id 
+                END) AS held_incomplete_count,
+                COUNT(DISTINCT CASE 
+                    WHEN m.hold = 1
+                    THEN m.student_id 
+                END) AS total_held_count
+            FROM 
+                subjectsdb s
+            JOIN 
+                students st ON s.subjectId = st.subjectsId
+            JOIN 
+                departmentdb d ON st.departmentId = d.departmentId AND s.examType = d.examType
+            LEFT JOIN 
+                ${tableName} m ON s.subjectId = m.subjectId 
+                    AND m.student_id = st.student_id 
+                    AND m.expertId = ?
+            WHERE 
+                d.departmentStatus = 1
+            GROUP BY 
+                s.subjectId, 
+                s.subject_name, 
+                s.subject_name_short, 
+                s.daily_timer, 
+                s.passage_timer, 
+                s.demo_timer, 
+                st.departmentId, 
+                d.departmentName,
+                d.examType
+            HAVING 
+                incomplete_count > 0 OR held_incomplete_count > 0
+            ORDER BY 
+                s.subjectId, st.departmentId;
+        `;
     }
 
     try {
@@ -131,7 +186,8 @@ exports.getQSetsForSubject = async (req, res) => {
     }
 
     const { subjectId } = req.params;
-    const { departmentId } = req.query; // Get departmentId from query parameters
+    const { departmentId, held } = req.query; // Get departmentId and held from query parameters
+    const isHeld = held === 'true';
     const expertId = req.session.expertId;
 
     const paper_check = req.session.paper_check;
@@ -202,6 +258,16 @@ exports.getQSetsForSubject = async (req, res) => {
                 res.status(200).json(qsetResults);
             }
         } else {
+            // Determine hold filter for super_mod
+            let holdFilter = '';
+            if (super_mod === 1) {
+                if (isHeld) {
+                    holdFilter = `AND ${tableName}.hold = 1`;
+                } else {
+                    holdFilter = `AND (${tableName}.hold IS NULL OR ${tableName}.hold = 0)`;
+                }
+            }
+
             if (departmentId) {
                 qsetQuery = `
                     SELECT 
@@ -213,13 +279,14 @@ exports.getQSetsForSubject = async (req, res) => {
                     WHERE ${tableName}.subjectId = ?
                     AND ${tableName}.expertId = ?
                     AND s.departmentId = ?
+                    ${holdFilter}
                     GROUP BY ${tableName}.qset
                     HAVING incomplete_count > 0
                     ORDER BY ${tableName}.qset
                 `;
                 const [qsetResults] = await connection.query(qsetQuery, [subjectId, expertId, departmentId]);
 
-                console.log(`QSets for subject ${subjectId}, department ${departmentId} and expert ${expertId} with student counts:`);
+                console.log(`QSets for subject ${subjectId}, department ${departmentId} and expert ${expertId} (held=${isHeld}) with student counts:`);
                 qsetResults.forEach(qset => {
                     console.log(`QSet: ${qset.qset}, Incomplete Count: ${qset.incomplete_count}, Total Count: ${qset.total_count}`);
                 });
@@ -235,13 +302,14 @@ exports.getQSetsForSubject = async (req, res) => {
                     FROM ${tableName} 
                     WHERE subjectId = ?
                     AND expertId = ?
+                    ${holdFilter}
                     GROUP BY qset
                     HAVING incomplete_count > 0
                     ORDER BY qset
                 `;
                 const [qsetResults] = await connection.query(qsetQuery, [subjectId, expertId]);
 
-                console.log(`QSets for subject ${subjectId} and expert ${expertId} with student counts:`);
+                console.log(`QSets for subject ${subjectId} and expert ${expertId} (held=${isHeld}) with student counts:`);
                 qsetResults.forEach(qset => {
                     console.log(`QSet: ${qset.qset}, Incomplete Count: ${qset.incomplete_count}, Total Count: ${qset.total_count}`);
                 });
@@ -342,26 +410,28 @@ exports.getExpertAssignedPassages = async (req, res) => {
                 res.status(404).json({ error: 'No assigned passages found for this department' });
             }
         } else if (super_mod === 1) {
-            // For modreviewlog - JOIN with audiodb for question passages
+            // For modreviewlog - same approach as expertreviewlog:
+            // ansPassageA/B come from audiodb, passageA/B come from student submissions
             query = `
                 SELECT 
                     mrl.student_id,
                     mrl.subjectId,
                     mrl.qset,
-                    s.departmentId,
+                    mrl.departmentId,
                     aud.textPassageA as ansPassageA,
                     aud.textPassageB as ansPassageB,
-                    mrl.passageA,
-                    mrl.passageB
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB
                 FROM ${tableName} mrl
-                JOIN students s ON mrl.student_id = s.student_id
                 JOIN audiodb aud ON mrl.subjectId = aud.subjectId 
                     AND mrl.qset = aud.qset 
-                    AND s.departmentId = aud.departmentId
+                    AND mrl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON mrl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON mrl.student_id = tl.student_id
                 WHERE mrl.subjectId = ? 
                     AND mrl.qset = ? 
                     AND mrl.expertId = ? 
-                    AND s.departmentId = ?
+                    AND mrl.departmentId = ?
                 ORDER BY mrl.loggedin DESC
                 LIMIT 1
             `;
@@ -369,7 +439,14 @@ exports.getExpertAssignedPassages = async (req, res) => {
 
             if (results.length > 0) {
                 console.log(`Assigned student_id: ${results[0].student_id}, departmentId: ${results[0].departmentId}`);
-                res.status(200).json(results[0]);
+                res.status(200).json({
+                    student_id: results[0].student_id,
+                    departmentId: results[0].departmentId,
+                    passageA: results[0].passageA,
+                    passageB: results[0].passageB,
+                    ansPassageA: results[0].ansPassageA,
+                    ansPassageB: results[0].ansPassageB
+                });
             } else {
                 res.status(404).json({ error: 'No assigned passages found for this department' });
             }
@@ -391,9 +468,11 @@ exports.assignStudentForQSet = async (req, res) => {
 
     // Get departmentId and examType from URL path parameters
     const { subjectId, qset, departmentId, examType } = req.params;
+    const { held } = req.query; // Get held flag from query parameters
+    const isHeld = held === 'true';
     const expertId = req.session.expertId;
 
-    console.log(`Parameters: subjectId=${subjectId}, qset=${qset}, departmentId=${departmentId}, examType=${examType}, expertId=${expertId}`);
+    console.log(`Parameters: subjectId=${subjectId}, qset=${qset}, departmentId=${departmentId}, examType=${examType}, expertId=${expertId}, held=${isHeld}`);
 
     const paper_check = req.session.paper_check;
     const super_mod = req.session.super_mod;
@@ -470,6 +549,11 @@ exports.assignStudentForQSet = async (req, res) => {
                 `;
             }
         } else {
+            // Determine hold filter for super_mod
+            const holdFilter = (super_mod === 1) 
+                ? (isHeld ? 'AND mrl.hold = 1' : 'AND (mrl.hold IS NULL OR mrl.hold = 0)')
+                : '';
+
             if (departmentId && departmentId !== 'undefined' && departmentId !== 'null') {
                 checkExistingAssignmentQuery = `
                     SELECT 
@@ -486,6 +570,7 @@ exports.assignStudentForQSet = async (req, res) => {
                     JOIN students s ON mrl.student_id = s.student_id
                     JOIN departmentdb d ON s.departmentId = d.departmentId
                     WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND s.departmentId = ? AND (mrl.subm_done IS NULL OR mrl.subm_done = 0)
+                    ${holdFilter}
                     LIMIT 1
                 `;
             } else {
@@ -504,6 +589,7 @@ exports.assignStudentForQSet = async (req, res) => {
                     JOIN students s ON mrl.student_id = s.student_id
                     JOIN departmentdb d ON s.departmentId = d.departmentId
                     WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND (mrl.subm_done IS NULL OR mrl.subm_done = 0)
+                    ${holdFilter}
                     LIMIT 1
                 `;
             }
@@ -625,7 +711,7 @@ exports.assignStudentForQSet = async (req, res) => {
                 if (finalDepartmentId) {
                     fetchIgnoreListsQuery = `
                         SELECT Q${qset}PA as QPA, Q${qset}PB as QPB
-                        FROM modqsetdb
+                        FROM qsetdb
                         WHERE subjectId = ? AND departmentId = ?
                     `;
                     const [ignoreListsResult] = await conn.query(fetchIgnoreListsQuery, [subjectId, finalDepartmentId]);
@@ -640,7 +726,7 @@ exports.assignStudentForQSet = async (req, res) => {
                 } else {
                     fetchIgnoreListsQuery = `
                         SELECT Q${qset}PA as QPA, Q${qset}PB as QPB
-                        FROM modqsetdb
+                        FROM qsetdb
                         WHERE subjectId = ?
                     `;
                     const [ignoreListsResult] = await conn.query(fetchIgnoreListsQuery, [subjectId]);
@@ -716,7 +802,7 @@ exports.getIgnoreList = async (req, res) => {
     if (paper_check === 1) {
         tableName = 'qsetdb';
     } else if (paper_mod === 1) {
-        tableName = 'modqsetdb';
+        tableName = 'qsetdb';
     }
 
     // Input validation
@@ -1040,7 +1126,7 @@ exports.addToIgnoreList = async (req, res) => {
     if (paper_check === 1) {
         tableName = 'qsetdb';
     } else if (paper_mod === 1) {
-        tableName = 'modqsetdb';
+        tableName = 'qsetdb';
     }
 
     let conn;
@@ -1333,7 +1419,7 @@ exports.removeFromIgnoreList = async (req, res) => {
     if (paper_check === 1) {
         tableName = 'qsetdb';
     } else if (paper_mod === 1) {
-        tableName = 'modqsetdb';
+        tableName = 'qsetdb';
     }
 
     let conn;
@@ -2250,3 +2336,71 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
     }
 };
 
+exports.holdPassageReview = async (req, res) => {
+    if (!req.session.expertId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { subjectId, qset, departmentId } = req.params;
+    const expertId = req.session.expertId;
+
+    if (req.session.super_mod !== 1) {
+        return res.status(403).json({ error: 'Forbidden - Only moderators can place a hold' });
+    }
+
+    let conn;
+
+    try {
+        conn = await connection.getConnection();
+        await conn.beginTransaction();
+
+        // Find the currently active assignment for this expert
+        const fetchAssignmentQuery = `
+            SELECT student_id
+            FROM modreviewlog
+            WHERE subjectId = ? AND qset = ? AND expertId = ? AND departmentId = ? AND status = 1 AND subm_done = 0
+            ORDER BY loggedin DESC
+            LIMIT 1
+        `;
+        const [assignmentResult] = await conn.query(fetchAssignmentQuery, [subjectId, qset, expertId, departmentId]);
+
+        if (assignmentResult.length === 0) {
+            await conn.rollback();
+            return res.status(404).json({ error: 'No active assignment found to place on hold' });
+        }
+
+        const studentId = assignmentResult[0].student_id;
+
+        // Set hold = 1 for that record
+        const updateQuery = `
+            UPDATE modreviewlog
+            SET hold = 1
+            WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ? AND departmentId = ?
+        `;
+        const [updateResult] = await conn.query(updateQuery, [subjectId, qset, expertId, studentId, departmentId]);
+
+        if (updateResult.affectedRows === 0) {
+            await conn.rollback();
+            return res.status(404).json({ error: 'No matching record found to update' });
+        }
+
+        await conn.commit();
+
+        console.log(`Hold set for expertId: ${expertId}, studentId: ${studentId}, subjectId: ${subjectId}, qset: ${qset}, departmentId: ${departmentId}`);
+        return res.status(200).json({
+            message: 'Passage review placed on hold',
+            student_id: studentId,
+            subjectId,
+            qset,
+            departmentId,
+            hold: 1
+        });
+
+    } catch (err) {
+        if (conn) await conn.rollback();
+        console.error('Error placing passage review on hold:', err);
+        return res.status(500).json({ error: 'Error placing passage review on hold', details: err.message });
+    } finally {
+        if (conn) conn.release();
+    }
+};
