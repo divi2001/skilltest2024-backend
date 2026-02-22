@@ -1697,17 +1697,33 @@ exports.clearIgnoreList = async (req, res) => {
 
     try {
         const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
-        
-        const query = `
-            UPDATE modreviewlog mrl
+
+        // Step 1: Find the most recent matching row (JOIN + ORDER BY is not allowed in UPDATE)
+        const selectQuery = `
+            SELECT mrl.student_id, mrl.loggedin
+            FROM modreviewlog mrl
             JOIN students s ON mrl.student_id = s.student_id
-            SET mrl.${columnName} = NULL
             WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.expertId = ? AND s.departmentId = ?
             ORDER BY mrl.loggedin DESC
             LIMIT 1
         `;
-        
-        const [result] = await connection.query(query, [subjectId, qset, expertId, departmentId]);
+        const [rows] = await connection.query(selectQuery, [subjectId, qset, expertId, departmentId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                error: 'No record found to clear',
+                debug: { expertId, subjectId, departmentId, qset, activePassage, table: 'modreviewlog', column: columnName }
+            });
+        }
+
+        // Step 2: Update that specific row by its unique identifiers
+        const { student_id: targetStudentId, loggedin: targetLoggedin } = rows[0];
+        const updateQuery = `
+            UPDATE modreviewlog
+            SET ${columnName} = NULL
+            WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ? AND loggedin = ?
+        `;
+        const [result] = await connection.query(updateQuery, [subjectId, qset, expertId, targetStudentId, targetLoggedin]);
 
         if (result.affectedRows > 0) {
             console.log(`Cleared ignore list for expertId: ${expertId}, subjectId: ${subjectId}, departmentId: ${departmentId}, qset: ${qset}, activePassage: ${activePassage}`);
@@ -1761,17 +1777,33 @@ exports.clearStudentIgnoreList = async (req, res) => {
     if (expertId === 100){
         try {
             const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
-            
-            const query = `
-                UPDATE modreviewlog mrl
+
+            // Step 1: Find the most recent matching row (JOIN + ORDER BY is not allowed in UPDATE)
+            const selectQuery = `
+                SELECT mrl.loggedin
+                FROM modreviewlog mrl
                 JOIN students s ON mrl.student_id = s.student_id
-                SET mrl.${columnName} = NULL
                 WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ? AND s.departmentId = ?
                 ORDER BY mrl.loggedin DESC
                 LIMIT 1
             `;
-            
-            const [result] = await connection.query(query, [subjectId, qset, studentId, departmentId]);
+            const [rows] = await connection.query(selectQuery, [subjectId, qset, studentId, departmentId]);
+
+            if (rows.length === 0) {
+                return res.status(404).json({
+                    error: 'No record found to clear',
+                    debug: { expertId, subjectId, departmentId, studentId, qset, activePassage, table: 'modreviewlog', column: columnName }
+                });
+            }
+
+            // Step 2: Update that specific row by its unique identifiers
+            const { loggedin: targetLoggedin } = rows[0];
+            const updateQuery = `
+                UPDATE modreviewlog
+                SET ${columnName} = NULL
+                WHERE subjectId = ? AND qset = ? AND student_id = ? AND loggedin = ?
+            `;
+            const [result] = await connection.query(updateQuery, [subjectId, qset, studentId, targetLoggedin]);
     
             if (result.affectedRows > 0) {
                 console.log(`Cleared student ignore list for expertId: ${expertId}, subjectId: ${subjectId}, departmentId: ${departmentId}, studentId: ${studentId}, qset: ${qset}, activePassage: ${activePassage}`);
