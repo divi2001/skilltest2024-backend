@@ -1681,7 +1681,7 @@ exports.removeFromStudentIgnoreList = async (req, res) => {
     }
 };
 
-// 7. Updated clearIgnoreList function
+// 7. Updated clearIgnoreList function. Test
 exports.clearIgnoreList = async (req, res) => {
     if (!req.session.expertId) {
         return res.status(401).json({ error: 'Unauthorized' });
