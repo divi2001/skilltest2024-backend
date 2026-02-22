@@ -1762,84 +1762,107 @@ exports.clearIgnoreList = async (req, res) => {
 
 // 8. Updated clearStudentIgnoreList function
 exports.clearStudentIgnoreList = async (req, res) => {
-    if (!req.session.expertId) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const { subjectId, qset, activePassage, studentId, departmentId } = req.body;
-    const expertId = req.session.expertId;
-
-    // Input validation
-    if (!subjectId || !qset || !activePassage || !studentId || !departmentId) {
-        return res.status(400).json({ error: 'Missing required parameters (subjectId, qset, activePassage, studentId, departmentId)' });
-    } 
-
-    if (expertId === 100){
-        try {
-            const columnName = activePassage === 'A' ? 'QPA' : 'QPB';
-
-            // Step 1: Find the most recent matching row (JOIN + ORDER BY is not allowed in UPDATE)
-            const selectQuery = `
-                SELECT mrl.loggedin
-                FROM modreviewlog mrl
-                JOIN students s ON mrl.student_id = s.student_id
-                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ? AND s.departmentId = ?
-                ORDER BY mrl.loggedin DESC
-                LIMIT 1
-            `;
-            const [rows] = await connection.query(selectQuery, [subjectId, qset, studentId, departmentId]);
-
-            if (rows.length === 0) {
-                return res.status(404).json({
-                    error: 'No record found to clear',
-                    debug: { expertId, subjectId, departmentId, studentId, qset, activePassage, table: 'modreviewlog', column: columnName }
-                });
-            }
-
-            // Step 2: Update that specific row by its unique identifiers
-            const { loggedin: targetLoggedin } = rows[0];
-            const updateQuery = `
-                UPDATE modreviewlog
-                SET ${columnName} = NULL
-                WHERE subjectId = ? AND qset = ? AND student_id = ? AND loggedin = ?
-            `;
-            const [result] = await connection.query(updateQuery, [subjectId, qset, studentId, targetLoggedin]);
-    
-            if (result.affectedRows > 0) {
-                console.log(`Cleared student ignore list for expertId: ${expertId}, subjectId: ${subjectId}, departmentId: ${departmentId}, studentId: ${studentId}, qset: ${qset}, activePassage: ${activePassage}`);
-                
-                res.status(200).json({ 
-                    message: 'Ignore list cleared successfully',
-                    debug: {
-                        expertId,
-                        subjectId,
-                        departmentId,
-                        studentId,
-                        qset,
-                        activePassage,
-                        table: 'modreviewlog',
-                        column: columnName
-                    }
-                });
-            } else {
-                res.status(404).json({ 
-                    error: 'No record found to clear',
-                    debug: {
-                        expertId,
-                        subjectId,
-                        departmentId,
-                        studentId,
-                        qset,
-                        activePassage,
-                        table: 'modreviewlog',
-                        column: columnName
-                    }
-                });
-            }
-        } catch (err) {
-            console.error("Error clearing ignore list:", err);
-            res.status(500).json({ error: 'Error clearing ignore list' });
+    try {
+        // 1️⃣ Auth check
+        if (!req.session || !req.session.expertId) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
+
+        const expertId = req.session.expertId;
+        const { subjectId, qset, activePassage, studentId, departmentId } = req.body;
+
+        // 2️⃣ Input validation
+        if (!subjectId || !qset || !activePassage || !studentId || !departmentId) {
+            return res.status(400).json({
+                error: 'Missing required parameters',
+                required: ['subjectId', 'qset', 'activePassage', 'studentId', 'departmentId']
+            });
+        }
+
+        // 3️⃣ Permission check
+        if (expertId !== 100) {
+            return res.status(403).json({ error: 'Forbidden: insufficient permissions' });
+        }
+
+        // 4️⃣ Safe column mapping (prevents SQL injection)
+        let columnName;
+        if (activePassage === 'A') {
+            columnName = 'QPA';
+        } else if (activePassage === 'B') {
+            columnName = 'QPB';
+        } else {
+            return res.status(400).json({ error: 'Invalid activePassage value' });
+        }
+
+        // 5️⃣ Step 1: Get latest matching record
+        const selectQuery = `
+            SELECT mrl.loggedin
+            FROM modreviewlog mrl
+            INNER JOIN students s ON s.student_id = mrl.student_id
+            WHERE mrl.subjectId = ?
+              AND mrl.qset = ?
+              AND mrl.student_id = ?
+              AND s.departmentId = ?
+            ORDER BY mrl.loggedin DESC
+            LIMIT 1
+        `;
+
+        const [rows] = await connection.query(selectQuery, [
+            subjectId,
+            qset,
+            studentId,
+            departmentId
+        ]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                error: 'No record found to clear'
+            });
+        }
+
+        // 6️⃣ Step 2: Update only that row
+        const targetLoggedin = rows[0].loggedin;
+
+        const updateQuery = `
+            UPDATE modreviewlog
+            SET ${columnName} = NULL
+            WHERE subjectId = ?
+              AND qset = ?
+              AND student_id = ?
+              AND loggedin = ?
+        `;
+
+        const [result] = await connection.query(updateQuery, [
+            subjectId,
+            qset,
+            studentId,
+            targetLoggedin
+        ]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                error: 'Record found but not updated'
+            });
+        }
+
+        // 7️⃣ Success response
+        return res.status(200).json({
+            message: 'Ignore list cleared successfully',
+            data: {
+                subjectId,
+                qset,
+                studentId,
+                departmentId,
+                activePassage,
+                clearedColumn: columnName
+            }
+        });
+
+    } catch (err) {
+        console.error('Error clearing ignore list:', err);
+        return res.status(500).json({
+            error: 'Internal server error'
+        });
     }
 };
 
