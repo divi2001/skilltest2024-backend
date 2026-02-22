@@ -123,15 +123,15 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-app.listen(PORT, 'localhost', () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`✅ Max payload size: 500mb`);
-});
-
-// app.listen(PORT, '0.0.0.0', () => {
-//   console.log(`✅ Server running on http://checking.shorthandonlineexam.in`);
+// app.listen(PORT, 'localhost', () => {
+//   console.log(`✅ Server running on http://localhost:${PORT}`);
 //   console.log(`✅ Max payload size: 500mb`);
 // });
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server running on http://checking.shorthandonlineexam.in`);
+  console.log(`✅ Max payload size: 500mb`);
+});
 
 // app.listen(PORT, '0.0.0.0', () => {
 //   console.log(`✅ Server running on http://103.17.193.168:${PORT}`);
