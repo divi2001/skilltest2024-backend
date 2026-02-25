@@ -12,9 +12,14 @@ let studentDataMemory = null;
 // ========== CONVERSION HELPER FUNCTIONS ==========
 
 function excelDateToJSDate(serial) {
-  if (!serial || isNaN(serial)) {
-    return '';
+  if (!serial && serial !== 0) return '';
+  
+  // Already a formatted string — pass through as-is
+  if (typeof serial === 'string') {
+    return serial.trim();
   }
+  
+  if (isNaN(serial)) return '';
   
   try {
     const utc_days = Math.floor(serial - 25569);
@@ -33,9 +38,14 @@ function excelDateToJSDate(serial) {
 }
 
 function excelTimeToAMPM(decimal) {
-  if (decimal === null || decimal === undefined || isNaN(decimal)) {
-    return '';
+  if (decimal === null || decimal === undefined || decimal === '') return '';
+  
+  // Already a formatted string — pass through as-is
+  if (typeof decimal === 'string') {
+    return decimal.trim();
   }
+  
+  if (isNaN(decimal)) return '';
   
   try {
     const totalMinutes = Math.round(decimal * 24 * 60);
@@ -114,7 +124,11 @@ function cleanupOldFolders() {
 function getImageAsBase64(imagePath) {
   try {
     const fullPath = path.join(__dirname, '../public/assets/skilltest', imagePath);
-    if (fs.existsSync(fullPath)) {
+    console.log(`[getImageAsBase64] Requested: "${imagePath}"`);
+    console.log(`[getImageAsBase64] Full path resolved: "${fullPath}"`);
+    const exists = fs.existsSync(fullPath);
+    console.log(`[getImageAsBase64] File exists: ${exists}`);
+    if (exists) {
       const imageBuffer = fs.readFileSync(fullPath);
       const ext = path.extname(fullPath).toLowerCase();
       let mimeType = 'image/jpeg';
@@ -122,11 +136,14 @@ function getImageAsBase64(imagePath) {
       if (ext === '.png') mimeType = 'image/png';
       else if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
       
-      return `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
+      const base64Result = `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
+      console.log(`[getImageAsBase64] ✅ Loaded successfully. Size: ${imageBuffer.length} bytes, MIME: ${mimeType}`);
+      return base64Result;
     }
+    console.warn(`[getImageAsBase64] ⚠️ File NOT found: "${fullPath}"`);
     return '';
   } catch (error) {
-    console.error(`Error reading image ${imagePath}:`, error.message);
+    console.error(`[getImageAsBase64] ❌ Error reading image "${imagePath}":`, error.message);
     return '';
   }
 }
@@ -231,7 +248,13 @@ exports.uploadSkillTestStudentData = async (req, res) => {
     const workbook = XLSX.readFile(req.file.path);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet);
+    const rawData = XLSX.utils.sheet_to_json(worksheet);
+
+    // Normalize APPLICATION_NUMBER to string to avoid type mismatch during lookup
+    const data = rawData.map(row => ({
+      ...row,
+      APPLICATION_NUMBER: row.APPLICATION_NUMBER != null ? String(row.APPLICATION_NUMBER).trim() : ''
+    }));
 
     studentDataMemory = data;
 
@@ -273,10 +296,11 @@ exports.downloadSkillTestHallTicket = async (req, res) => {
       return res.status(404).json({ error: 'No student data found. Please upload data first.' });
     }
 
-    const student = studentDataMemory.find(s => s.APPLICATION_NUMBER === applicationNo);
+    const student = studentDataMemory.find(s => String(s.APPLICATION_NUMBER).trim() === String(applicationNo).trim());
     
     if (!student) {
       console.error('❌ Student not found:', applicationNo);
+      console.error('Available APPLICATION_NUMBERs (first 5):', studentDataMemory.slice(0, 5).map(s => `"${s.APPLICATION_NUMBER}" (${typeof s.APPLICATION_NUMBER})`));
       return res.status(404).json({ error: 'Student not found with this application number' });
     }
 
@@ -301,8 +325,8 @@ exports.downloadSkillTestHallTicket = async (req, res) => {
       leftLogoBase64: hasLeftLogo ? customization.leftLogoBase64 : getImageAsBase64('pwd_logo1.jpg'),
       logoBase64: hasRightLogo ? customization.rightLogoBase64 : departmentDetails.logo,
       ashokStambhBase64: hasRightLogo ? customization.rightLogoBase64 : getImageAsBase64('pwd_logo2.jpeg'),
-      photoBase64: getImageAsBase64(`pwd_photo_new_resized/${student.photo || 'default.jpg'}`),
-      signBase64: getImageAsBase64(`pwd_sign_new_resized/${student.sign || 'default.jpg'}`),
+      photoBase64: (() => { const v = getImageAsBase64(`Photo Sign 12 tribal/photo_new/${student.photo || 'default.jpg'}`); console.log(`[Single] photo field value: "${student.photo}", base64 length: ${v.length}`); return v; })(),
+      signBase64: (() => { const v = getImageAsBase64(`Photo Sign 12 tribal/Sign_new/${student.sign || 'default.jpg'}`); console.log(`[Single] sign field value: "${student.sign}", base64 length: ${v.length}`); return v; })(),
       townPlanningSignBase64: hasInvigilatorImage ? customization.invigilatorImageBase64 : getImageAsBase64('town_planning_sign.jpg'),
       qrCodeBase64: qrCodeBase64,
       qrCodeTwBase64: qrCodeTwBase64,
@@ -471,8 +495,8 @@ exports.downloadAllSkillTestHallTickets = async (req, res) => {
           leftLogoBase64: hasLeftLogo ? customization.leftLogoBase64 : getImageAsBase64('pwd_logo1.jpg'),
           logoBase64: hasRightLogo ? customization.rightLogoBase64 : departmentDetails.logo,
           ashokStambhBase64: hasRightLogo ? customization.rightLogoBase64 : getImageAsBase64('pwd_logo2.jpeg'),
-          photoBase64: getImageAsBase64(`pwd_photo_new_resized/${student.photo || 'default.jpg'}`),
-          signBase64: getImageAsBase64(`pwd_sign_new_resized/${student.sign || 'default.jpg'}`),
+          photoBase64: (() => { const v = getImageAsBase64(`Photo Sign 12 tribal/photo_new/${student.photo || 'default.jpg'}`); console.log(`[Bulk #${i+1}] photo field value: "${student.photo}", base64 length: ${v.length}`); return v; })(),
+          signBase64: (() => { const v = getImageAsBase64(`Photo Sign 12 tribal/Sign_new/${student.sign || 'default.jpg'}`); console.log(`[Bulk #${i+1}] sign field value: "${student.sign}", base64 length: ${v.length}`); return v; })(),
           townPlanningSignBase64: hasInvigilatorImage ? customization.invigilatorImageBase64 : getImageAsBase64('town_planning_sign.jpg'),
           qrCodeBase64: qrCodeBase64,
           qrCodeTwBase64: qrCodeTwBase64,

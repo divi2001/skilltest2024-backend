@@ -599,11 +599,11 @@
                     
                     <!-- ✅ ONLY CHANGE: Dynamic Invigilator Section -->
                     <th rowspan="4" class="invigilator-info">
-                        <%= (invigilatorText && invigilatorText.title) || 'नियंत्रक अधिकारी' %> <br> <br><br>
                         <% if (townPlanningSignBase64) { %>
                             <img height="72px" width="auto" src="<%= townPlanningSignBase64 %>" alt="">
                         <% } %>
                         <br>
+                        <%= (invigilatorText && invigilatorText.title) || 'नियंत्रक अधिकारी' %><br>
                         <%= (invigilatorText && invigilatorText.line1) || 'मुख्य अभियंता' %><br>
                         <%= (invigilatorText && invigilatorText.line2) || 'सा.बां.प्रादेशिक विभाग मुंबई तथा,' %><br>
                         <%= (invigilatorText && invigilatorText.line3) || 'अध्यक्ष राज्यस्तरीय समन्वय समिती.' %>

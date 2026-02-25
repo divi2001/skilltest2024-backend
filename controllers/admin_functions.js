@@ -865,6 +865,70 @@ exports.getAttendaceReports = async (req, res) => {
     }
 }
 
+exports.addTableRecord = async (req, res) => {
+    console.log("Adding table record for admin");
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const { tableName, record } = req.body;
+
+    if (!tableName || !record || typeof record !== 'object' || Array.isArray(record)) {
+        return res.status(400).json({ success: false, message: 'Invalid request: tableName and record object are required' });
+    }
+
+    const columns = Object.keys(record);
+    const values = Object.values(record);
+
+    if (columns.length === 0) {
+        return res.status(400).json({ success: false, message: 'Record must have at least one column' });
+    }
+
+    try {
+        const insertQuery = `
+            INSERT INTO ${mysql.escapeId(tableName)}
+            (${columns.map(c => mysql.escapeId(c)).join(', ')})
+            VALUES (${columns.map(() => '?').join(', ')})
+        `;
+        const [result] = await connection.query(insertQuery, values);
+        res.status(201).json({ success: true, message: 'Record added successfully', insertId: result.insertId });
+    } catch (err) {
+        console.error('Error adding table record:', err);
+        res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
+    }
+};
+
+exports.deleteTableRecord = async (req, res) => {
+    console.log("Deleting table record for admin");
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const { tableName, primaryKey, primaryKeyValue } = req.body;
+
+    if (!tableName || !primaryKey || primaryKeyValue === undefined || primaryKeyValue === null) {
+        return res.status(400).json({ success: false, message: 'Invalid request: tableName, primaryKey, and primaryKeyValue are required' });
+    }
+
+    try {
+        const deleteQuery = `DELETE FROM ${mysql.escapeId(tableName)} WHERE ${mysql.escapeId(primaryKey)} = ?`;
+        const [result] = await connection.query(deleteQuery, [primaryKeyValue]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Record not found' });
+        }
+
+        res.json({ success: true, message: 'Record deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting table record:', err);
+        res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
+    }
+};
+
 exports.enhancedUpdateTableData = async (req, res) => {
     console.log("Enhanced updating table data for admin");
     const adminId = req.session.adminid;
