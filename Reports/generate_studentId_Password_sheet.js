@@ -103,42 +103,15 @@ function addHeader(doc, data) {
 
     doc.moveDown();
     const yPosition = doc.y - 8;
-    const fontSize = 12;
-    doc.fontSize(fontSize).font('Helvetica');
+    const spacer = '\u00A0\u00A0';
+    doc.fontSize(10).font('Helvetica');
 
-    // Save the current position
-    const currentY = yPosition + 10;
+    doc.text(`CENTER CODE: ${data.centerCode}${spacer}`, 50, yPosition + 10);
+    doc.text(`BATCH: ${data.batch}${spacer}`, 200, yPosition + 10);
+    doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 300, yPosition + 10);
+    doc.text(`EXAM TIME: ${data.examTime}`, 440, yPosition + 10);
 
-    // Reset text state and position each element individually
-    doc.text('', 0, 0); // Reset any previous text state
-
-    // Position each text element with explicit coordinates and no text flow
-    doc.text(`CENTER CODE: ${data.centerCode}`, 50, currentY, {
-        lineBreak: false,
-        width: 130,
-        align: 'left'
-    });
-
-    doc.text(`BATCH: ${data.batch}`, 185, currentY, {
-        lineBreak: false,
-        width: 85,
-        align: 'left'
-    });
-
-    doc.text(`EXAM DATE: ${data.examDate}`, 275, currentY, {
-        lineBreak: false,
-        width: 145,
-        align: 'left'
-    });
-
-    doc.text(`EXAM TIME: ${data.examTime}`, 425, currentY, {
-        lineBreak: false,
-        width: 125,
-        align: 'left'
-    });
-
-    // Manually set the Y position for the next content
-    doc.y = currentY + 20;
+    doc.y = yPosition + 30;
 
     return doc.y;
 }
