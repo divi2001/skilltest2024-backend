@@ -2229,7 +2229,7 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
             ? 'WHERE ' + whereClauses.join(' AND ') 
             : '';
 
-        // Helper function to generate CASE statements for qsetdb columns
+        // Helper function to generate CASE statements for qsetdb columns (Expert Review only)
         const generateQSetCaseStatement = (passage, maxQSets = 8) => {
             const cases = [];
             for (let i = 1; i <= maxQSets; i++) {
@@ -2238,7 +2238,19 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
             return `CASE e.qset\n                        ${cases.join('\n                        ')}\n                    END AS QP${passage}`;
         };
 
-        // Build query with dynamic table name - always includes ignored words
+        // Determine ignore list source based on table type:
+        // - Expert Review (expertreviewlog): ignore list from qsetdb via CASE statements
+        // - Mod Review (modreviewlog): ignore list stored directly in modreviewlog.QPA / modreviewlog.QPB
+        const isModReview = table === 'modreviewlog';
+        const qpaSelect = isModReview ? 'e.QPA' : generateQSetCaseStatement('A');
+        const qpbSelect = isModReview ? 'e.QPB' : generateQSetCaseStatement('B');
+        const qsetdbJoin = isModReview
+            ? ''
+            : `LEFT JOIN 
+                qsetdb q ON e.subjectId = q.subjectId 
+                    AND e.departmentId = q.departmentId`;
+
+        // Build query with dynamic table name
         const query = `
             SELECT 
                 e.id,
@@ -2254,8 +2266,8 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
                 COALESCE(t.textb, f.passageB) AS passageB,
                 aud.textPassageA AS ansPassageA,
                 aud.textPassageB AS ansPassageB,
-                ${generateQSetCaseStatement('A')},
-                ${generateQSetCaseStatement('B')}
+                ${qpaSelect},
+                ${qpbSelect}
             FROM 
                 ${table} e
             LEFT JOIN 
@@ -2270,9 +2282,7 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
                 audiodb aud ON e.subjectId = aud.subjectId 
                     AND e.qset = aud.qset 
                     AND e.departmentId = aud.departmentId
-            LEFT JOIN 
-                qsetdb q ON e.subjectId = q.subjectId 
-                    AND e.departmentId = q.departmentId
+            ${qsetdbJoin}
             ${whereClause}
             ORDER BY 
                 e.id ASC
