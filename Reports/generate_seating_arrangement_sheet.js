@@ -205,12 +205,6 @@ function createTable(doc, seatNumbers, headerData) {
 
 function createAttendanceReport(doc, data) {
     addHeader(doc, data);
-    doc.fontSize(14).font('Helvetica-Bold')
-        .text('Seating Arrangement', 50, 170, {
-            width: 500,
-            align: 'center'
-        });
-    // doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
     createTable(doc, data.seatNumbers, data);
 }
 

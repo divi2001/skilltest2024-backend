@@ -173,7 +173,7 @@ function addHeader(doc, data) {
     doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 300, yPosition + 10);
     doc.text(`EXAM TIME: ${data.examTime}`, 440, yPosition + 10);
 
-    doc.fontSize(9).font('Helvetica-Oblique')
+    doc.fontSize(11).font('Helvetica')
         .text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 50, doc.y + 8, {
             width: 500,
             align: 'left'
