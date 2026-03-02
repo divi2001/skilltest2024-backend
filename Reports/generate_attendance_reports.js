@@ -116,9 +116,13 @@ function createAttendanceReport(doc, data) {
     const headerRowHeight = 30;
     const pageBreakThreshold = 700;
 
-    // Removed 'SIGN\n(uploaded)' column and redistributed widths to maintain same total width (520px)
-    const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGNATURE'];
-    const columnWidths = [40, 80, 200, 80, 70, 50]; // Total: 520px (same as before)
+    const isSkill = data.examType === 'SKILL';
+    const headers = isSkill
+        ? ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE']
+        : ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGNATURE'];
+    const columnWidths = isSkill
+        ? [40, 70, 170, 70, 60, 60, 50]  // Total: 520px with SIGN column
+        : [40, 80, 200, 80, 70, 50];      // Total: 520px without SIGN column
 
     function drawTableHeaders(yPosition) {
         let xPosition = tableLeft;
@@ -202,8 +206,35 @@ function createAttendanceReport(doc, data) {
             }
             xPosition += columnWidths[4];
 
+            // SIGN (uploaded) - only for SKILL
+            if (isSkill) {
+                doc.rect(xPosition, yPosition, columnWidths[5], rowHeight).stroke();
+                if (student.signBase64) {
+                    try {
+                        doc.image(Buffer.from(student.signBase64, 'base64'), xPosition + 2, yPosition + 2, {
+                            fit: [columnWidths[5] - 4, rowHeight - 4],
+                            align: 'center',
+                            valign: 'center'
+                        });
+                    } catch (error) {
+                        console.error(`Error loading sign for student ${student.seatNo}:`, error);
+                        doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                            width: columnWidths[5],
+                            align: 'center'
+                        });
+                    }
+                } else {
+                    doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                        width: columnWidths[5],
+                        align: 'center'
+                    });
+                }
+                xPosition += columnWidths[5];
+            }
+
             // SIGNATURE (empty space for manual signature)
-            doc.rect(xPosition, yPosition, columnWidths[5], rowHeight).stroke();
+            const sigColIdx = isSkill ? 6 : 5;
+            doc.rect(xPosition, yPosition, columnWidths[sigColIdx], rowHeight).stroke();
 
             yPosition += rowHeight;
             studentsOnCurrentPage++;
@@ -262,7 +293,7 @@ function createAttendanceReport(doc, data) {
 const getData = async (center, batchNo, departmentId) => {
     try {
         console.log(center, batchNo);
-        const query = 'SELECT s.fullname, s.student_id, s.base64, sub.subject_name_short, d.departmentName, d.departmentExam, d.logo FROM students s JOIN departmentdb d ON s.departmentId = d.departmentId JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+        const query = 'SELECT s.fullname, s.student_id, s.base64, s.sign_base64, sub.subject_name_short, d.departmentName, d.departmentExam, d.logo, d.examType FROM students s JOIN departmentdb d ON s.departmentId = d.departmentId JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
         const response = await connection.query(query, [center, batchNo, departmentId]);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
         const batchData = await connection.query(batchquery, [batchNo, departmentId]);
@@ -333,12 +364,14 @@ const AttendanceReport = async (doc, center, batchNo, departmentId) => {
             batch: batchNo,
             examDate: examDate,
             examTime: formattedExamTime, // Now in 12-hour format
+            examType: response[0]?.examType || 'GCC',
             students: response.map(student => {
                 return {
                     seatNo: student.student_id.toString(),
                     name: student.fullname,
                     subject: student.subject_name_short,
-                    photoBase64: student.base64
+                    photoBase64: student.base64,
+                    signBase64: student.sign_base64 || null
                 }
             }),
             departmentName: response[0]?.departmentName || 'GCC Examination',
