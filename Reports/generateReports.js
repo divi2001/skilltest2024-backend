@@ -438,10 +438,11 @@ exports.generateStudentId_Password = async (req, res) => {
         }
 
         // Check if download is allowed
-        console.log(batchData[0].start_time, batchData[0].batchdate)
-        // if (!checkDownloadAllowedStudentLoginPass(batchData[0].start_time,batchData[0].batchdate)) {
-        //     return res.status(403).json({ "message": "Download not allowed at this time" });
-        // }
+        console.log(batchData[0].start_time, batchData[0].batchdate);
+        const downloadAllowed = await checkReportPermission('REPORT_PASSWORD_PDF', batchData[0].batchdate, batchData[0].start_time);
+        if (!downloadAllowed) {
+            return res.status(403).json({ "message": "Download not allowed at this time" });
+        }
 
         // If download is allowed, proceed with getting student data
         const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';

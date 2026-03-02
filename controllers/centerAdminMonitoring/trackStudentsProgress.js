@@ -536,10 +536,11 @@ exports.getBatchesByDepartment = async (req, res) => {
 
         // Get distinct batch numbers for the specific department and center
         const query = `
-            SELECT DISTINCT batchNo, batchdate 
-            FROM students 
-            WHERE center = ? AND departmentId = ? 
-            ORDER BY batchNo`;
+            SELECT DISTINCT s.batchNo, s.batchdate, b.start_time
+            FROM students s
+            LEFT JOIN batchdb b ON s.batchNo = b.batchNo AND s.departmentId = b.departmentId
+            WHERE s.center = ? AND s.departmentId = ? 
+            ORDER BY s.batchNo`;
 
         const [results] = await connection.query(query, [examCenterCode, departmentId]);
 
