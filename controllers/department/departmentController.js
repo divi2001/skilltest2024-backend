@@ -215,7 +215,13 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     }
 
     if (exam_type) {
-        if (exam_type === 'shorthand') {
+        if (exam_type === 'GCC') {
+            query += " AND d.examType = 'GCC'";
+        }
+        else if (exam_type === 'SKILL') {
+            query += " AND d.examType = 'SKILL'";
+        }
+        else if (exam_type === 'shorthand') {
             query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
         }
         else if (exam_type === 'typewriting') {
@@ -311,7 +317,7 @@ exports.getDepartmentDetails = async (req, res) => {
         return res.status(400).json({ message: "Department admin not logged in" });
     }
 
-    let query = 'select departmentName , logo from departmentdb where departmentId = ?';
+    let query = 'SELECT departmentName, logo, examType FROM departmentdb WHERE departmentId = ?';
 
     try {
         const [response] = await connection.query(query, [department]);
@@ -502,7 +508,13 @@ exports.getStageCounts = async (req, res) => {
     }
 
     if (exam_type) {
-        if (exam_type === 'shorthand') {
+        if (exam_type === 'GCC') {
+            query += " AND d.examType = 'GCC'";
+        }
+        else if (exam_type === 'SKILL') {
+            query += " AND d.examType = 'SKILL'";
+        }
+        else if (exam_type === 'shorthand') {
             query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
         }
         else if (exam_type === 'typewriting') {

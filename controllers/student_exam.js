@@ -135,7 +135,8 @@ exports.getStudentDetails = async (req, res) => {
     console.log('Student ID from session:', studentId);
 
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
-    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
+    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ? AND examType = ?';
+    const deptQuery = 'SELECT examType FROM departmentdb WHERE departmentId = ?';
 
 
     try {
@@ -173,7 +174,9 @@ exports.getStudentDetails = async (req, res) => {
         console.log('First subject ID:', subjectId);
 
         console.log('Querying subject data');
-        const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+        const [depts] = await connection.query(deptQuery, [student.departmentId]);
+        const examType = depts.length > 0 ? depts[0].examType : 'GCC';
+        const [subjects] = await connection.query(subjectsQuery, [subjectId, examType]);
         console.log(subjects)
 
         if (subjects.length === 0) {

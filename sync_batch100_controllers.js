@@ -2,8 +2,20 @@ const mysql = require('mysql2/promise');
 const { encrypt } = require('./config/encrypt');
 require('dotenv').config();
 
-async function syncBatch100Controllers() {
-    console.log('Starting synchronization for Batch 100 Controller Passwords...');
+function generateUniquePassword(usedPasswords) {
+    const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let password;
+    do {
+        // Shuffle and pick 6 digits
+        const shuffled = digits.sort(() => Math.random() - 0.5);
+        password = shuffled.slice(0, 6).join('');
+    } while (usedPasswords.has(password));
+    usedPasswords.add(password);
+    return password;
+}
+
+async function syncAllControllers(dryRun = false) {
+    console.log(`Starting synchronization for ALL batches and departments... ${dryRun ? '[DRY RUN]' : '[LIVE]'}`);
 
     const connection = await mysql.createConnection({
         host: process.env.DB_HOST,
@@ -13,10 +25,7 @@ async function syncBatch100Controllers() {
     });
 
     try {
-        const batchNo = 100;
-        const departmentId = 10;
-        const passwordPlain = 'mock';
-        const passwordEncrypted = encrypt(passwordPlain);
+        const usedPasswords = new Set();
 
         // 1. Get all valid centers from examcenterdb
         console.log('Fetching all centers from examcenterdb...');
@@ -25,77 +34,81 @@ async function syncBatch100Controllers() {
         allCentersRows.forEach(r => allCentersMap.set(r.center, r.center_name));
         console.log(`Total centers in examcenterdb: ${allCentersMap.size}`);
 
-        // 2. Get existing controllers for batch 100
-        console.log(`Fetching existing controllers for batch ${batchNo}, department ${departmentId}...`);
-        const [existingRows] = await connection.query(
-            'SELECT center FROM controllerdb WHERE batchNo = ? AND departmentId = ?',
-            [batchNo, departmentId]
-        );
-        const existingCenters = new Set(existingRows.map(r => r.center));
-        console.log(`Existing controllers for batch 100: ${existingCenters.size}`);
+        // 2. Get all batches from batchdb
+        console.log('Fetching all batches from batchdb...');
+        const [allBatches] = await connection.query('SELECT departmentId, batchNo FROM batchdb ORDER BY departmentId, batchNo');
+        console.log(`Total batches in batchdb: ${allBatches.length}`);
 
-        // 3. Identify missing centers
-        const missingCenters = [];
-        for (const [center, name] of allCentersMap) {
-            if (!existingCenters.has(center)) {
-                missingCenters.push({ center, name });
+        let totalInserted = 0;
+        let totalSkipped = 0;
+
+        // 3. Loop through every batch x center combination
+        for (const { departmentId, batchNo } of allBatches) {
+            // Get existing controllers for this batch+dept
+            const [existingRows] = await connection.query(
+                'SELECT center FROM controllerdb WHERE batchNo = ? AND departmentId = ?',
+                [batchNo, departmentId]
+            );
+            const existingCenters = new Set(existingRows.map(r => r.center));
+
+            const missingCenters = [];
+            for (const [center, name] of allCentersMap) {
+                if (!existingCenters.has(center)) {
+                    missingCenters.push({ center, name });
+                }
+            }
+
+            if (missingCenters.length === 0) {
+                console.log(`  [dept ${departmentId} batch ${batchNo}] All centers already have controllers. Skipping.`);
+                totalSkipped += allCentersMap.size;
+                continue;
+            }
+
+            console.log(`  [dept ${departmentId} batch ${batchNo}] ${dryRun ? 'Would insert' : 'Inserting'} ${missingCenters.length} controllers...`);
+
+            for (const { center, name } of missingCenters) {
+                // batch 100 uses 'mock', all others get unique 6-digit password
+                const plainPassword = batchNo === 100 ? 'mock' : generateUniquePassword(usedPasswords);
+                const encryptedPassword = encrypt(plainPassword);
+
+                console.log(`    center=${center} | batch=${batchNo} | dept=${departmentId} | pass_plain=${plainPassword} | pass_encrypted=${encryptedPassword.substring(0, 20)}...`);
+
+                if (!dryRun) {
+                    try {
+                        await connection.query(
+                            `INSERT INTO controllerdb 
+                            (center, batchNo, departmentId, controller_code, controller_name, controller_contact, controller_email, controller_pass, district)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            [
+                                center,
+                                batchNo,
+                                departmentId,
+                                center,
+                                `Controller ${name}`,
+                                9999999999,
+                                `controller${center}@example.com`,
+                                encryptedPassword,
+                                'Auto-Generated'
+                            ]
+                        );
+                        totalInserted++;
+                    } catch (insertErr) {
+                        console.error(`    Failed center ${center} [dept ${departmentId} batch ${batchNo}]:`, insertErr.message);
+                    }
+                } else {
+                    totalInserted++;
+                }
             }
         }
 
-        console.log(`Found ${missingCenters.length} centers missing for batch 100.`);
+        console.log(`\n${dryRun ? '✅ Dry Run Complete!' : '✅ Sync Complete!'}`);
+        console.log(`   ${dryRun ? 'Would insert' : 'Inserted'}: ${totalInserted}`);
+        console.log(`   Skipped (already existed): ${totalSkipped}`);
 
-        if (missingCenters.length === 0) {
-            console.log('No missing controllers found. All centers have records for batch 100.');
-            return;
+        if (!dryRun) {
+            const [finalCount] = await connection.query('SELECT COUNT(*) as count FROM controllerdb');
+            console.log(`   Total controllers in DB: ${finalCount[0].count}`);
         }
-
-        // 4. Insert missing records
-        console.log('Inserting missing records...');
-        let insertedCount = 0;
-
-        // Prepare bulk insert or loop. Loop is safer for error handling per row, though slower. given ~40 centers, loop is fine.
-        for (const missing of missingCenters) {
-            const { center, name } = missing;
-
-            // Construct dummy/default values
-            const controllerCode = parseInt(`${center}`); // Use center code as controller code
-            const controllerName = `Controller ${center}`; // Simple name
-            const controllerContact = 9999999999; // Dummy contact
-            const controllerEmail = `controller${center}@example.com`; // Unique dummy email
-            const district = 'Auto-Generated';
-
-            try {
-                await connection.query(
-                    `INSERT INTO controllerdb 
-                    (center, batchNo, departmentId, controller_code, controller_name, controller_contact, controller_email, controller_pass, district)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        center,
-                        batchNo,
-                        departmentId,
-                        controllerCode,
-                        controllerName,
-                        controllerContact,
-                        controllerEmail,
-                        passwordEncrypted,
-                        district
-                    ]
-                );
-                // console.log(`Inserted controller for center ${center} (${name})`);
-                insertedCount++;
-            } catch (insertErr) {
-                console.error(`Failed to insert center ${center}:`, insertErr.message);
-            }
-        }
-
-        console.log(`\nOperation Complete. Successfully inserted ${insertedCount} new controller records.`);
-
-        // 5. Verify total count now
-        const [finalCount] = await connection.query(
-            'SELECT COUNT(*) as count FROM controllerdb WHERE batchNo = ? AND departmentId = ?',
-            [batchNo, departmentId]
-        );
-        console.log(`Total controller records for batch 100 now: ${finalCount[0].count}`);
 
     } catch (err) {
         console.error('Fatal Error:', err);
@@ -104,4 +117,6 @@ async function syncBatch100Controllers() {
     }
 }
 
-syncBatch100Controllers();
+// Change to false to actually insert
+syncAllControllers(false);
+

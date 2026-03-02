@@ -242,6 +242,7 @@ exports.getStudentsTrack = async (req, res) => {
         let studentsConditionQuery = `
             SELECT COUNT(*) as count 
             FROM students s
+            LEFT JOIN departmentdb d ON s.departmentId = d.departmentId
             WHERE s.center = ? AND s.departmentId IN (${departmentPlaceholders})`;
 
         let queryParams = [examCenterCode, ...targetDepartmentIds];
@@ -262,9 +263,10 @@ exports.getStudentsTrack = async (req, res) => {
         // In the students condition query section
         if (exam_type) {
             if (exam_type === 'shorthand') {
-                studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 0`;
+                studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 0 AND d.examType = 'GCC'`;
             } else if (exam_type === 'typewriting') {
-                studentsConditionQuery += ` AND s.IsTypewriting = 1 AND s.IsShorthand = 0`;
+                // 'typewriting' in frontend means SKILL exam type
+                studentsConditionQuery += ` AND d.examType = 'SKILL'`;
             } else if (exam_type === 'both') {
                 studentsConditionQuery += ` AND s.IsShorthand = 1 AND s.IsTypewriting = 1`;
             }
@@ -401,8 +403,8 @@ exports.getStudentsTrack = async (req, res) => {
             (subject_name ? ' AND sub.subject_name = ?' : '') +
             (loginStatus === 'loggedin' ? ' AND s.loggedin = 1' :
                 loginStatus === 'loggedout' ? ' AND s.loggedin = 0' : '') +
-            (exam_type === 'shorthand' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0' :
-                exam_type === 'typewriting' ? ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0' :
+            (exam_type === 'shorthand' ? " AND s.IsShorthand = 1 AND s.IsTypewriting = 0 AND d.examType = 'GCC'" :
+                exam_type === 'typewriting' ? " AND d.examType = 'SKILL'" :
                     exam_type === 'both' ? ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1' : '') +
             (batchDate && convertDateFormat(batchDate) ? ' AND DATE(s.batchdate) = ?' : '');
 
@@ -479,7 +481,21 @@ exports.getStudentsTrack = async (req, res) => {
 // New endpoint to get active departments
 exports.getActiveDepartments = async (req, res) => {
     try {
-        const query = 'SELECT departmentId, departmentName FROM departmentdb WHERE departmentStatus = 1 ORDER BY departmentName';
+        const examCenterCode = req.session.centerId;
+
+        if (examCenterCode) {
+            const query = `
+                SELECT d.departmentId, d.departmentName
+                FROM departmentdb d
+                INNER JOIN examcenterdb e ON e.departmentId = d.departmentId
+                WHERE e.center = ? AND d.departmentStatus = 1
+                ORDER BY d.departmentName
+            `;
+            const [results] = await connection.query(query, [examCenterCode]);
+            return res.status(200).json(results);
+        }
+
+        const query = 'SELECT departmentId, departmentName, examType FROM departmentdb WHERE departmentStatus = 1 ORDER BY departmentName';
         const [results] = await connection.query(query);
 
         if (results.length === 0) {
@@ -680,7 +696,23 @@ exports.storeExamStage = async (req, res) => {
 // Get active departments
 exports.getActiveDepartments = async (req, res) => {
     try {
-        const query = `SELECT departmentId, departmentName FROM departmentdb WHERE departmentStatus = 1 ORDER BY departmentName`;
+        const examCenterCode = req.session.centerId;
+
+        if (examCenterCode) {
+            // Center admin is logged in — return only their assigned department
+            const query = `
+                SELECT d.departmentId, d.departmentName, d.examType
+                FROM departmentdb d
+                INNER JOIN examcenterdb e ON e.departmentId = d.departmentId
+                WHERE e.center = ? AND d.departmentStatus = 1
+                ORDER BY d.departmentName
+            `;
+            const [results] = await connection.query(query, [examCenterCode]);
+            return res.status(200).json(results);
+        }
+
+        // Fallback: super admin — return all active departments
+        const query = `SELECT departmentId, departmentName, examType FROM departmentdb WHERE departmentStatus = 1 ORDER BY departmentName`;
         const [results] = await connection.query(query);
         res.status(200).json(results);
     } catch (error) {

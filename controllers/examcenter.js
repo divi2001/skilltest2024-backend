@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 const path = require('path');
 const fs = require('fs');
 
-const { encrypt, decrypt } = require('../config/encrypt');
+const { encrypt } = require('../config/encrypt');
 
 exports.loginCenter = async (req, res) => {
     console.log("Trying center login");
@@ -70,19 +70,8 @@ exports.loginCenter = async (req, res) => {
             const center = results[0];
             console.log(`Center found: ${JSON.stringify(center)}`);
 
-            // Decrypt the stored centerPass
-            let decryptedStoredCenterPass;
-            try {
-                console.log("Decrypting stored center pass");
-                decryptedStoredCenterPass = decrypt(center.centerpass);
-                console.log(`Decrypted stored center pass: '${decryptedStoredCenterPass}'`);
-            } catch (error) {
-                console.error('Error decrypting stored center pass:', error);
-                return res.status(500).send('Error decrypting stored center pass');
-            }
-
-            // Ensure both passwords are treated as strings
-            const decryptedStoredCenterPassStr = String(decryptedStoredCenterPass).trim();
+            // centerpass is stored as plain text
+            const decryptedStoredCenterPassStr = String(center.centerpass).trim();
             const providedCenterPassStr = String(centerPass).trim();
 
             console.log(`Comparing passwords - stored: '${decryptedStoredCenterPassStr}', provided: '${providedCenterPassStr}'`);

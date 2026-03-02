@@ -144,13 +144,14 @@ WHERE 1=1`;
 
     if (exam_type) {
         if (exam_type === 'shorthand') {
-            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0'
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0 AND d.examType = \'GCC\''
         }
         else if (exam_type === 'typewriting') {
-            query += ' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
+            // 'typewriting' in frontend means SKILL exam type
+            query += ' AND d.examType = \'SKILL\''
         }
         else if (exam_type === 'both') {
-            query += ' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1'
         }
     }
 

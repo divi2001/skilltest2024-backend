@@ -2,7 +2,7 @@ const connection = require('../../config/db1');
 
 exports.getReportSettings = async (req, res) => {
     try {
-        const query = 'SELECT * FROM system_settings WHERE setting_key LIKE "REPORT_%"';
+        const query = 'SELECT * FROM system_settings WHERE setting_key LIKE "REPORT_%" OR setting_key = "CONTROLLER_PASSWORD_TIMER"';
         const [results] = await connection.query(query);
 
         const settings = {};

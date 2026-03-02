@@ -79,9 +79,9 @@ exports.loginStudent = async (req, res) => {
         const [registrations] = await connection.query(query4, [examCenterCode, macAddress]);
         // console.log(registrations)
 
-        // if (registrations.length === 0) {
-        //     return res.status(401).send('pc not registered');
-        // }
+        if (registrations.length === 0) {
+            return res.status(401).send('pc not registered');
+        }
 
         let decryptedStoredPassword, decryptedStoredPassword1;
         try {
@@ -178,8 +178,9 @@ exports.getStudentDetails = async (req, res) => {
     // console.log('Student ID from :', studentId);
 
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
-    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
-    const batchQuery = 'SELECT * FROM batchdb WHERE batchNo = ?'
+    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ? AND examType = ?';
+    const batchQuery = 'SELECT * FROM batchdb WHERE batchNo = ?';
+    const deptQuery = 'SELECT examType FROM departmentdb WHERE departmentId = ?';
 
     try {
         // console.log('Querying student data');
@@ -212,7 +213,9 @@ exports.getStudentDetails = async (req, res) => {
         // console.log('Parsed batchdate:',batchDate1);
 
         // console.log('Querying subject data');
-        const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+        const [depts] = await connection.query(deptQuery, [student.departmentId]);
+        const examType = depts.length > 0 ? depts[0].examType : 'GCC';
+        const [subjects] = await connection.query(subjectsQuery, [subjectId, examType]);
         // console.log(subjects)
 
         if (subjects.length === 0) {

@@ -31,11 +31,11 @@ const generateMockData = async () => {
         }
         
         // Get selected department (you can modify this or make it dynamic)
-        const DEPARTMENT_ID = 6; // Changed to 6 as requested
+        const DEPARTMENT_ID = 11;
         
-        // Get batch information for batch 100 with departmentId 6
+        // Get batch information for batch 100 with departmentId 11
         const [batchInfo] = await connection.query(
-            'SELECT reporting_time, start_time, end_time FROM batchdb WHERE batchNo = ? AND departmentId = ?',
+            'SELECT batchdate, reporting_time, start_time, end_time FROM batchdb WHERE batchNo = ? AND departmentId = ?',
             [BATCH_NO, DEPARTMENT_ID]
         );
         
@@ -98,7 +98,7 @@ const generateMockData = async () => {
                         encryptedPassword,                  // password (encrypted)
                         centerId,                           // instituteId (using center as institute)
                         BATCH_NO,                          // batchNo
-                        '2025-07-09',                      // batchdate (current date)
+                        batchData.batchdate,               // batchdate from batchdb
                         fullname,                          // fullname
                         subjectId,                         // subjectsId
                         1,                                 // courseId (default to 1)
