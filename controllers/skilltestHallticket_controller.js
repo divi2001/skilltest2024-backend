@@ -79,9 +79,13 @@ function convertStudentDateTimeFields(student) {
 
 // ========== FOLDER MANAGEMENT FUNCTIONS ==========
 
-function createHallTicketFolder(departmentId) {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-  const folderName = `halltickets_excel_dept${departmentId}_${timestamp}`;
+function createHallTicketFolder(departmentName) {
+  const safeName = (departmentName || 'Department')
+    .replace(/[<>:"/\\|?*]/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .trim();
+  const folderName = `generated_halltickets_${safeName}`;
   const folderPath = path.join(__dirname, '../public/generated_halltickets', folderName);
   
   const baseDir = path.join(__dirname, '../public/generated_halltickets');
@@ -395,8 +399,9 @@ exports.downloadSkillTestHallTicket = async (req, res) => {
     
     console.log('✅ PDF generated successfully, size:', pdfBuffer.length, 'bytes');
     
+    const safeFullName = (student.fullname || '').replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '_').trim();
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=hallticket_${applicationNo}.pdf`);
+    res.setHeader('Content-Disposition', `attachment; filename=${applicationNo}_${safeFullName}.pdf`);
     res.setHeader('Content-Length', pdfBuffer.length);
     
     res.end(pdfBuffer, 'binary', () => {
@@ -451,10 +456,10 @@ exports.downloadAllSkillTestHallTickets = async (req, res) => {
 
     cleanupOldFolders();
 
-    const { folderPath, folderName } = createHallTicketFolder(departmentId || 'unknown');
-
     const departmentDetails = await getDepartmentDetails(departmentId);
     console.log('✓ Department details fetched for bulk generation');
+
+    const { folderPath, folderName } = createHallTicketFolder(departmentDetails.name || 'Department');
 
     const { qrCodeBase64, qrCodeTwBase64 } = loadQRCodes(qrType);
     
@@ -536,7 +541,11 @@ exports.downloadAllSkillTestHallTickets = async (req, res) => {
         
         await page.close();
         
-        const filename = `hallticket_${student.APPLICATION_NUMBER}.pdf`;
+        const safeBulkName = (student.fullname || '').replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '_').trim();
+        const safeBulkSubject = (student.Subject || student.subject_name || '').replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, '_').trim();
+        const filename = safeBulkSubject
+          ? `${student.APPLICATION_NUMBER}_${safeBulkName}_${safeBulkSubject}.pdf`
+          : `${student.APPLICATION_NUMBER}_${safeBulkName}.pdf`;
         const filePath = path.join(folderPath, filename);
         fs.writeFileSync(filePath, pdfBuffer);
 
