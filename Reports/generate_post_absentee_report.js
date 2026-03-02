@@ -105,13 +105,13 @@ function addHeader(doc, data) {
     doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
 
     doc.fontSize(14).font('Helvetica-Bold')
-        .text(data.departmentName, 110, 50, {
+        .text(data.departmentName.toUpperCase(), 110, 50, {
             width: 450,
             align: 'center'
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text(data.departmentExam, 110, doc.y + 5, {
+        .text(data.departmentExam.toUpperCase(), 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });

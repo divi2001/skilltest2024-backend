@@ -57,9 +57,9 @@ async function createAnswerSheet(doc, data) {
     function createHeader(doc, text1, text2) {
         doc.fontSize(14)
             .font('Helvetica-Bold')
-            .text(text1, { align: 'center' })
+            .text(text1.toUpperCase(), { align: 'center' })
             .fontSize(12)
-            .text(text2, { align: 'center' });
+            .text(text2.toUpperCase(), { align: 'center' });
     }
 
     function createField(doc, label, value = '', x, y, width) {

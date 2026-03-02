@@ -13,11 +13,11 @@ async function createBlankAnswerSheet(doc,data)  {
       function createHeader(doc, text1, text2) {
         doc.fontSize(14)
            .font('Helvetica-Bold')
-           .text(text1, {
+           .text(text1.toUpperCase(), {
              align: 'center'
            })
            .fontSize(12)
-           .text(text2, {
+           .text(text2.toUpperCase(), {
              align: 'center'
            });
       }
