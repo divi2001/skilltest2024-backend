@@ -68,7 +68,7 @@ exports.getControllerPassForCenter = async (req, res) => {
             d.departmentName,
             COUNT(s.batchNo) as studentCount
         FROM controllerdb c
-        INNER JOIN batchdb b ON c.batchNo = b.batchNo 
+        INNER JOIN batchdb b ON c.batchNo = b.batchNo AND c.departmentId = b.departmentId
         LEFT JOIN students s ON b.batchNo = s.batchNo AND s.center = c.center AND s.departmentId = b.departmentId
         INNER JOIN departmentdb d ON b.departmentId = d.departmentId
         WHERE c.center = ? AND d.departmentStatus = 1`;
@@ -101,7 +101,6 @@ exports.getControllerPassForCenter = async (req, res) => {
             });
 
             if (filteredResults.length > 0) {
-                console.log("===== CONTROLLER PASSWORDS WILL BE RETURNED =====");
                 console.log("===== CONTROLLER PASSWORDS WILL BE RETURNED =====");
 
                 const controllerPassDto = filteredResults.map((result, index) => {

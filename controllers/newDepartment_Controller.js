@@ -678,6 +678,20 @@ exports.bulkUploadControllersComplete = async (req, res) => {
 
                 console.log(`✅ Department verified`);
 
+                // Verify students exist for this center+batchNo+departmentId
+                if (controller.center && controller.batchNo) {
+                    const [studentCheck] = await connection.query(
+                        'SELECT COUNT(*) as cnt FROM students WHERE center = ? AND batchNo = ? AND departmentId = ?',
+                        [controller.center, controller.batchNo, departmentId]
+                    );
+                    if (studentCheck[0].cnt === 0) {
+                        const errMsg = `❌ No students found for center=${controller.center}, batch=${controller.batchNo}, dept=${departmentId}`;
+                        console.log(errMsg);
+                        errors.push({ row: rowNum, error: errMsg, controller_name: controller.controller_name });
+                        continue;
+                    }
+                }
+
                 // Insert controller
                 const [result] = await connection.query(
                     `INSERT INTO controllerdb 
@@ -906,6 +920,19 @@ exports.addControllers = async (req, res) => {
 
         for (const controller of controllers) {
             try {
+                // Verify students exist for this center+batchNo+departmentId
+                const [studentCheck] = await connection.query(
+                    'SELECT COUNT(*) as cnt FROM students WHERE center = ? AND batchNo = ? AND departmentId = ?',
+                    [controller.center, batchNo, departmentId]
+                );
+                if (studentCheck[0].cnt === 0) {
+                    errors.push({
+                        controller_name: controller.controller_name,
+                        error: `No students for center=${controller.center}, batch=${batchNo}, dept=${departmentId} — skipped`
+                    });
+                    continue;
+                }
+
                 const [result] = await connection.query(
                     `INSERT INTO controllerdb 
                     (controller_code, controller_contact, controller_email, controller_name, 
