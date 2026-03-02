@@ -57,12 +57,12 @@ async function getData(center, batchNo) {
 
         // console.log(batchData[0].start_time, batchData[0].batchdate);
 
-        const query = 'SELECT s.student_id, s.password , d.departmentName, d.departmentExam , d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ?';
+        const query = 'SELECT s.student_id, s.password , d.departmentName, d.departmentExam , d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ? AND s.password IS NOT NULL';
         const [results] = await connection.query(query, [center, batchNo]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
             student_id: String(row.student_id),
-            password: await decrypt(row.password)
+            password: typeof row.password === 'string' ? await decrypt(row.password) : ''
         })));
 
         return {

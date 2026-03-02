@@ -445,12 +445,12 @@ exports.generateStudentId_Password = async (req, res) => {
         }
 
         // If download is allowed, proceed with getting student data
-        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ?';
+        const query = 'SELECT student_id, password FROM students WHERE center = ? AND batchNo = ? AND password IS NOT NULL';
         const [results] = await connection.query(query, [center, batchNo]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
             Seat_no: String(row.student_id),
-            Password: await decrypt(row.password)
+            Password: typeof row.password === 'string' ? await decrypt(row.password) : ''
         })));
 
         // Create a new workbook and worksheet
