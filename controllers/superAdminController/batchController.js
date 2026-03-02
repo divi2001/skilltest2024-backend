@@ -21,18 +21,18 @@ exports.getAllBatches = async (req, res) => {
 };
 
 exports.updateBatchStatus = async (req, res) => {
-    const { batchNo, status } = req.body;
+    const { batchNo, status, departmentId } = req.body;
     console.log(req.body)
-    if (!batchNo || typeof status !== 'boolean') {
+    if (!batchNo || typeof status !== 'boolean' || !departmentId) {
         return res.status(400).json({
             success: false,
-            message: 'Invalid input. Batch number and status are required.'
+            message: 'Invalid input. Batch number, department ID and status are required.'
         });
     }
 
     try {
-        const query = 'UPDATE batchdb SET batchstatus = ? WHERE batchNo = ?';
-        const [result] = await connection.execute(query, [status, batchNo]);
+        const query = 'UPDATE batchdb SET batchstatus = ? WHERE batchNo = ? AND departmentId = ?';
+        const [result] = await connection.execute(query, [status, batchNo, departmentId]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({
