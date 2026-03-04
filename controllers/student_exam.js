@@ -227,7 +227,7 @@ exports.getaudios = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
     const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
-    const audioQuery = "SELECT * FROM audiodb WHERE subjectId = ? AND qset = ?";
+    const audioQuery = "SELECT * FROM audiodb WHERE subjectId = ? AND qset = ? AND departmentId = ?";
 
     try {
         const [students] = await connection.query(studentQuery, [studentId]);
@@ -246,6 +246,7 @@ exports.getaudios = async (req, res) => {
         }
 
         const qset = student.qset;
+        const departmentId = student.departmentId;
         console.log(qset);
 
         // Assuming you want the first subject from the array if it's an array
@@ -256,7 +257,7 @@ exports.getaudios = async (req, res) => {
         }
         const subject = subjects[0];
 
-        const [auidos] = await connection.query(audioQuery, [subjectId, qset]);
+        const [auidos] = await connection.query(audioQuery, [subjectId, qset, departmentId]);
         if (auidos.length === 0) {
             return res.status(404).send('audio not found');
         }
