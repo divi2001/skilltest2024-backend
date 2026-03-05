@@ -286,7 +286,7 @@ exports.getaudios = async (req, res) => {
             if (responseData.hasOwnProperty(key)) {
                 if (responseData[key] === null) {
                     nullFields.push(key);
-                    encryptedResponseData[key] = null;
+                    encryptedResponseData[key] = encrypt("");
                 } else {
                     encryptedResponseData[key] = encrypt(responseData[key].toString());
                 }

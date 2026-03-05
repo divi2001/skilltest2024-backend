@@ -186,11 +186,28 @@ def download_audio(url: str, timeout: int = 60) -> Optional[bytes]:
         print(f"  ⚠ Failed to download audio: {e}")
         return None
 
-def extract_audio_content(audio_bytes: bytes, format: str = "mp3") -> Optional[str]:
-    """Extract audio content and save to temp file (supports full length)."""
+def format_duration(seconds: float) -> str:
+    """Format duration in seconds to MM:SS or HH:MM:SS string."""
+    seconds = int(seconds)
+    if seconds >= 3600:
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        secs = seconds % 60
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    else:
+        minutes = seconds // 60
+        secs = seconds % 60
+        return f"{minutes:02d}:{secs:02d}"
+
+def extract_audio_content(audio_bytes: bytes, format: str = "mp3") -> tuple:
+    """Extract audio content and save to temp file (supports full length).
+    Returns (temp_file_path, duration_seconds) or (None, 0)."""
     try:
         # Load audio from bytes
         audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format=format)
+        
+        # Get full duration in seconds before any truncation
+        duration_seconds = len(audio) / 1000.0
         
         # Truncate if limit set
         if AUDIO_DURATION_SECONDS is not None:
@@ -205,10 +222,10 @@ def extract_audio_content(audio_bytes: bytes, format: str = "mp3") -> Optional[s
         audio.export(temp_file.name, format="wav")  # Ensure WAV for librosa if needed
         temp_file.close()
         
-        return temp_file.name
+        return temp_file.name, duration_seconds
     except Exception as e:
         print(f"  ⚠ Failed to process audio: {e}")
-        return None
+        return None, 0
 
 def transcribe_indic(model_dict, audio_path: str, language: Optional[str] = None) -> Dict:
     """Transcribe audio using Indic Conformer model."""
@@ -331,7 +348,9 @@ def process_single_audio(models_collection, url: str, audio_type: str, language:
             'type': audio_type,
             'status': 'skipped',
             'reason': 'No URL provided',
-            'transcription': ''
+            'transcription': '',
+            'duration_seconds': 0,
+            'duration_formatted': ''
         }
     
     print(f"  Processing {audio_type}: {url[:80]}...")
@@ -344,19 +363,25 @@ def process_single_audio(models_collection, url: str, audio_type: str, language:
             'type': audio_type,
             'status': 'failed',
             'reason': 'Download failed',
-            'transcription': ''
+            'transcription': '',
+            'duration_seconds': 0,
+            'duration_formatted': ''
         }
     
     # Extract audio content (full or truncated based on config)
     audio_format = get_audio_format_from_url(url)
-    audio_path = extract_audio_content(audio_bytes, audio_format)
+    audio_path, duration_seconds = extract_audio_content(audio_bytes, audio_format)
+    duration_formatted = format_duration(duration_seconds) if duration_seconds > 0 else ''
+    
     if audio_path is None:
         return {
             'url': url,
             'type': audio_type,
             'status': 'failed',
             'reason': 'Audio processing failed',
-            'transcription': ''
+            'transcription': '',
+            'duration_seconds': 0,
+            'duration_formatted': ''
         }
     
     try:
@@ -370,7 +395,9 @@ def process_single_audio(models_collection, url: str, audio_type: str, language:
                 'status': 'success',
                 'transcription': result['text'],
                 'detected_language': result['language'],
-                'language_probability': result.get('language_probability', 0)
+                'language_probability': result.get('language_probability', 0),
+                'duration_seconds': duration_seconds,
+                'duration_formatted': duration_formatted
             }
         else:
             return {
@@ -378,7 +405,9 @@ def process_single_audio(models_collection, url: str, audio_type: str, language:
                 'type': audio_type,
                 'status': 'failed',
                 'reason': result.get('error', 'Transcription failed'),
-                'transcription': ''
+                'transcription': '',
+                'duration_seconds': duration_seconds,
+                'duration_formatted': duration_formatted
             }
     finally:
         # Clean up temp file
@@ -437,6 +466,7 @@ def generate_report(results: List[Dict], output_path: str):
             for audio in record.get('audios', []):
                 f.write(f"  [{audio['type'].upper()}]\n")
                 f.write(f"  URL: {audio.get('url', 'N/A')}\n")
+                f.write(f"  Duration: {audio.get('duration_formatted', 'N/A')} ({audio.get('duration_seconds', 0):.1f}s)\n")
                 f.write(f"  Status: {audio['status'].upper()}\n")
                 
                 if audio['status'] == 'success':
@@ -507,9 +537,9 @@ def generate_excel_report(records_with_transcriptions: List[Dict], output_path: 
         'passage1', 'passage2',
         'textPassageA', 'textPassageB',
         'subject_name', 'subject_name_short',
-        'passage1_transcription', 'passage1_language', 'passage1_confidence',
-        'passage2_transcription', 'passage2_language', 'passage2_confidence',
-        'testaudio_transcription', 'testaudio_language', 'testaudio_confidence'
+        'passage1_duration', 'passage1_transcription', 'passage1_language', 'passage1_confidence',
+        'passage2_duration', 'passage2_transcription', 'passage2_language', 'passage2_confidence',
+        'testaudio_duration', 'testaudio_transcription', 'testaudio_language', 'testaudio_confidence'
     ]
     
     # Write headers with styling
@@ -530,29 +560,38 @@ def generate_excel_report(records_with_transcriptions: List[Dict], output_path: 
         record = record_data['original_record']
         
         # Get transcriptions
+        passage1_dur = ''
         passage1_trans = ''
         passage1_lang = ''
         passage1_conf = ''
+        passage2_dur = ''
         passage2_trans = ''
         passage2_lang = ''
         passage2_conf = ''
+        testaudio_dur = ''
         testaudio_trans = ''
         testaudio_lang = ''
         testaudio_conf = ''
         
         for audio in record_data.get('audios', []):
-            if audio['type'] == 'passage1' and audio['status'] == 'success':
-                passage1_trans = audio.get('transcription', '')
-                passage1_lang = audio.get('detected_language', '')
-                passage1_conf = f"{audio.get('language_probability', 0):.2%}"
-            elif audio['type'] == 'passage2' and audio['status'] == 'success':
-                passage2_trans = audio.get('transcription', '')
-                passage2_lang = audio.get('detected_language', '')
-                passage2_conf = f"{audio.get('language_probability', 0):.2%}"
-            elif audio['type'] == 'testaudio' and audio['status'] == 'success':
-                testaudio_trans = audio.get('transcription', '')
-                testaudio_lang = audio.get('detected_language', '')
-                testaudio_conf = f"{audio.get('language_probability', 0):.2%}"
+            if audio['type'] == 'passage1':
+                passage1_dur = audio.get('duration_formatted', '')
+                if audio['status'] == 'success':
+                    passage1_trans = audio.get('transcription', '')
+                    passage1_lang = audio.get('detected_language', '')
+                    passage1_conf = f"{audio.get('language_probability', 0):.2%}"
+            elif audio['type'] == 'passage2':
+                passage2_dur = audio.get('duration_formatted', '')
+                if audio['status'] == 'success':
+                    passage2_trans = audio.get('transcription', '')
+                    passage2_lang = audio.get('detected_language', '')
+                    passage2_conf = f"{audio.get('language_probability', 0):.2%}"
+            elif audio['type'] == 'testaudio':
+                testaudio_dur = audio.get('duration_formatted', '')
+                if audio['status'] == 'success':
+                    testaudio_trans = audio.get('transcription', '')
+                    testaudio_lang = audio.get('detected_language', '')
+                    testaudio_conf = f"{audio.get('language_probability', 0):.2%}"
         
         # Write row data
         row_data = [
@@ -572,12 +611,15 @@ def generate_excel_report(records_with_transcriptions: List[Dict], output_path: 
             record.get('textPassageB'),
             record.get('subject_name'),
             record.get('subject_name_short'),
+            passage1_dur,
             passage1_trans,
             passage1_lang,
             passage1_conf,
+            passage2_dur,
             passage2_trans,
             passage2_lang,
             passage2_conf,
+            testaudio_dur,
             testaudio_trans,
             testaudio_lang,
             testaudio_conf
@@ -672,31 +714,34 @@ def main():
             if record.get('passage1'):
                 audio_result = process_single_audio(models_collection, record['passage1'], 'passage1', language)
                 audios.append(audio_result)
+                dur_str = f" [{audio_result.get('duration_formatted', '')}]" if audio_result.get('duration_formatted') else ''
                 if audio_result['status'] == 'success':
-                    print(f"    ✓ Passage1 transcribed ({len(audio_result['transcription'])} chars)")
+                    print(f"    ✓ Passage1{dur_str} transcribed ({len(audio_result['transcription'])} chars)")
                     print(f"      Text: {audio_result['transcription'][:100]}..." if len(audio_result['transcription']) > 100 else f"      Text: {audio_result['transcription']}")
                 else:
-                    print(f"    ✗ Passage1 Failed: {audio_result.get('reason', 'Unknown error')}")
+                    print(f"    ✗ Passage1{dur_str} Failed: {audio_result.get('reason', 'Unknown error')}")
             
             # Passage 2
             if record.get('passage2'):
                 audio_result = process_single_audio(models_collection, record['passage2'], 'passage2', language)
                 audios.append(audio_result)
+                dur_str = f" [{audio_result.get('duration_formatted', '')}]" if audio_result.get('duration_formatted') else ''
                 if audio_result['status'] == 'success':
-                    print(f"    ✓ Passage2 transcribed ({len(audio_result['transcription'])} chars)")
+                    print(f"    ✓ Passage2{dur_str} transcribed ({len(audio_result['transcription'])} chars)")
                     print(f"      Text: {audio_result['transcription'][:100]}..." if len(audio_result['transcription']) > 100 else f"      Text: {audio_result['transcription']}")
                 else:
-                    print(f"    ✗ Passage2 Failed: {audio_result.get('reason', 'Unknown error')}")
+                    print(f"    ✗ Passage2{dur_str} Failed: {audio_result.get('reason', 'Unknown error')}")
             
             # Test Audio
             if record.get('testaudio'):
                 audio_result = process_single_audio(models_collection, record['testaudio'], 'testaudio', language)
                 audios.append(audio_result)
+                dur_str = f" [{audio_result.get('duration_formatted', '')}]" if audio_result.get('duration_formatted') else ''
                 if audio_result['status'] == 'success':
-                    print(f"    ✓ TestAudio transcribed ({len(audio_result['transcription'])} chars)")
+                    print(f"    ✓ TestAudio{dur_str} transcribed ({len(audio_result['transcription'])} chars)")
                     print(f"      Text: {audio_result['transcription'][:100]}..." if len(audio_result['transcription']) > 100 else f"      Text: {audio_result['transcription']}")
                 else:
-                    print(f"    ✗ TestAudio Failed: {audio_result.get('reason', 'Unknown error')}")
+                    print(f"    ✗ TestAudio{dur_str} Failed: {audio_result.get('reason', 'Unknown error')}")
             
             results.append({
                 'id': record['id'],
