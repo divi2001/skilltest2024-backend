@@ -35,15 +35,21 @@ except ImportError:
     TRANSFORMERS_AVAILABLE = False
     print("Transformers/Torch/Torchaudio not installed. Installing now...")
 
-# Database configuration
+# Database configuration — reads from .env if available
+import dotenv
+dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+
 DB_CONFIG = {
-    'host': '13.204.48.33',
-    'port': 3306,
-    'user': 'root',
-    'password': 'tanuj1221',
-    'database': 'dec25',
+    'host': os.getenv('DB_HOST', '13.204.48.33').strip('"'),
+    'port': int(os.getenv('DB_PORT', 3306)),
+    'user': os.getenv('DB_USER', 'root'),
+    'password': os.getenv('DB_PASSWORD', 'tanuj1221'),
+    'database': os.getenv('DB_DATABASE', 'skilmar26'),
     'charset': 'utf8mb4'
 }
+
+# Department filter — set to None to process all departments
+TARGET_DEPARTMENT_ID = 13
 
 # Audio processing configuration
 # Audio processing configuration
@@ -130,11 +136,14 @@ def connect_to_database():
         print(f"✗ Database connection failed: {err}")
         sys.exit(1)
 
-def fetch_audio_records(connection) -> List[Dict]:
-    """Fetch all audio records from audiodb table."""
+def fetch_audio_records(connection, department_id=None) -> List[Dict]:
+    """Fetch audio records from audiodb table, optionally filtered by department."""
     cursor = connection.cursor(dictionary=True)
-    
-    query = """
+
+    where_clause = "WHERE a.departmentId = %s" if department_id is not None else ""
+    params = (department_id,) if department_id is not None else ()
+
+    query = f"""
     SELECT 
         a.id, a.subjectId, a.qset, a.departmentId,
         a.code_a, a.code_b, a.code_t,
@@ -148,13 +157,15 @@ def fetch_audio_records(connection) -> List[Dict]:
         FROM subjectsdb 
         GROUP BY subjectId
     ) s ON a.subjectId = s.subjectId
+    {where_clause}
     ORDER BY a.subjectId, a.qset
     """
-    cursor.execute(query)
+    cursor.execute(query, params)
     records = cursor.fetchall()
     cursor.close()
-    
-    print(f"✓ Fetched {len(records)} audio records from database")
+
+    dept_label = f" for departmentId={department_id}" if department_id else ""
+    print(f"✓ Fetched {len(records)} audio records{dept_label}")
     return records
 
 def detect_language_from_subject(subject_name: Optional[str]) -> str:
@@ -689,7 +700,7 @@ def main():
     
     try:
         # Fetch audio records
-        records = fetch_audio_records(connection)
+        records = fetch_audio_records(connection, department_id=TARGET_DEPARTMENT_ID)
         
         if len(records) == 0:
             print("No audio records found in the database.")
@@ -758,16 +769,19 @@ def main():
         # Generate reports
         report_dir = os.path.dirname(os.path.abspath(__file__))
         
+        # Build suffix for output filenames
+        dept_suffix = f'_dept{TARGET_DEPARTMENT_ID}' if TARGET_DEPARTMENT_ID else ''
+
         # Excel report (primary output)
-        excel_report_path = os.path.join(report_dir, 'audio_transcription_report.xlsx')
+        excel_report_path = os.path.join(report_dir, f'audio_transcription_report{dept_suffix}.xlsx')
         generate_excel_report(results, excel_report_path)
-        
+
         # Text report
-        text_report_path = os.path.join(report_dir, 'audio_transcription_report_v2.txt')
+        text_report_path = os.path.join(report_dir, f'audio_transcription_report_v2{dept_suffix}.txt')
         generate_report(results, text_report_path)
-        
+
         # JSON report
-        json_report_path = os.path.join(report_dir, 'audio_transcription_report_v2.json')
+        json_report_path = os.path.join(report_dir, f'audio_transcription_report_v2{dept_suffix}.json')
         generate_json_report(results, json_report_path)
         
         print("\n" + "=" * 60)
