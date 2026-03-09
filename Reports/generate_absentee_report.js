@@ -140,7 +140,13 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
 }
 
 function addHeader(doc, data) {
-    doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
+    if (data.departmentLogo) {
+        try {
+            doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
+        } catch (error) {
+            console.error('Error loading department logo:', error);
+        }
+    }
 
     doc.fontSize(14).font('Helvetica-Bold')
         .text(data.departmentName.toUpperCase(), 110, 50, {
