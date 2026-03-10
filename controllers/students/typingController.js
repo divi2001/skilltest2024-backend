@@ -7,7 +7,8 @@ const archiver = require('archiver');
 exports.getpassages = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
-    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
+    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ? AND examType = ?';
+    const deptQuery = 'SELECT examType FROM departmentdb WHERE departmentId = ?';
     const typingQuery = "SELECT * FROM computerTyping WHERE subjectId = ? AND qset = ?";
     const logsQuery = "SELECT * FROM typingpassagelogs WHERE student_id = ?";
 
@@ -21,7 +22,9 @@ exports.getpassages = async (req, res) => {
         const subjectId = student.subjectsId;
         const qset = student.qset;
 
-        const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+        const [depts] = await connection.query(deptQuery, [student.departmentId]);
+        const examType = depts.length > 0 ? depts[0].examType : 'GCC';
+        const [subjects] = await connection.query(subjectsQuery, [subjectId, examType]);
         if (subjects.length === 0) {
             return res.status(404).send('Subject not found');
         }

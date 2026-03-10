@@ -226,7 +226,8 @@ exports.getStudentDetails = async (req, res) => {
 exports.getaudios = async (req, res) => {
     const studentId = req.session.studentId;
     const studentQuery = 'SELECT * FROM students WHERE student_id = ?';
-    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ?';
+    const subjectsQuery = 'SELECT * FROM subjectsdb WHERE subjectId = ? AND examType = ?';
+    const deptQuery = 'SELECT examType FROM departmentdb WHERE departmentId = ?';
     const audioQuery = "SELECT * FROM audiodb WHERE subjectId = ? AND qset = ? AND departmentId = ?";
 
     try {
@@ -251,7 +252,9 @@ exports.getaudios = async (req, res) => {
 
         // Assuming you want the first subject from the array if it's an array
         const subjectId = Array.isArray(subjectsId) ? subjectsId[0] : subjectsId;
-        const [subjects] = await connection.query(subjectsQuery, [subjectId]);
+        const [depts] = await connection.query(deptQuery, [departmentId]);
+        const examType = depts.length > 0 ? depts[0].examType : 'GCC';
+        const [subjects] = await connection.query(subjectsQuery, [subjectId, examType]);
         if (subjects.length === 0) {
             return res.status(404).send('Subject not found');
         }
@@ -286,7 +289,7 @@ exports.getaudios = async (req, res) => {
             if (responseData.hasOwnProperty(key)) {
                 if (responseData[key] === null) {
                     nullFields.push(key);
-                    encryptedResponseData[key] = null;
+                    encryptedResponseData[key] = encrypt("");
                 } else {
                     encryptedResponseData[key] = encrypt(responseData[key].toString());
                 }
