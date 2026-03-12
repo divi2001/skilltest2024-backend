@@ -39,6 +39,8 @@ exports.populateExpertReviewLog = async (req, res) => {
                 ON s.student_id = fps.student_id
             LEFT JOIN textlogs tl 
                 ON s.student_id = tl.student_id
+            LEFT JOIN studentlogs sl
+                ON s.student_id = sl.student_id
             WHERE 
                 s.departmentId = ?
                 AND s.batchNo != 100
@@ -46,7 +48,8 @@ exports.populateExpertReviewLog = async (req, res) => {
                     fps.passageA IS NOT NULL OR 
                     fps.passageB IS NOT NULL OR 
                     tl.texta IS NOT NULL OR 
-                    tl.textb IS NOT NULL
+                    tl.textb IS NOT NULL OR
+                    (s.loggedin = 1 AND sl.student_id IS NOT NULL)
                 )
             ORDER BY s.student_id
         `;
