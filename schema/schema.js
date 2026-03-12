@@ -435,6 +435,14 @@ const schema = {
         admin_viewed: 'BOOLEAN DEFAULT 0',
         admin_viewed_at: 'DATETIME',
         INDEX: '(student_id), (center), (batchNo)'
+    },
+    institutedb: {
+        instituteId: 'BIGINT PRIMARY KEY',
+        computer_typing_code: 'BIGINT',
+        institute_name: 'VARCHAR(100)',
+        institute_address: 'VARCHAR(255)',
+        district: 'VARCHAR(50)',
+        taluka: 'VARCHAR(50)'
     }
 };
 
