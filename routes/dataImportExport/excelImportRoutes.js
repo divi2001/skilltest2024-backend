@@ -24,9 +24,6 @@ router.post('/import-excel', upload.any(), async (req, res) => {
     fs.writeFileSync(tempPath, file.buffer);
 
     const result = await importExcel(tempPath);
-    
-    // Clean up the temporary file
-    fs.unlinkSync(tempPath);
 
     if (result.success) {
       res.json({ message: result.message, details: result.results });
@@ -54,9 +51,6 @@ router.post('/append-excel', upload.any(), async (req, res) => {
     fs.writeFileSync(tempPath, file.buffer);
 
     const result = await appendExcel(tempPath);
-    
-    // Clean up the temporary file
-    fs.unlinkSync(tempPath);
 
     if (result.success) {
       res.json({ message: result.message, details: result.results });

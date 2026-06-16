@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 const path = require('path');
 const fs = require('fs');
 
-const { encrypt } = require('../config/encrypt');
+const { encrypt, decrypt } = require('../config/encrypt');
 
 exports.loginCenter = async (req, res) => {
     console.log("Trying center login");
@@ -70,8 +70,8 @@ exports.loginCenter = async (req, res) => {
             const center = results[0];
             console.log(`Center found: ${JSON.stringify(center)}`);
 
-            // centerpass is stored as plain text
-            const decryptedStoredCenterPassStr = String(center.centerpass).trim();
+            // centerpass is stored encrypted in examcenterdb
+            const decryptedStoredCenterPassStr = String(decrypt(center.centerpass)).trim();
             const providedCenterPassStr = String(centerPass).trim();
 
             console.log(`Comparing passwords - stored: '${decryptedStoredCenterPassStr}', provided: '${providedCenterPassStr}'`);

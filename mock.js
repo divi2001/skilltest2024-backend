@@ -31,7 +31,7 @@ const generateMockData = async () => {
         }
         
         // Get selected department (you can modify this or make it dynamic)
-        const DEPARTMENT_ID = 11;
+        const DEPARTMENT_ID = 14;
         
         // Get batch information for batch 100 with departmentId 11
         const [batchInfo] = await connection.query(

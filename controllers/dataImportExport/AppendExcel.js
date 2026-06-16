@@ -48,10 +48,11 @@ const appendExcel = async (filePath) => {
 
 const appendCSV = async (tableName, csvFilePath) => {
   try {
-    let columns = Object.keys(schema[tableName]);
+    const schemaColumns = Object.keys(schema[tableName]);
 
     // Check if table exists, if not create it
-    await createTableIfNotExists(tableName, columns);
+    await createTableIfNotExists(tableName, schemaColumns);
+    const dbColumns = await getTableColumns(tableName);
 
     const stream = fs.createReadStream(csvFilePath)
       .pipe(fastCsv.parse({ headers: true }))
@@ -65,13 +66,28 @@ const appendCSV = async (tableName, csvFilePath) => {
     let isEmpty = true;
     let rowNumber = 1;
     let errors = [];
+    let insertableColumns = null;
 
     for await (const row of stream) {
       rowNumber++;
       isEmpty = false;
+
+      if (!insertableColumns) {
+        const csvColumns = Object.keys(row).map((column) => column.trim());
+        insertableColumns = schemaColumns.filter((column) =>
+          column.toLowerCase() !== 'id' &&
+          dbColumns.includes(column) &&
+          csvColumns.includes(column)
+        );
+
+        if (insertableColumns.length === 0) {
+          throw new Error(`No matching columns to import for table '${tableName}'.`);
+        }
+      }
+
       const filteredRow = {};
-      for (const column of columns) {
-        if (row.hasOwnProperty(column) && column.toLowerCase() !== 'id') {
+      for (const column of insertableColumns) {
+        if (row.hasOwnProperty(column)) {
           filteredRow[column] = row[column];
         }
       }
@@ -80,7 +96,7 @@ const appendCSV = async (tableName, csvFilePath) => {
         validateRow(tableName, filteredRow, rowNumber);
         chunk.push(filteredRow);
         if (chunk.length >= chunkSize) {
-          await insertOrUpdateChunk(tableName, columns.filter(col => col.toLowerCase() !== 'id'), chunk);
+          await insertOrUpdateChunk(tableName, insertableColumns, chunk);
           totalInserted += chunk.length;
           chunk = [];
           console.log(`Inserted/Updated ${totalInserted} rows in '${tableName}' so far...`);
@@ -97,7 +113,7 @@ const appendCSV = async (tableName, csvFilePath) => {
 
     if (chunk.length > 0) {
       try {
-        await insertOrUpdateChunk(tableName, columns.filter(col => col.toLowerCase() !== 'id'), chunk);
+        await insertOrUpdateChunk(tableName, insertableColumns, chunk);
         totalInserted += chunk.length;
       } catch (error) {
         errors.push(`Error inserting/updating final chunk: ${error.message}`);
@@ -141,6 +157,17 @@ const createTableIfNotExists = async (tableName, columns) => {
   } else {
     console.log(`Table '${tableName}' already exists.`);
   }
+};
+
+const getTableColumns = async (tableName) => {
+  const query = `
+    SELECT COLUMN_NAME
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE() AND table_name = ?
+  `;
+
+  const [rows] = await executeQuery(query, [tableName]);
+  return rows.map((row) => row.COLUMN_NAME);
 };
 
 /**

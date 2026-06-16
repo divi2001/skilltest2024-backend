@@ -1,5 +1,6 @@
 
 const connection = require('../../config/db1');
+const { decrypt } = require('../../config/encrypt');
 
 
 exports.loginCenterAdmin = async (req, res) => {
@@ -16,8 +17,8 @@ exports.loginCenterAdmin = async (req, res) => {
             console.log("data: " + admin);
             console.log(admin.centerpass);
 
-            // centerpass is stored as plain text in examcenterdb
-            const storedPassword = String(admin.centerpass).trim();
+            // centerpass is stored encrypted in examcenterdb
+            const storedPassword = String(decrypt(admin.centerpass)).trim();
             const enteredPassword = String(password).trim();
 
             console.log("admin pass: " + storedPassword + " provided pass: " + enteredPassword);
