@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admit Card</title>
+    <style>
+        /* ... ALL CSS REMAINS EXACTLY THE SAME ... */
+        .body {
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+
+        .main-container {
+            height: 1123px;
+            width: 794px;
+        }
+
+        .header {
+            width: 100%;
+            height: 90px;
+            background-color: #4F6AAD;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header .header-title {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 1.5rem;
+            align-items: center;
+            color: white;
+            padding-top: 0;
+            padding-bottom: 0;
+            padding-left: 100px;
+            padding-right: 5px;
+            margin: 0;
+            font-size: 25px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .logo {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            width: 100px;
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .ashok-stambh {
+            opacity: 0;
+            position: absolute;
+            left: 705px;
+            top: 10px;
+            width: 100px;
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .title p {
+            text-align: center;
+        }
+
+        .title {
+            position: absolute;
+            width: 790px;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #9F9A9A;
+            height: 45px;
+            font-weight: bold;
+            font-size: medium;
+        }
+
+        .page {
+            border: solid black 2px;
+            height: 100%;
+        }
+
+        .student-details {
+            position: absolute;
+            top: 150px;
+            left: 14.4px;
+            border: solid black 2px;
+            border-collapse: collapse;
+            padding: 0;
+        }
+
+        .student-details th {
+            font-size: small;
+            font-weight: 400;
+            border: solid black 2px;
+            text-align: left;
+            padding-left: 5px;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        .student-details tr {
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        .seat-no-title {
+            font-weight: 700;
+        }
+
+        .passport-photo {
+            height: 175px;
+            width: 150px;
+        }
+
+        .student-photo {
+            height: 175px;
+            width: 150.8px;
+        }
+
+        .student-photo div {
+            color: grey;
+            text-align: center;
+        }
+
+        .student-photo div {
+            margin: 0;
+            padding: 0;
+        }
+
+        .data-fields {
+            width: 289px;
+        }
+
+        .student-details2 {
+            position: absolute;
+            top: 395px;
+            left: 14.4px;
+            border: solid black 2px;
+            border-collapse: collapse;
+            padding: 0;
+        }
+
+        .student-details2 th {
+            font-size: small;
+            font-weight: 400;
+            border: solid black 2px;
+            text-align: left;
+            padding-left: 7px;
+        }
+
+        .data-field-female {
+            padding-right: 9px;
+            width: 17.4rem;
+            text-wrap: wrap;
+        }
+
+        .officer {
+            position: absolute;
+            top: 168px;
+            left: 105px;
+        }
+
+        .photo-instruction {
+            padding-right: 43px;
+        }
+
+        .photo-instruction span {
+            text-align: center;
+            color: #9F9A9A;
+        }
+
+        .application-signature {
+            padding-top: 36px;
+            padding-bottom: 36px;
+        }
+
+        .signature-photo {
+            position: absolute;
+            top: 5px;
+            height: 50px;
+            width: 140px;
+        }
+
+        .signature-photo2 {
+            position: absolute;
+            top: 160px;
+            width: 120px;
+            height: 40px;
+        }
+
+        .application-signature p {
+            position: relative;
+            text-align: center;
+            top: 30px;
+        }
+
+        .camera-photo {
+            border: solid black 1px;
+            height: 168px;
+            width: 145px;
+        }
+
+        .photo {
+            border: solid black 1px;
+            height: 168px;
+            width: 145px;
+        }
+
+        .signature2 {
+            width: 148.8px;
+            padding-top: 24px;
+        }
+
+        .sup-signature {
+            width: 148px;
+            padding-top: 24px;
+        }
+
+        .sign-front {
+            position: relative;
+            top: 28px;
+        }
+
+        .centerhead-sign {
+            position: relative;
+            top: -12px;
+            left: 8px;
+        }
+
+        .signature2 p {
+            text-align: center;
+        }
+
+        .info-title {
+            padding-right: 8px;
+        }
+
+        .student-details3 {
+            position: absolute;
+            top: 701px;
+            left: 14.4px;
+            border: solid black 2px;
+            border-collapse: collapse;
+            padding: 0;
+        }
+
+        .table2-fields {
+            padding-top: 8px;
+            padding-bottom: 8px;
+            padding-right: 5px;
+        }
+
+        .student-details3 th {
+            font-size: small;
+            font-weight: 400;
+            border: solid black 2px;
+            padding-left: 5px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .table3-fields {
+            padding-right: 5px;
+            text-align: left;
+        }
+
+        .seat-number {
+            font-weight: 700;
+            font-size: large;
+        }
+
+        .invigilator-info {
+            width: 19.3rem;
+            text-align: center;
+            padding-right: 4.8px;
+        }
+
+        .exam-requirements {
+            width: 284px;
+            text-align: left;
+            font-size: 1rem;
+        }
+
+        .invigilator {
+            position: relative;
+            top: 28px;
+            left: 20px;
+            text-align: center;
+            padding-right: 34px;
+        }
+
+        .invigilatorname {
+            position: relative;
+            top: 40px;
+            left: 20px;
+            text-align: center;
+            padding-right: 34px;
+        }
+
+        .exam-center {
+            position: absolute;
+            top: 854px;
+            left: 15px;
+            border: solid black 2px;
+            border-collapse: collapse;
+            padding: 0;
+        }
+
+        .exam-center th {
+            font-size: small;
+            font-weight: 400;
+            border: solid black 2px;
+            text-align: left;
+            padding-left: 5px;
+            padding-right: 8px;
+        }
+
+        .batch-table {
+            position: absolute;
+            top: 746.5px;
+            left: 282px;
+            border: solid black 2px;
+            border-collapse: collapse;
+            height: 73px;
+            width: 193px;
+        }
+
+        .batch-table th {
+            border: solid black 2px;
+            font-weight: 400;
+        }
+
+        .mahatvachi-nondh {
+            border: solid black 2px;
+            position: absolute;
+            top: 915.5px;
+            left: 14px;
+            width: 777.5px;
+        }
+
+        .nondh-title {
+            font-weight: 700;
+            font-size: large;
+            padding-top: 5px;
+        }
+
+        .mahatvachi-nondh ul li {
+            font-size: 0.8rem;
+            padding-bottom: 10px;
+            padding-right: 2px;
+        }
+
+        .mahatvachi-nondh ul {
+            position: relative;
+            bottom: 13px;
+        }
+
+        .page2 {
+            border: solid black 2px;
+            position: absolute;
+            top: 1145px;
+            width: 785px;
+            padding-bottom: 20px;   /* add small breathing space */
+        }
+
+        .title2 {
+            position: absolute;
+            width: 785px;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #9F9A9A;
+            height: 30px;
+            font-weight: bold;
+            font-size: medium;
+        }
+
+        .title2 span {
+            position: absolute;
+            left: 300px;
+            top: 3px;
+        }
+
+        .list {
+            position: relative;
+            top: 30px;
+        }
+
+        .list ol li {
+            font-size: 0.7rem;
+            padding-bottom: 5px;
+            line-height: 1.1rem;
+        }
+
+        .list ol li span {
+            font-weight: bold;
+        }
+
+        .li-bold {
+            font-weight: 700;
+        }
+
+        .qr-section {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            top: 15px;
+            gap: 60px;
+        }
+
+        .qr-section div {
+            text-align: center;
+        }
+
+        .qr-section img {
+            height: 100px;
+            width: 100px;
+        }
+
+        @media print and (color) {
+            .body {
+                background-color: white;
+            }
+
+            .header {
+                background-color: #4F6AAD;
+                color: white;
+            }
+
+            .title,
+            .title2 {
+                background-color: #9F9A9A;
+            }
+
+            .photo-instruction span {
+                color: #9F9A9A;
+            }
+
+            .student-photo div {
+                color: grey;
+            }
+
+            * {
+                color: black !important;
+                border-color: black !important;
+            }
+
+            .header,
+            .header div {
+                color: white !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="page">
+            <div class="header">
+                <!-- <div style="font-size: 20px;"><%= departmentName %></div>
+                <div style="font-size: 20px;">(A Government of Maharashtra Undertaking)</div> -->
+                <!-- <div>Government of Maharashtra</div> -->
+                <div class="header-title"><%= departmentName %></div>
+            </div>
+
+            <!-- LEFT LOGO -->
+            <% if (leftLogoBase64) { %>
+                <img class="logo" src="<%= leftLogoBase64 %>" alt="PWD Logo">
+            <% } %>
+
+            <!-- RIGHT LOGO -->
+            <% if (logoBase64) { %>
+                <img class="ashok-stambh" src="<%= logoBase64 %>" alt="Department Logo">
+            <% } else if (ashokStambhBase64) { %>
+                <img class="ashok-stambh" src="<%= ashokStambhBase64 %>" alt="Ashok Stambh">
+            <% } %>
+
+            <div class="title">
+                <p>ADMIT CARD / प्रवेशपत्र </p>
+            </div>
+
+            <table class="student-details">
+                <tr class="line1">
+                    <th class="info-title">
+                        <span>CANDIDATE FULL NAME</span> <br>
+                        <span>उमेदवाराचे पूर्ण नांव</span>
+                    </th>
+                    <th colspan="4" class="data-fields">
+                        <%= fullname || '' %>
+                    </th>
+                </tr>
+                <tr>
+                    <th class="info-title">
+                        <span>CHANGED NAME</span> <br>
+                        <span>बदललेले नाव </span>
+                    </th>
+                    <th class="data-fields" colspan style="text-transform: uppercase;">
+                        <%= newname || '' %>
+                    </th>
+                    <th rowspan="4" class="passport-photo">
+                        <% if (photoBase64) { %>
+                            <img class="photo" src="<%= photoBase64 %>">
+                        <% } %>
+                    </th>
+                    <th rowspan="4" class="student-photo">
+                        <div>Please Affix Your</div>
+                        <div> Recent Passport</div>
+                        <div>Size Colour </div>
+                        <div> Photograph & </div>
+                        <div> Sign Across </div>
+                        <div> येथे उमेदवाराने</div>
+                        <div>त्यांचा सध्याचा </div>
+                        <div>पारपत्र आकाराचा </div>
+                        <div> फोटो चिकटवून </div>
+                        <div>त्यावर स्वाक्षरी करावी.</div>
+                    </th>
+                </tr>
+                <tr>
+                    <th class="info-title">
+                        <span class="seat-no-title">SEAT NUMBER</span> <br>
+                        <span class="seat-no-title">आसन क्रमांक </span>
+                    </th>
+                    <th class="data-fields">
+                        <div class="seat-number">
+                            <%= student_id || '' %>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <th class="info-title">
+                        <span>APPLICATION NO.</span> <br>
+                        <span>अर्ज क्रमांक </span>
+                    </th>
+                    <th class="roll-no">
+                        <div>
+                            <%= APPLICATION_NUMBER || '' %>
+                        </div>
+                    </th>
+                </tr>
+                <tr></tr>
+            </table>
+
+            <table class="student-details2">
+                <tr>
+                    <th class="table2-fields">
+                        <span>EXAM CENTRE DETAILS</span> <br>
+                        <span>परीक्षा केंद्र तपशील</span> <br>
+                    </th>
+                    <th class="data-field-female">
+                        <!-- <p>
+                            <strong>
+                                <%= center_name || '' %>
+                            </strong>
+                            <br> <span>
+                                <%= center_address || '' %>
+                            </span>
+                        </p> -->
+                    </th>
+                    <th class="application-signature">
+                        <% if (signBase64) { %>
+                            <img class="signature-photo" src="<%= signBase64 %>" alt="application-signature">
+                        <% } %>
+                        <p>Candidate's Signature on Application Form उमेदवाराची स्वाक्षरी</p>
+                    </th>
+                    <th rowspan="2" class="signature2">
+                        <p class="sign-front">Candidate's Signature (In Front of Center-head) केंद्रसंचालकांसमोर उमेदवारांची स्वाक्षरी </p>
+                    </th>
+                </tr>
+                <tr>
+                    <th rowspan="2" colspan="2" class="table2-fields">
+                        <span>SUBJECT : </span> <br>
+                        <span>विषय</span>
+                        <div class="officer">
+                            <%= subject_name || '' %>
+                        </div>
+                    </th>
+                    <th rowspan="3" class="sup-signature">
+                        <p class="centerhead-sign">Center Head's Signature : केंद्रसंचालक स्वाक्षरी</p>
+                    </th>
+                </tr>
+                <tr></tr>
+                <tr>
+                    <th class="table2-fields">
+                        <span>IS CANDIDATE PERSON </span> <br>
+                        <span>WITH DISABILITY/ दिव्यांग</span>
+                    </th>
+                    <th>
+                        <%= disability || '' %>
+                    </th>
+                </tr>
+                <tr>
+                    <th class="table2-fields">
+                        <span>DISABILITY TYPE</span> <br>
+                        <span>अपंगत्वाचा प्रकार</span>
+                    </th>
+                    <th colspan="3">
+                        <%= disability_type || '' %>
+                    </th>
+                </tr>
+            </table>
+
+            <table class="student-details3">
+                <tr>
+                    <th class="table3-fields">
+                        <span>IS SCRIBE REQUIRED</span> <br>
+                        <span>लेखनिकाची आवश्यकता आहे ?</span>
+                    </th>
+                    <th class="exam-requirements" colspan="3">N.A</th>
+                    
+                    <!-- ✅ ONLY CHANGE: Dynamic Invigilator Section -->
+                    <th rowspan="4" class="invigilator-info">
+                        <% if (townPlanningSignBase64) { %>
+                            <img height="72px" width="auto" src="<%= townPlanningSignBase64 %>" alt="">
+                        <% } %>
+                        <br>
+                        <%= (invigilatorText && invigilatorText.title) || 'नियंत्रक अधिकारी' %><br>
+                        <%= (invigilatorText && invigilatorText.line1) || 'मुख्य अभियंता' %><br>
+                        <!-- <%= (invigilatorText && invigilatorText.line2) || 'नाशिक विभाग' %><br> -->
+                        <!-- <%= (invigilatorText && invigilatorText.line3) || 'नाशिक' %> -->
+                    </th>
+                </tr>
+                <tr>
+                    <th class="table3-fields">
+                        <span>EXAM DATE</span> <br>
+                        <p>परीक्षेचा दिनांक</p>
+                    </th>
+                    <th class="exam-requirements" colspan="3">
+                        <!-- <%= batchdate || '' %> -->
+                    </th>
+                </tr>
+                <tr>
+                    <th class="table3-fields">
+                        <span>REPORTING TIME </span> <br>
+                        <span>परीक्षा केंद्रात प्रवेशाची वेळ</span>
+                    </th>
+                    <th style="text-align: left; padding-right: 12px;">
+                            <%= reporting_time || '' %>
+                    </th>
+                    <!-- <th style="padding-right: 10px; font-size: 1rem; text-align: center; ">
+                        <span>Batch End</span>
+                    </th>
+                    <th style="text-align: center; font-size: 1rem;">
+                        <%= end_time || '' %>
+                    </th> -->
+                </tr>
+                <tr>
+                    <th class="table3-fields">
+                        <span>GATE CLOSURE TIME</span> <br>
+                        <span>प्रवेश बंद होण्याची वेळ</span>
+                    </th>
+                    <th class="exam-requirements" colspan="3">
+                        <%= gate_closure_time || '' %>
+                    </th>
+                </tr>
+            </table>
+
+            <table class="batch-table">
+                <tr>
+                    <th>Batch No.</th>
+                    <th>
+                        <%= batchNo || '' %>
+                    </th>
+                </tr>
+                <tr>
+                    <th>Batch Time</th>
+                    <th>
+                        <%= start_time || '' %>
+                    </th>
+                </tr>
+            </table>
+
+            <div class="mahatvachi-nondh">
+                <div class="nondh-title">&nbsp; महत्वाची नोंद :</div> <br>
+                <ul>
+                    <li>This Hall Ticket should be Printed in Color only. हे हॉल तिकीट फक्त रंगीत छापलेले असावे.</li>
+                    <li>परीक्षा केंद्रावर नियमांचे उल्लंघन केल्यास, परीक्षा केंद्रात व त्याच्या परिसरात उमेदवारास प्रवेश नाकारण्याचे नियंत्रक अधिकारी, <%= departmentName %> यांना अथवा त्यांनी प्राधिकृत केलेल्या अधिकाऱ्यांना राहतील.</li>
+                    <li>हॉल तिकिटावर मोठ्या ठळक अक्षरात, अंक किंवा प्रश्न प्रवेशपत्रावर काहीही लिहिल्यास ते परीक्षेतील गैरप्रकार असे मानले जाईल.</li>
+                    <li>सदर प्रवेशपत्र हे परीक्षा पूर्ण झाल्यावर उमेदवारांनी परीक्षा केंद्रावर जमा करावयाचे आहे.</li>
+                </ul>
+            </div>
+
+            <div class="page2">
+                <div class="title2">
+                    <span>उमेदवारांसाठी महत्वपूर्ण सूचना</span>
+                </div>
+                <div class="list">
+                    <ol type="1">
+                        <li>या प्रवेशपत्राचे दोन भाग आहेत - १) परीक्षा केंद्राचा तपशील २) उमेदवारांसाठी महत्त्वपूर्व सूचना. दोन्ही भाग डाउनलोड करुन त्याची रंगीत प्रत परीक्षेच्या वेळी सोबत आणणे आवश्यक आहे.</li>
+                        <li>उमेदवाराने परीक्षेच्या वेळेस प्रवेशपत्र (अर्जासोबत अपलोड केलेला फोटो चिटकवलेले), सध्या कायदेशीरपणे स्वीकारण्यास योग्य <span>मूळ स्वरुपातील फोटो परिचयपत्र</span> (Photo ID ) जसे की, <span>पॅनकार्ड/ वाहनचालक परवाना (स्मार्ट कार्ड प्रकारचे ) / मतदार ओळखपत्र / पासपोर्ट / आधारकार्ड </span> आणावे. या व्यतिरिक्त अन्य कोणतेही ओळखपत्र / ओळखपत्राच्या छायांकित प्रती / मोबाईल फोनमध्ये आयडीचे स्कॅन केलेले फोटो वैध ओळखपत्राचा पुरावा म्हणून विचारात घेतले जाणार नाहीत. प्रवेशपत्र, फोटो परिचयपत्र (Photo ID) सोबत असल्याशिवाय उमेदवारास परीक्षा केंद्रात प्रवेश दिला जाणार नाही.</li>
+                        <li>उमेदवाराचे ऑनलाईन अर्जातील नांव हे फोटो परिचय पत्रावरील नांवाशी ततोतंत जुळणे आवश्यक आहे. अन्यथा उमेदवारास परीक्षेस बसू दिले जाणार नाही. तसेच ज्या महिला उमेदवारांचे विवाहानंतर पहिले / मधले / अंतिम नाव बदललेले आहे. त्यानी फोटो परिचय पत्र व विवाह नोंदणी प्रमाणपत्र / राजपत्राची छायांकित प्रत सोबत आणणे आवश्यक आहे.</li>
+                        <li>उमेदवारांनी शक्यतो परीक्षेच्या ठिकाणी एक दिवस अगोदर भेट द्यावी आणि त्या केंद्रावर पोहोचण्याची व्यवस्था पहावी, जेणेकरुन परीक्षेच्या दिवशी कोणतीही समस्या उद्भवणार नाही.</li>
+                        <li>परीक्षा केंद्रात प्रवेशाच्या वेळेपूर्वी (REPORTING TIME) तसेच प्रवेश बंद होण्याच्या वेळेनंतर (GATE CLOSURE TIME) कोणत्याही उमेदवाराला प्रवेश दिला जाणार नाही. </li>
+                        <li>उमेदवारांनी खालील नमूद केलेल्या वस्तुंखेरीज कुठलीही इतर वस्तू सोबत बाळगू नये.<br>
+                            1) साधे पारदर्शक निळे किंवा काळे बॉलपॉईंट पेन, पेन्सिल, शार्पनर (खोडरबर आणण्यास बंदी आहे).<br>
+                            2) प्रवेशपत्र संकेतस्थळावरून डाउनलोड करुन ए-४ आकाराच्या कागदावर रंगीत प्रिंट आऊट घेऊन योग्यरित्या भरलेले असावेत. <br>
+                            3) वैध फोटो ओळखपत्र (Photo ID ) व त्याची छायांकित प्रत. 4) पारदर्शक पाण्याची बाटली.</li>
+                        <li>बायोमेट्रिक डाटा आणि फोटो परीक्षेच्या ठिकाणी घेतले जाईल. बायोमेट्रिक डाटा परीक्षा दरम्यान कधीही घेण्यास / सत्यता पडताळणीस विरोध केल्यास उमेदवाराची उमेदवारी रद्द केली जाईल. या संदर्भात खालील मुद्दे लक्षात घ्या:
+                            <br> (क) जर बोटांवर कसलाही थर असेल (शाई/मेहंदी/रंग इत्यादी) तर धुवून टाका आणि परीक्षेच्या दिवसाआधी तो थर संपूर्णपणे गेला आहे याची खात्री करून घ्या.
+                            <br> (ख) जर बोटांना मळ किंवा धूळ लागली असेल तर बोटांचे ठसे (Fingerprints) घेण्याआधी धुवून घ्या आणि हाताची बोट सुकली आहेत याची खात्री करून घ्या.
+                            <br> (ग) दोन्ही हातांची बोट सुकली आहेत याची खात्री करा आणि जर बोट ओलसर असतील तर प्रत्येक बोट पुसा.
+                            <br>&nbsp; &nbsp;(या मुद्यांचे पालन करण्यास असमर्थ ठरल्यास परीक्षेस बसु दिले जाणार नाही.)
+                        </li>
+                        <li>फ्रिस्किंगमध्ये वेळ वाचवण्यासाठी (मेटल डिटेक्टर चा वापर केला जाईल) उमेदवारांना खालील ड्रेस कोडचे पालन करण्याचा सल्ला दिला जात आहे. <br>
+                            १. हलके कपडे जे कोणतीही साधने किंवा संपर्काची उपकरणे लपविण्यासाठी वापरले जाऊ शकत नाही.<br>
+                            २. अर्धी बाही असलेले कपडे पण त्यावर कोणतीही मोठी बटणे, बॅजेस, ब्रूचेस इ. नसावीत ज्याचा वापर संपर्क साधन, ब्ल्यूटूथ, कॅमेरा इ. लपविण्यासाठी केला जाऊ शकेल.
+                            <br> ३. स्लीपर / सँडल वापरावे आणि बूट/मोजे टाळावे.
+                            <br>पारंपरिक / धार्मिक पोशाख घालून येणाऱ्या उमेदवारांनी आणि दिव्यांग उमेदवारांनी फ्रिस्किंग साठी रिपोटींगच्या वेळेपूर्वी अगोदरच केंद्रावर उपस्थित व्हावे.
+                        </li>
+                        <li>उमेदवारांनी प्रवेशपत्रात नमूद केलेल्या आसन क्रमांकाच्या क्रमाने परीक्षा केंद्रावर बसावयाचे आहे.</li>
+                        <li class="li-bold">परिक्षा दरम्यान उमेदवार जर काही संशयास्पद हालचाल किंवा वागणुक करताना आढळून आल्यास त्याचवेळी उमेदवाराची पुन्हा पुर्ण झड़ती घेतली जाईल. तसेच बायोमेट्रिक व आईरिस पुन्हा तपासले जातील.</li>
+                        <li class="li-bold">उमेदवाराने कोणत्याही प्रकारची गैरवर्तणुक करणे, कॉपी करणे, डमी उमेदवार बसवण्याचा प्रयत्न करणे असे प्रकार आढळून आल्यास उमेदवारांविरोधात पोलिस तक्रार केली जाईल.</li>
+                        <li> परीक्षा केंद्रात उमेदवारांना कोणत्याही व्यक्तिगत वस्तू जसे की, इलेक्ट्रानिक्स उपकरणे, स्मार्ट वॉच आणि इतर बंदी घातलेल्या / प्रतिबंधित वस्तू बाळगणेस परवानगी नाही, <span>अशा कोणत्याही प्रतिबंधीत वस्तु परिक्षार्थीकडे सापडल्यास त्या उमेदवारास परीक्षेस बसू दिले जाणार नाही, याची नोंद घ्यावी. </span> परीक्षेचे अधिकारी व्यक्तिगत वस्तुंच्या सुरक्षिततेसाठी जबाबदार नसतील तसेच त्यासाठी परीक्षा केंद्रावर कोणतीही सुविधा केलेली नसेल.</li>
+                        <li>लेखनिकाची आवश्यकता असणाऱ्या व केवळ अनुज्ञेय कालावधीची (Compensatory Time) मागणी करण्यात आलेल्या दिव्यांग उमेदवारांनी परीक्षेच्या वेळी दिव्यांग <span> उमेदवारांकरीता महाराष्ट्र शासनाच्या सामाजिक न्याय व विशेष सहाय्य विभाग यांचेकडील परिपत्र क्र. दिव्यांग 2019/प्र.क्र.200/दि.क. 2, दि.05 ऑक्टोबर, 2021 मधील मार्गदर्शक सूचनेनुसार आवश्यक त्या सर्व कागदपत्रांची पूर्तता करणे अनिवार्य आहे. </span></li>
+                        <li>परीक्षेची पूर्ण वेळ संपल्यानंतर उमेदवारांनी पर्यवेक्षकाच्या सूचनांसाठी प्रतीक्षा करावी आणि पर्यवेक्षकाने सांगितल्याशिवाय जागेवरून उठू नये. उमेदवाराना एका वेळी एक अशा रीतीने जाऊ दिले जाईल.</li>
+                        <li>सदर प्रवेशपत्र तात्पुरते असून ते पदभरतीच्या अधिसूचनेत दिलेल्या पात्रतेच्या सर्व अटी पूर्ण करण्याच्या अधिन राहून देण्यात आले आहे. उमेदवारांचा व्यक्तिगत तपशिल जसे की वय, शैक्षणिक गुणवत्ता इत्यादीची मुळ प्रमाणपत्राशी पडताळणी न करता उमेदवाराने अर्जात <span>नमूद केलेल्या </span> माहितीच्या आधारे त्यास परीक्षेस <span>प्रविष्ट / बसणेस </span>परवानगी देण्यात आली आहे. सदर प्रवेशपत्र म्हणजे नियुक्तीची हमी नाही.</li>
+                        <li>परीक्षेचा दिनांक / सत्र / केंद्र / परीक्षा स्थान याबाबत कोणत्याही बदलाच्या विनंतीची दखल घेतली जाणार नाही.</li>
+                        <li>उमेदवाराच्या निवडी संदर्भात / भरती संबंधात उमेदवाराकडून किंवा उमेदवाराच्या वतीने होणारा कोणताही प्रचार किंवा राजकीय किंवा अन्य मार्गाने दबाव आणल्यास संबंधित उमेवारास अपात्र ठरविण्यात येईल.</li>
+                        <li>उमेदवारांनी परीक्षेसंदर्भात नियमित अपडेट्स नियंत्रक अधिकारी <%= departmentName %> यांच्या अधिकृत संकेतस्थळावर पहावेत. तसेच त्यांच्या नोंदणीकृत ई-मेल व मोबाईल क्रमांकावर पाठविण्यात आलेले Mail / SMS देखील पहावेत.</li>
+                        <li>उमेदवारांनी लघुलेखन विषयाचा कालावधी इत्यादी माहिती, कार्यपद्धती व गुणदान पद्धती करीता खालील क्यूआर कोड स्कॅन करून अवलोकन करावे.</li>
+                    </ol>
+                </div>
+
+                <div class="qr-section">
+                    <% if (qrCodeBase64) { %>
+                    <div>
+                        <img height="120px" width="auto" src="<%= qrCodeBase64 %>" alt="">
+                        <div>लघुलेखन कार्यपद्धती व गुणदान पद्धती :</div>
+                    </div>
+                    <% } %>
+
+                    <% if (qrCodeTwBase64) { %>
+                    <div>
+                        <img height="120px" width="auto" src="<%= qrCodeTwBase64 %>">
+                        <div>टंकलेखन कार्यपद्धती व गुणदान पद्धती :</div>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

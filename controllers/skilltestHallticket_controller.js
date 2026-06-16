@@ -152,6 +152,53 @@ function getImageAsBase64(imagePath) {
   }
 }
 
+function getFirstNonEmptyField(obj, keys) {
+  for (const key of keys) {
+    const value = obj?.[key];
+    if (typeof value === 'string' && value.trim() !== '') return value.trim();
+    if (value !== null && value !== undefined && String(value).trim() !== '') return String(value).trim();
+  }
+  return '';
+}
+
+function buildImagePathCandidates(baseFolder, rawFileName) {
+  const candidates = [];
+  const normalized = String(rawFileName || '').trim();
+
+  if (normalized) {
+    const cleanName = path.basename(normalized);
+    const ext = path.extname(cleanName);
+
+    candidates.push(`${baseFolder}/${cleanName}`);
+
+    if (!ext) {
+      candidates.push(`${baseFolder}/${cleanName}.jpg`);
+      candidates.push(`${baseFolder}/${cleanName}.jpeg`);
+      candidates.push(`${baseFolder}/${cleanName}.png`);
+    }
+  }
+
+  candidates.push(`${baseFolder}/default.jpg`);
+  candidates.push(`${baseFolder}/default.png`);
+
+  return [...new Set(candidates)];
+}
+
+function getStudentImageBase64(baseFolder, rawFileName, logTag) {
+  const candidates = buildImagePathCandidates(baseFolder, rawFileName);
+
+  for (const relativePath of candidates) {
+    const value = getImageAsBase64(relativePath);
+    if (value) {
+      console.log(`[${logTag}] Resolved image path: "${relativePath}"`);
+      return value;
+    }
+  }
+
+  console.warn(`[${logTag}] Could not resolve image for input "${rawFileName}". Tried:`, candidates);
+  return '';
+}
+
 function clearMemoryData() {
   if (studentDataMemory) {
     const recordCount = studentDataMemory.length;
@@ -329,8 +376,18 @@ exports.downloadSkillTestHallTicket = async (req, res) => {
       leftLogoBase64: hasLeftLogo ? customization.leftLogoBase64 : getImageAsBase64('pwd_logo1.jpg'),
       logoBase64: hasRightLogo ? customization.rightLogoBase64 : departmentDetails.logo,
       ashokStambhBase64: hasRightLogo ? customization.rightLogoBase64 : getImageAsBase64('pwd_logo2.jpeg'),
-      photoBase64: (() => { const v = getImageAsBase64(`Photo Sign 12 tribal/Photo_new/${student.photo || 'default.jpg'}`); console.log(`[Single] photo field value: "${student.photo}", base64 length: ${v.length}`); return v; })(),
-      signBase64: (() => { const v = getImageAsBase64(`Photo Sign 12 tribal/Sign_new/${student.sign || 'default.jpg'}`); console.log(`[Single] sign field value: "${student.sign}", base64 length: ${v.length}`); return v; })(),
+      photoBase64: (() => {
+        const photoName = getFirstNonEmptyField(student, ['photo', 'PHOTO', 'Photo', 'photo_name', 'PHOTO_NAME']);
+        const v = getStudentImageBase64('Photo Sign MBV/PHOTO_NEW', photoName, 'Single-photo');
+        console.log(`[Single] photo field value: "${photoName}", base64 length: ${v.length}`);
+        return v;
+      })(),
+      signBase64: (() => {
+        const signName = getFirstNonEmptyField(student, ['sign', 'SIGN', 'Sign', 'sign_name', 'SIGN_NAME']);
+        const v = getStudentImageBase64('Photo Sign MBV/SIGN_NEW', signName, 'Single-sign');
+        console.log(`[Single] sign field value: "${signName}", base64 length: ${v.length}`);
+        return v;
+      })(),
       townPlanningSignBase64: hasInvigilatorImage ? customization.invigilatorImageBase64 : getImageAsBase64('town_planning_sign.jpg'),
       qrCodeBase64: qrCodeBase64,
       qrCodeTwBase64: qrCodeTwBase64,
@@ -500,8 +557,18 @@ exports.downloadAllSkillTestHallTickets = async (req, res) => {
           leftLogoBase64: hasLeftLogo ? customization.leftLogoBase64 : getImageAsBase64('pwd_logo1.jpg'),
           logoBase64: hasRightLogo ? customization.rightLogoBase64 : departmentDetails.logo,
           ashokStambhBase64: hasRightLogo ? customization.rightLogoBase64 : getImageAsBase64('pwd_logo2.jpeg'),
-          photoBase64: (() => { const v = getImageAsBase64(`Photo Sign 12 tribal/Photo_new/${student.photo || 'default.jpg'}`); console.log(`[Bulk #${i+1}] photo field value: "${student.photo}", base64 length: ${v.length}`); return v; })(),
-          signBase64: (() => { const v = getImageAsBase64(`Photo Sign 12 tribal/Sign_new/${student.sign || 'default.jpg'}`); console.log(`[Bulk #${i+1}] sign field value: "${student.sign}", base64 length: ${v.length}`); return v; })(),
+          photoBase64: (() => {
+            const photoName = getFirstNonEmptyField(student, ['photo', 'PHOTO', 'Photo', 'photo_name', 'PHOTO_NAME']);
+            const v = getStudentImageBase64('Photo Sign MBV/PHOTO_NEW', photoName, `Bulk-photo #${i + 1}`);
+            console.log(`[Bulk #${i+1}] photo field value: "${photoName}", base64 length: ${v.length}`);
+            return v;
+          })(),
+          signBase64: (() => {
+            const signName = getFirstNonEmptyField(student, ['sign', 'SIGN', 'Sign', 'sign_name', 'SIGN_NAME']);
+            const v = getStudentImageBase64('Photo Sign MBV/SIGN_NEW', signName, `Bulk-sign #${i + 1}`);
+            console.log(`[Bulk #${i+1}] sign field value: "${signName}", base64 length: ${v.length}`);
+            return v;
+          })(),
           townPlanningSignBase64: hasInvigilatorImage ? customization.invigilatorImageBase64 : getImageAsBase64('town_planning_sign.jpg'),
           qrCodeBase64: qrCodeBase64,
           qrCodeTwBase64: qrCodeTwBase64,
