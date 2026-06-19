@@ -7,20 +7,20 @@ const schema = {
     students: {
         student_id: 'BIGINT PRIMARY KEY',
         password: 'LONGTEXT',
-        instituteId: 'BIGINT',
+        instituteId: 'BIGINT REFERENCES institutedb(instituteId)',
         batchNo: 'INT REFERENCES batchdb(batchNo)',
         batchdate: 'DATE',
         fullname: 'VARCHAR(100)',
         subjectsId: 'INT REFERENCES subjectsdb(subjectId)',
         courseId: 'INT',
-        batch_year: 'VARCHAR(100)',
+        batch_year: 'YEAR REFERENCES departmentdb(departmentId)',
         loggedin: 'BOOLEAN',
         done: 'BOOLEAN',
         photo: 'LONGTEXT',
         center: 'INT REFERENCES examcenterdb(center)',
-        reporting_time: 'TIME',
-        start_time: 'TIME',
-        end_time: 'TIME',
+        reporting_time: 'TIME REFERENCES batchdb(batchNo)',
+        start_time: 'TIME REFERENCES batchdb(batchNo)',
+        end_time: 'TIME REFERENCES batchdb(batchNo)',
         day: 'INT',
         qset: 'INT',
         base64: 'LONGTEXT',
@@ -45,18 +45,6 @@ const schema = {
         disability_typing_timer: 'INT',
         'PRIMARY KEY': '(subjectId, examType)'
     },
-    subjetsdb: {
-        subjectId: 'LONGTEXT',
-        courseId: 'LONGTEXT',
-        subject_name: 'LONGTEXT',
-        subject_name_short: 'LONGTEXT',
-        daily_timer: 'LONGTEXT',
-        passage_timer: 'LONGTEXT',
-        disability_passage_timer: 'LONGTEXT',
-        demo_timer: 'LONGTEXT',
-        typing_timer: 'LONGTEXT',
-        disability_typing_timer: 'LONGTEXT'
-    },
     departmentdb: {
         departmentId: 'INT PRIMARY KEY',
         login_id: 'INT',
@@ -65,7 +53,8 @@ const schema = {
         departmentExam: 'LONGTEXT',
         departmentPassword: 'LONGTEXT',
         logo: 'LONGTEXT',
-        departmentStatus: 'BOOLEAN'
+        departmentStatus: 'BOOLEAN',
+        batch_year: 'YEAR'
     },
     studentlogs: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',
@@ -93,7 +82,7 @@ const schema = {
     },
     examcenterdb: {
         center: 'INT PRIMARY KEY',
-        departmentId: 'INT',
+        departmentId: 'INT REFERENCES departmentdb(departmentId)',
         centerpass: 'LONGTEXT',
         center_name: 'VARCHAR(100)',
         center_address: 'VARCHAR(255)',
@@ -113,7 +102,8 @@ const schema = {
         controller_contact: 'BIGINT',
         controller_email: 'VARCHAR(100)',
         controller_pass: 'LONGTEXT',
-        district: 'VARCHAR(100)'
+        district: 'VARCHAR(100)',
+        'PRIMARY KEY': '(center, departmentId, batchNo)'
     },
     pcregistration: {
         id: 'INT AUTO_INCREMENT PRIMARY KEY',
@@ -173,7 +163,8 @@ const schema = {
         reporting_time: 'TIME',
         start_time: 'TIME',
         end_time: 'TIME',
-        batchstatus: 'BOOLEAN'
+        batchstatus: 'BOOLEAN',
+        'PRIMARY KEY': '(departmentId, batchNo)'
     },
     feedbackdb: {
         id: 'INT PRIMARY KEY AUTO_INCREMENT',
