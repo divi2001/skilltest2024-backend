@@ -1,27 +1,41 @@
 const connection = require('../../config/db1');
-const StudentTrackDTO = require("../../dto/studentProgress"); 
+const StudentTrackDTO = require("../../dto/studentProgress");
 const moment = require('moment-timezone');
 
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
+    return moment(dateString).tz('Asia/Kolkata').format('YYYY-MM-DD')
 }
 function convertDateFormat(dateString) {
-    // Parse the original date string
-    const [day, month, year] = dateString.split('-');
-  
-    // Create a Date object in UTC
-    // Set the time to 18:30:00 UTC of the previous day
-    const date = new Date(Date.UTC(year, month - 1, day - 1, 18, 30, 0));
-    
-    // Convert to ISO 8601 format
-    return date
+    if (!dateString) return null;
+    try {
+        // Handle DD/MM/YYYY format
+        if (dateString.includes('/')) {
+            const [day, month, year] = dateString.split('/');
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        // Handle YYYY-MM-DD format
+        const date = moment(dateString);
+        if (date.isValid()) {
+            return date.format('YYYY-MM-DD');
+        }
+        return null;
+    } catch (error) {
+        console.error('Error converting date format:', error);
+        return null;
+    }
 }
-exports.getAllStudentsTrack = async (req,res) => {
+function formatDateTimeIST(dateString) {
+    if (!dateString) return null;
+    const date = moment(dateString);
+    if (!date.isValid()) return null;
+    return date.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+}
+exports.getAllStudentsTrack = async (req, res) => {
     // console.log('Starting getStudentsTrack function');
     const adminId = req.params.adminid;
     // console.log(adminId);
     // if(!adminId) return res.status(404).json({"message":"Admin is not logged in!!"});
-    let { subject_name, loginStatus, batchDate , batchNo, center , exam_type , departmentId } = req.query;
+    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type, departmentId } = req.body;
     // console.log("Exam center code:", departmentId);
     // console.log("Batch no:", batchNo);
     // console.log("Subject:", subject_name);
@@ -72,9 +86,14 @@ exports.getAllStudentsTrack = async (req,res) => {
 FROM
     students s
 LEFT JOIN
-    subjectsdb sub ON s.subjectsId = sub.subjectId
+    departmentdb d ON s.departmentId = d.departmentId
 LEFT JOIN
-    audiologs a ON s.student_id = a.student_id
+    subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType
+LEFT JOIN (
+    SELECT student_id, MAX(trial) as trial, MAX(passageA) as passageA, MAX(passageB) as passageB
+    FROM audiologs
+    GROUP BY student_id
+) a ON s.student_id = a.student_id
 LEFT JOIN (
     SELECT
         student_id,
@@ -98,7 +117,7 @@ WHERE 1=1`;
     if (batchNo) {
         query += ' AND s.batchNo = ?';
         queryParams.push(batchNo);
-    } 
+    }
 
     if (subject_name) {
         query += ' AND sub.subject_name = ?';
@@ -118,27 +137,28 @@ WHERE 1=1`;
         }
     }
 
-    if(departmentId){
+    if (departmentId) {
         query += ' AND s.departmentId = ?';
         queryParams.push(departmentId);
     }
 
-    if(exam_type){
-        if(exam_type ==='shorthand'){
-            query+= ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0'
+    if (exam_type) {
+        if (exam_type === 'shorthand') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0 AND d.examType = \'GCC\''
         }
-        else if (exam_type === 'typewriting'){
-            query+=' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
+        else if (exam_type === 'typewriting') {
+            // 'typewriting' in frontend means SKILL exam type
+            query += ' AND d.examType = \'SKILL\''
         }
-        else if(exam_type === 'both'){
-            query+=' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
+        else if (exam_type === 'both') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1'
         }
     }
 
     if (batchDate) {
         batchDate = convertDateFormat(batchDate);
         console.log("Formatted Batch date:", batchDate);
-        query += ' AND s.batchdate = ?';
+        query += ' AND DATE(s.batchdate) = ?';
         queryParams.push(batchDate);
     }
 
@@ -156,7 +176,7 @@ WHERE 1=1`;
                     result.center,
                     result.fullname,
                     result.batchNo,
-                    result.loginTime,
+                    formatDateTimeIST(result.loginTime),
                     result.login,
                     result.done,
                     result.Reporting_Time,
@@ -165,33 +185,39 @@ WHERE 1=1`;
                     result.trial,
                     result.passageA,
                     result.passageB,
-                    result.trial_time,
-                    result.audio1_time,
-                    result.passage1_time,
-                    result.audio2_time,
-                    result.passage2_time,
-                    result.feedback_time,
+                    formatDateTimeIST(result.trial_time),
+                    formatDateTimeIST(result.audio1_time),
+                    formatDateTimeIST(result.passage1_time),
+                    formatDateTimeIST(result.audio2_time),
+                    formatDateTimeIST(result.passage2_time),
+                    formatDateTimeIST(result.feedback_time),
                     result.subject_name,
                     result.subject_name_short,
                     formatDate(result.batchdate),
                     result.departmentId,
-                    result.trial_passage_time,
-                    result.typing_passage_time
+                    formatDateTimeIST(result.trial_passage_time),
+                    formatDateTimeIST(result.typing_passage_time)
                 );
-                
+
                 if (typeof studentTrack.fullname === 'string') {
                     studentTrack.fullname = encryptionInterface.decrypt(studentTrack.fullname);
                 }
                 return studentTrack;
             });
 
+            results.forEach(result => {
+                if (result.batchdate) {
+                    result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
+                }
+            });
+
             res.status(200).json(studentTrackDTOs);
         } else {
-            res.status(404).json({message: 'No records found!'});
+            res.status(404).json({ message: 'No records found!' });
         }
     } catch (err) {
         console.error("Database query error:", err);
-        res.status(500).json({message: err.message});
+        res.status(500).json({ message: err.message });
     }
 }
 
@@ -200,34 +226,41 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         const department = req.query.departmentId;
         const center = req.query.center;
         const batchNo = req.query.batchNo;
-        
+        const studentType = req.query.studentType;
+
         let filter = '';
         const queryParams = [];
+
+        if (studentType === 'mock') {
+            filter += ' AND s.batchNo = 100';
+        } else if (studentType === 'regular') {
+            filter += ' AND s.batchNo != 100';
+        }
 
         if (batchNo) {
             filter += ' AND s.batchNo = ?';
             queryParams.push(batchNo);
         }
-        if(center){
+        if (center) {
             filter += ' AND s.center = ?';
             queryParams.push(center);
         }
-        if(department){
+        if (department) {
             filter += ' AND s.departmentId = ?'
             queryParams.push(department);
         }
 
         // First, get all subject IDs and names
-        const [subjects] = await connection.query('SELECT subjectId, subject_name FROM subjectsdb');
+        const [subjects] = await connection.query('SELECT subjectId, MAX(subject_name) as subject_name FROM subjectsdb GROUP BY subjectId');
 
         // Construct dynamic parts of the query
         const subjectCounts = subjects.map(sub => `
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_count,
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_logged_in,
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_completed
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} THEN s.student_id END) AS subject_${sub.subjectId}_count,
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN s.student_id END) AS subject_${sub.subjectId}_logged_in,
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN s.student_id END) AS subject_${sub.subjectId}_completed
         `).join(', ');
 
-        const subjectNames = subjects.map(sub => 
+        const subjectNames = subjects.map(sub =>
             `'${sub.subject_name}' AS subject_${sub.subjectId}_name`
         ).join(', ');
 
@@ -245,7 +278,7 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
             ${subjectNames}
         FROM 
             students s
-        LEFT JOIN batchdb b ON b.batchNo = s.batchNo
+        LEFT JOIN batchdb b ON b.batchNo = s.batchNo AND b.departmentId = s.departmentId
         LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
         WHERE 
             1=1 ${filter}
@@ -259,7 +292,9 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
         console.log(results);
         // Convert date and time to Kolkata timezone
         results.forEach(result => {
-            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
+            if (result.batchdate) {
+                result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('YYYY-MM-DD');
+            }
 
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({
@@ -286,3 +321,80 @@ exports.getCurrentStudentDetailsDepartmentWise = async (req, res) => {
     }
 };
 
+exports.getSuperAdminStageCounts = async (req, res) => {
+    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type, departmentId } = req.body;
+
+    let query = `SELECT 
+        COUNT(CASE WHEN sl.loginTime IS NOT NULL THEN 1 END) as login_count,
+        COUNT(CASE WHEN sl.trial_time IS NOT NULL THEN 1 END) as trial_count,
+        COUNT(CASE WHEN sl.audio1_time IS NOT NULL THEN 1 END) as audio1_count,
+        COUNT(CASE WHEN sl.passage1_time IS NOT NULL THEN 1 END) as passage1_count,
+        COUNT(CASE WHEN sl.audio2_time IS NOT NULL THEN 1 END) as audio2_count,
+        COUNT(CASE WHEN sl.passage2_time IS NOT NULL THEN 1 END) as passage2_count,
+        COUNT(CASE WHEN sl.feedback_time IS NOT NULL THEN 1 END) as feedback_count
+    FROM
+        students s
+    LEFT JOIN
+        departmentdb d ON s.departmentId = d.departmentId
+    LEFT JOIN
+        subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType
+    LEFT JOIN 
+        studentlogs sl ON s.student_id = sl.student_id
+    WHERE 1=1`;
+
+    const queryParams = [];
+
+    if (batchNo) {
+        query += ' AND s.batchNo = ?';
+        queryParams.push(batchNo);
+    }
+
+    if (subject_name) {
+        query += ' AND sub.subject_name = ?';
+        queryParams.push(subject_name);
+    }
+
+    if (center) {
+        query += ' AND s.center = ?';
+        queryParams.push(center);
+    }
+
+    if (departmentId) {
+        query += ' AND s.departmentId = ?';
+        queryParams.push(departmentId);
+    }
+
+    if (loginStatus) {
+        if (loginStatus === 'loggedin') {
+            query += ' AND s.loggedin = 1 AND sl.feedback_time IS NULL';
+        } else if (loginStatus === 'loggedout') {
+            query += ' AND (s.loggedin = 0 OR (s.loggedin = 1 AND sl.feedback_time IS NOT NULL))';
+        }
+    }
+
+    if (exam_type) {
+        if (exam_type === 'shorthand') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
+        } else if (exam_type === 'typewriting') {
+            query += ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0';
+        } else if (exam_type === 'both') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1';
+        }
+    }
+
+    if (batchDate) {
+        const formattedBatchDate = convertDateFormat(batchDate);
+        if (formattedBatchDate) {
+            query += ' AND DATE(s.batchdate) = ?';
+            queryParams.push(formattedBatchDate);
+        }
+    }
+
+    try {
+        const [results] = await connection.query(query, queryParams);
+        res.status(200).json(results[0]);
+    } catch (err) {
+        console.error("Database query error:", err);
+        res.status(500).json({ message: err.message });
+    }
+};

@@ -1,13 +1,12 @@
+// controllers/department/departmentController.js
 const connection = require('../../config/db1');
 const StudentTrackDTO = require("../../dto/studentProgress");
 const { decrypt } = require("../../config/encrypt");
 const moment = require('moment-timezone');
-const { stat } = require('fs/promises');
-exports.departementLogin = async (req, res) => {
 
+exports.departementLogin = async (req, res) => {
     console.log("Trying Department admin login");
     const { departmentId, password } = req.body;
-    // console.log("center: "+centerId+ " password: "+password);
     console.log(req.body);
     const departmentdbQuery = 'SELECT departmentId, departmentPassword FROM departmentdb WHERE departmentId = ?';
 
@@ -16,25 +15,21 @@ exports.departementLogin = async (req, res) => {
         console.log(results);
         if (results.length > 0) {
             const admin = results[0];
-            console.log("data: "+admin);
+            console.log("data: " + admin);
             console.log(admin)
             let decryptedStoredPassword = await decrypt(admin.departmentPassword);
             console.log(decryptedStoredPassword);
             try {
-
                 // console.log("admin pass: " + admin.departmentPassword + " provide pass: " + password);
-
             } catch (error) {
                 console.log(error);
             }
 
-
-            if ( decryptedStoredPassword === password) {
+            if (decryptedStoredPassword === password) {
                 // Set institute session
                 req.session.departmentId = admin.departmentId;
                 console.log("Logged in successfully as an department admin!")
                 res.status(200).send({ "message": 'Logged in successfully as an department admin!' });
-
             } else {
                 res.status(401).send('Invalid credentials for center admin');
             }
@@ -45,25 +40,79 @@ exports.departementLogin = async (req, res) => {
         res.status(500).send(err.message);
     }
 }
+
+// CRITICAL FIX: Send raw datetime strings to frontend without timezone conversion
 function formatDate(dateString) {
-    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY')
+    if (!dateString) return null;
+    try {
+        // Return the datetime string as-is, let frontend handle formatting
+        return dateString;
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return null;
+    }
 }
+
+function formatDateTime(dateTimeString) {
+    if (!dateTimeString) return null;
+    try {
+        // Return the datetime string as-is, let frontend handle formatting
+        return dateTimeString;
+    } catch (error) {
+        console.error('Error formatting datetime:', error);
+        return null;
+    }
+}
+
+function formatTime(timeString) {
+    if (!timeString) return null;
+    try {
+        // Return the time string as-is, let frontend handle formatting
+        return timeString;
+    } catch (error) {
+        console.error('Error formatting time:', error);
+        return null;
+    }
+    return null;
+}
+
+function formatDateTimeIST(dateString) {
+    if (!dateString) return null;
+    const date = moment(dateString);
+    if (!date.isValid()) return null;
+    return date.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+}
+
+function formatDateIST(dateString) {
+    if (!dateString) return null;
+    const date = moment(dateString);
+    if (!date.isValid()) return null;
+    return date.tz('Asia/Kolkata').format('YYYY-MM-DD');
+}
+
 function convertDateFormat(dateString) {
-    // Parse the original date string
-    const [day, month, year] = dateString.split('-');
-
-    // Create a Date object in UTC
-    // Set the time to 18:30:00 UTC of the previous day
-    const date = new Date(Date.UTC(year, month - 1, day - 1, 18, 30, 0));
-
-    // Convert to ISO 8601 format
-    return date
+    if (!dateString) return null;
+    try {
+        // Handle DD/MM/YYYY format
+        if (dateString.includes('/')) {
+            const [day, month, year] = dateString.split('/');
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        // Handle YYYY-MM-DD format
+        return dateString;
+    } catch (error) {
+        console.error('Error converting date format:', error);
+        return null;
+    }
 }
+
 exports.getStudentsTrackDepartmentwise = async (req, res) => {
-    
+    if (!req.session.departmentId) {
+        return res.status(401).json({ "message": "Department admin is not logged in" });
+    }
     const departmentId = req.session.departmentId.toString();
-    console.log('Starting getStudentsTrack function',departmentId);
-    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.query;
+    console.log('Starting getStudentsTrack function', departmentId);
+    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.body;
     console.log("Exam departmentId", departmentId);
     console.log("Batch no:", batchNo);
     console.log("Subject:", subject_name);
@@ -71,8 +120,6 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     console.log("exam type:", exam_type);
     console.log("Center no:", center);
     console.log("Original Batch date:", batchDate);
-
-
 
     if (!departmentId) {
         return res.status(404).json({ "message": "Center admin is not logged in" });
@@ -114,9 +161,14 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     FROM
         students s
     LEFT JOIN
-        subjectsdb sub ON s.subjectsId = sub.subjectId
+        departmentdb d ON s.departmentId = d.departmentId
     LEFT JOIN
-        audiologs a ON s.student_id = a.student_id
+        subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType
+    LEFT JOIN (
+        SELECT student_id, MAX(trial) as trial, MAX(passageA) as passageA, MAX(passageB) as passageB
+        FROM audiologs
+        GROUP BY student_id
+    ) a ON s.student_id = a.student_id
     LEFT JOIN (
         SELECT
             student_id,
@@ -137,7 +189,6 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     ) sl ON s.student_id = sl.student_id
     WHERE s.departmentId = ?`;
 
-
     if (batchNo) {
         query += ' AND s.batchNo = ?';
         queryParams.push(batchNo);
@@ -155,33 +206,40 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 
     if (loginStatus) {
         if (loginStatus === 'loggedin') {
-            query += ' AND s.loggedin = 1';
+            // Logged in AND has not submitted feedback
+            query += ' AND s.loggedin = 1 AND sl.feedback_time IS NULL';
         } else if (loginStatus === 'loggedout') {
-            query += ' AND s.loggedin = 0';
+            // Logged out OR (Logged in BUT has submitted feedback)
+            query += ' AND (s.loggedin = 0 OR (s.loggedin = 1 AND sl.feedback_time IS NOT NULL))';
         }
     }
 
     if (exam_type) {
-        if (exam_type === 'shorthand') {
-            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting =0'
+        if (exam_type === 'GCC') {
+            query += " AND d.examType = 'GCC'";
+        }
+        else if (exam_type === 'SKILL') {
+            query += " AND d.examType = 'SKILL'";
+        }
+        else if (exam_type === 'shorthand') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
         }
         else if (exam_type === 'typewriting') {
-            query += ' And s.IsTypewriting = 1 AND s.IsShorthand = 0'
+            query += ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0';
         }
         else if (exam_type === 'both') {
-            query += ' AND s.IsShorthand = 1 And s.IsTypewriting = 1'
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1';
         }
     }
 
     if (batchDate) {
-        batchDate = convertDateFormat(batchDate);
-        console.log("Formatted Batch date:", batchDate);
-        query += ' AND s.batchdate = ?';
-        queryParams.push(batchDate);
+        const formattedBatchDate = convertDateFormat(batchDate);
+        if (formattedBatchDate) {
+            console.log("Formatted Batch date:", formattedBatchDate);
+            query += ' AND DATE(s.batchdate) = ?';
+            queryParams.push(formattedBatchDate);
+        }
     }
-
-    // console.log('Final query:', query);
-    // console.log('Query parameters:', queryParams);
 
     try {
         const [results] = await connection.query(query, queryParams);
@@ -189,36 +247,54 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
 
         if (results.length > 0) {
             const studentTrackDTOs = results.map(result => {
+                // Don't format - pass raw data to frontend
+                const formattedResult = {
+                    ...result,
+                    batchdate: result.batchdate,
+                    Reporting_Time: result.Reporting_Time,
+                    start_time: result.start_time,
+                    end_time: result.end_time,
+                    loginTime: result.loginTime,
+                    trial_time: result.trial_time,
+                    audio1_time: result.audio1_time,
+                    passage1_time: result.passage1_time,
+                    audio2_time: result.audio2_time,
+                    passage2_time: result.passage2_time,
+                    trial_passage_time: result.trial_passage_time,
+                    typing_passage_time: result.typing_passage_time,
+                    feedback_time: result.feedback_time
+                };
+
                 const studentTrack = new StudentTrackDTO(
-                    result.student_id,
-                    result.center,
-                    result.fullname,
-                    result.batchNo,
-                    result.loginTime,
-                    result.login,
-                    result.done,
-                    result.Reporting_Time,
-                    result.start_time,
-                    result.end_time,
-                    result.trial,
-                    result.passageA,
-                    result.passageB,
-                    result.trial_time,
-                    result.audio1_time,
-                    result.passage1_time,
-                    result.audio2_time,
-                    result.passage2_time,
-                    result.feedback_time,
-                    result.subject_name,
-                    result.subject_name_short,
-                    formatDate(result.batchdate),
-                    result.departmentId,
-                    result.trial_passage_time,
-                    result.typing_passage_time
+                    formattedResult.student_id,
+                    formattedResult.center,
+                    formattedResult.fullname,
+                    formattedResult.batchNo,
+                    formatDateTimeIST(formattedResult.loginTime),
+                    formattedResult.login,
+                    formattedResult.done,
+                    formattedResult.Reporting_Time,
+                    formattedResult.start_time,
+                    formattedResult.end_time,
+                    formattedResult.trial,
+                    formattedResult.passageA,
+                    formattedResult.passageB,
+                    formatDateTimeIST(formattedResult.trial_time),
+                    formatDateTimeIST(formattedResult.audio1_time),
+                    formatDateTimeIST(formattedResult.passage1_time),
+                    formatDateTimeIST(formattedResult.audio2_time),
+                    formatDateTimeIST(formattedResult.passage2_time),
+                    formatDateTimeIST(formattedResult.feedback_time),
+                    formattedResult.subject_name,
+                    formattedResult.subject_name_short,
+                    formatDateIST(formattedResult.batchdate),
+                    formattedResult.departmentId,
+                    formatDateTimeIST(formattedResult.trial_passage_time),
+                    formatDateTimeIST(formattedResult.typing_passage_time)
                 );
 
                 if (typeof studentTrack.fullname === 'string') {
-                    studentTrack.fullname = encryptionInterface.decrypt(studentTrack.fullname);
+                    studentTrack.fullname = decrypt(studentTrack.fullname);
                 }
                 return studentTrack;
             });
@@ -233,28 +309,26 @@ exports.getStudentsTrackDepartmentwise = async (req, res) => {
     }
 }
 
-exports.getDepartmentDetails = async (req,res) => {
-
+// ... rest of the controller methods remain the same
+exports.getDepartmentDetails = async (req, res) => {
     const department = req.session.departmentId.toString();
     console.log(department);
     if (!department) {
         return res.status(400).json({ message: "Department admin not logged in" });
     }
 
-    let query = 'select departmentName , logo from departmentdb where departmentId = ?';
+    let query = 'SELECT departmentName, logo, examType FROM departmentdb WHERE departmentId = ?';
 
     try {
-        const [response] = await connection.query(query,[department]);
+        const [response] = await connection.query(query, [department]);
         if (response.length === 0) {
             return res.status(404).json({ message: "Department not found" });
         }
-        // console.log(response);
-        res.status(201).json({"message":"Department details found",departmentDetails:response[0]});
+        res.status(201).json({ "message": "Department details found", departmentDetails: response[0] });
     } catch (error) {
-        console.error("Database query error:", err);
-        res.status(500).json({ message: err.message });
+        console.error("Database query error:", error);
+        res.status(500).json({ message: error.message });
     }
-    
 }
 
 exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
@@ -276,13 +350,13 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
         }
 
         // First, get all subject IDs and names
-        const [subjects] = await connection.query('SELECT subjectId, subject_name FROM subjectsdb');
+        const [subjects] = await connection.query('SELECT subjectId, MAX(subject_name) as subject_name FROM subjectsdb GROUP BY subjectId');
 
         // Construct dynamic parts of the query
         const subjectCounts = subjects.map(sub => `
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_count,
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_logged_in,
-            SUM(CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN 1 ELSE 0 END) AS subject_${sub.subjectId}_completed
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} THEN s.student_id END) AS subject_${sub.subjectId}_count,
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.login = TRUE THEN s.student_id END) AS subject_${sub.subjectId}_logged_in,
+            COUNT(DISTINCT CASE WHEN s.subjectsId = ${sub.subjectId} AND sl.feedback_time IS NOT NULL THEN s.student_id END) AS subject_${sub.subjectId}_completed
         `).join(', ');
 
         const subjectNames = subjects.map(sub =>
@@ -302,7 +376,7 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
             ${subjectNames}
         FROM 
             students s
-        LEFT JOIN batchdb b ON b.batchNo = s.batchNo
+        LEFT JOIN batchdb b ON b.batchNo = s.batchNo AND b.departmentId = s.departmentId
         LEFT JOIN studentlogs sl ON s.student_id = sl.student_id
         WHERE 
             s.departmentId = ? ${filter}
@@ -314,10 +388,10 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
 
         const [results] = await connection.query(query, queryParams);
 
-        // Convert date and time to Kolkata timezone
         results.forEach(result => {
-            result.batchdate = moment(result.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-
+            if (result.batchdate) {
+                result.batchdate = formatDateIST(result.batchdate);
+            }
             // Restructure subject data for easier consumption
             result.subjects = subjects.map(sub => ({
                 id: sub.subjectId,
@@ -344,7 +418,6 @@ exports.getCurrentStudentDetailsCenterwise = async (req, res) => {
 };
 
 exports.getDepartmentswithstudents = async (req, res) => {
-
     try {
         let query = `select d.departmentId ,d.departmentName, d.departmentStatus from departmentdb d join students s on s.departmentId = d.departmentId group by d.departmentId;`;
 
@@ -383,3 +456,88 @@ exports.updateDepartmentStatus = async (req, res) => {
         res.status(500).json({ "message": "Internal server error" });
     }
 };
+
+exports.getStageCounts = async (req, res) => {
+    if (!req.session.departmentId) {
+        return res.status(401).json({ "message": "Department admin is not logged in" });
+    }
+    const departmentId = req.session.departmentId.toString();
+    let { subject_name, loginStatus, batchDate, batchNo, center, exam_type } = req.body;
+
+    let query = `SELECT 
+        COUNT(CASE WHEN sl.loginTime IS NOT NULL THEN 1 END) as login_count,
+        COUNT(CASE WHEN sl.trial_time IS NOT NULL THEN 1 END) as trial_count,
+        COUNT(CASE WHEN sl.audio1_time IS NOT NULL THEN 1 END) as audio1_count,
+        COUNT(CASE WHEN sl.passage1_time IS NOT NULL THEN 1 END) as passage1_count,
+        COUNT(CASE WHEN sl.audio2_time IS NOT NULL THEN 1 END) as audio2_count,
+        COUNT(CASE WHEN sl.passage2_time IS NOT NULL THEN 1 END) as passage2_count,
+        COUNT(CASE WHEN sl.feedback_time IS NOT NULL THEN 1 END) as feedback_count
+    FROM
+        students s
+    LEFT JOIN
+        departmentdb d ON s.departmentId = d.departmentId
+    LEFT JOIN
+        subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType
+    LEFT JOIN 
+        studentlogs sl ON s.student_id = sl.student_id
+    WHERE s.departmentId = ?`;
+
+    const queryParams = [departmentId];
+
+    if (batchNo) {
+        query += ' AND s.batchNo = ?';
+        queryParams.push(batchNo);
+    }
+
+    if (subject_name) {
+        query += ' AND sub.subject_name = ?';
+        queryParams.push(subject_name);
+    }
+
+    if (center) {
+        query += ' AND s.center = ?';
+        queryParams.push(center);
+    }
+
+    if (loginStatus) {
+        if (loginStatus === 'loggedin') {
+            query += ' AND s.loggedin = 1 AND sl.feedback_time IS NULL';
+        } else if (loginStatus === 'loggedout') {
+            query += ' AND (s.loggedin = 0 OR (s.loggedin = 1 AND sl.feedback_time IS NOT NULL))';
+        }
+    }
+
+    if (exam_type) {
+        if (exam_type === 'GCC') {
+            query += " AND d.examType = 'GCC'";
+        }
+        else if (exam_type === 'SKILL') {
+            query += " AND d.examType = 'SKILL'";
+        }
+        else if (exam_type === 'shorthand') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 0';
+        }
+        else if (exam_type === 'typewriting') {
+            query += ' AND s.IsTypewriting = 1 AND s.IsShorthand = 0';
+        }
+        else if (exam_type === 'both') {
+            query += ' AND s.IsShorthand = 1 AND s.IsTypewriting = 1';
+        }
+    }
+
+    if (batchDate) {
+        const formattedBatchDate = convertDateFormat(batchDate);
+        if (formattedBatchDate) {
+            query += ' AND DATE(s.batchdate) = ?';
+            queryParams.push(formattedBatchDate);
+        }
+    }
+
+    try {
+        const [results] = await connection.query(query, queryParams);
+        res.status(200).json(results[0]);
+    } catch (err) {
+        console.error("Database query error:", err);
+        res.status(500).json({ message: err.message });
+    }
+}

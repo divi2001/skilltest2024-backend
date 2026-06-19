@@ -3,9 +3,10 @@ const router = express.Router();
 const examCenterController = require('../controllers/centerAdminMonitoring/getExamCenter');
 const examCenter = require('../controllers/centerAdminMonitoring/getCenterDetails');
 const examCenterFunc = require('../controllers/examCenterAdmin/get_pdfs_data');
-const {getControllerPassForCenter,getBatchwiseControllerPassForCenter} = require('../controllers/controllerPassword/controllerPassword');
+const {getControllerPassForCenter,getBatchwiseControllerPassForCenter, getDepartmentsForCenter} = require('../controllers/controllerPassword/controllerPassword');
 const {getPcRegistrations,removePcRegistration} = require('../controllers/controllerPassword/pcRegistration');
-const { getCurrentStudentDetails } = require('../controllers/centerAdminMonitoring/getCurrentStudentStatus');
+const { getCurrentStudentDetails, getDepartments } = require('../controllers/centerAdminMonitoring/getCurrentStudentStatus');
+const {getCenterBatchNumbers} = require('../controllers/examcenter');
 
 router.get('/get-center-centerpass', examCenterController.getExamCenter);
 router.get('/get-center-details', examCenter.getExamCenterDetails);
@@ -14,7 +15,11 @@ router.get('/get-controller-pass', getControllerPassForCenter);
 router.post('/get-batch-controller-password',getBatchwiseControllerPassForCenter);
 router.get('/get-pcregistration', getPcRegistrations);
 router.get('/get-current-student-details',getCurrentStudentDetails);
+router.get('/departments',getDepartments);
 router.get("/get-center-pcregistration-details",examCenter.getPcregistrationdetails);
 router.post('/delete-pcregistration',removePcRegistration);
+router.get('/center-batches', getCenterBatchNumbers); 
+router.get('/get-departments', getDepartmentsForCenter);
+
 
 module.exports = router;

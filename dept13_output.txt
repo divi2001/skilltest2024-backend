@@ -1,0 +1,30 @@
+subjectsdb columns: subjectId, examType, courseId, subject_name, subject_name_short, daily_timer, passage_timer, demo_timer, disability_passage_timer, typing_timer, disability_typing_timer
+
+=== CONTROLLER (dept 13) ===
+No controller entries for departmentId 13
+
+=== STUDENTS per subjectsId+qset (center 211351, dept 13) ===
+subjectsId | subject_name | qset | batchNo | student_id | decrypted_password
+----------------------------------------------------------------------------------------------------
+51 | unknown | qset:1 | batch:401 | 211351511690 | "974826"
+51 | unknown | qset:2 | batch:401 | 211351511691 | "945622"
+52 | unknown | qset:1 | batch:202 | 211351520746 | "676952"
+52 | unknown | qset:2 | batch:202 | 211351520747 | "232497"
+53 | unknown | qset:1 | batch:101 | 211351530001 | "765352"
+53 | unknown | qset:2 | batch:101 | 211351530002 | "543625"
+60 | unknown | qset:1 | batch:401 | 211351601710 | "836664"
+60 | unknown | qset:2 | batch:401 | 211351601711 | "925991"
+61 | unknown | qset:1 | batch:202 | 211351610820 | "399865"
+61 | unknown | qset:2 | batch:202 | 211351610821 | "191526"
+61 | unknown | qset:3 | batch:204 | 211351611045 | "338678"
+61 | unknown | qset:4 | batch:204 | 211351611046 | "798242"
+61 | unknown | qset:5 | batch:301 | 211351611195 | "344153"
+61 | unknown | qset:6 | batch:301 | 211351611196 | "561249"
+61 | unknown | qset:7 | batch:303 | 211351611495 | "112237"
+61 | unknown | qset:8 | batch:303 | 211351611496 | "476971"
+62 | unknown | qset:1 | batch:101 | 211351620049 | "925536"
+62 | unknown | qset:2 | batch:101 | 211351620050 | "975821"
+62 | unknown | qset:3 | batch:103 | 211351620299 | "153227"
+62 | unknown | qset:4 | batch:103 | 211351620300 | "655418"
+62 | unknown | qset:5 | batch:201 | 211351620599 | "492545"
+62 | unknown | qset:6 | batch:201 | 211351620600 | "561371"

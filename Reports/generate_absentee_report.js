@@ -1,77 +1,90 @@
 const connection = require("../config/db1");
-const moment = require('moment-timezone'); // Make sure to install and import moment.js for easier date handling
+const moment = require('moment-timezone');
 
-async function getData(center, batchNo) {
+// Helper functions for formatting
+function formatDate(dateString) {
+    return moment(dateString).tz('Asia/Kolkata').format('DD-MM-YYYY');
+}
+
+function formatDateTime(dateTimeString) {
+    return moment(dateTimeString).tz('Asia/Kolkata').format('YYYY-MM-DD hh:mm A');
+}
+
+function formatTime(timeString) {
+    console.log('Formatting time:', timeString, 'Type:', typeof timeString);
+    
+    if (!timeString) {
+        return 'Not specified';
+    }
+    
+    // Convert to string
+    const timeStr = timeString.toString();
+    
+    // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    // If it's in HH:MM format, convert to 12-hour format
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
+}
+
+async function getData(center, batchNo, departmentId) {
     try {
-        console.log(`Looking for data with center: ${center}, batchNo: ${batchNo}`);
+        // Modified query to get ALL students, not just absent ones
+        const query = 'SELECT s.student_id, s.loggedin, d.departmentName, d.departmentExam, d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.batchNo = ? AND s.center = ? AND s.departmentId = ?';
+        const response = await connection.query(query, [batchNo, center, departmentId]);
         
-        // First, log all department IDs present in the system for reference
-        const deptQuery = 'SELECT departmentId, departmentName FROM departmentdb';
-        const [departments] = await connection.query(deptQuery);
-        console.log("Available departments in the system:", departments);
+        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const batchData = await connection.query(batchquery, [batchNo, departmentId]);
         
-        // Check if there are any students for this batch and center, regardless of department
-        const checkQuery = 'SELECT COUNT(*) as count FROM students WHERE batchNo = ? AND center = ?';
-        const [checkResult] = await connection.query(checkQuery, [batchNo, center]);
-        console.log(`Total students found for batch ${batchNo} at center ${center}: ${checkResult[0].count}`);
-        
-        // Get a breakdown of department IDs for students in this batch and center
-        const deptBreakdownQuery = 'SELECT departmentId, COUNT(*) as count FROM students WHERE batchNo = ? AND center = ? GROUP BY departmentId';
-        const [deptBreakdown] = await connection.query(deptBreakdownQuery, [batchNo, center]);
-        console.log(`Department ID breakdown for batch ${batchNo} at center ${center}:`, deptBreakdown);
-        
-        // Specifically check for departmentId=2
-        const deptCheckQuery = 'SELECT COUNT(*) as count FROM students WHERE batchNo = ? AND center = ? AND departmentId = 5';
-        const [deptCheckResult] = await connection.query(deptCheckQuery, [batchNo, center]);
-        console.log(`Students with departmentId=2 for batch ${batchNo} at center ${center}: ${deptCheckResult[0].count}`);
-        
-        // Modified main query - explicitly targeting departmentId=2
-        const query = `SELECT s.student_id, s.departmentId, d.departmentName, d.logo 
-                      FROM students as s 
-                      JOIN departmentdb d ON s.departmentId = d.departmentId 
-                      WHERE s.batchNo = ? AND s.center = ?`;
-        const [response] = await connection.query(query, [batchNo, center]);
-        console.log(`Students found with department join: ${response.length}`);
-        if (response.length > 0) {
-            console.log("Sample student record:", response[0]);
+        // Debug the time value
+        if (batchData[0] && batchData[0].length > 0) {
+            const startTime = batchData[0][0].start_time;
+            console.log('Raw start_time value:', startTime);
+            console.log('start_time type:', typeof startTime);
+            console.log('start_time toString():', startTime ? startTime.toString() : 'null');
+            console.log('start_time JSON:', JSON.stringify(startTime));
         }
-        
-        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const [batchData] = await connection.query(batchquery, [batchNo]);
-        
-        if (!response || response.length === 0) {
-            console.log("No students found with department join - checking if we have students without the join");
-            // Try a simpler query without the department join as a fallback
-            const fallbackQuery = 'SELECT student_id, departmentId FROM students WHERE batchNo = ? AND center = ?';
-            const [fallbackResponse] = await connection.query(fallbackQuery, [batchNo, center]);
-            console.log(`Fallback query found ${fallbackResponse.length} students`);
-            
-            if (fallbackResponse.length > 0) {
-                console.log("Sample fallback student:", fallbackResponse[0]);
-                
-                // If we found students without the join, use default department info
-                console.log("Using default department info for students");
-                const defaultDept = { departmentName: 'GCC Examination', logo: null };
-                
-                // Create a response with default department info
-                const mappedResponse = fallbackResponse.map(student => ({
-                    student_id: student.student_id,
-                    departmentName: defaultDept.departmentName,
-                    logo: defaultDept.logo
-                }));
-                
-                return { 
-                    response: mappedResponse, 
-                    batchData: batchData
-                };
-            }
-            
-            return null; // No students found even with fallback query
+
+        // Format the batch data dates and times
+        if (batchData[0] && batchData[0].length > 0) {
+            batchData[0].forEach(batch => {
+                if (batch.batchdate) {
+                    batch.batchdate_formatted = formatDate(batch.batchdate);
+                }
+                if (batch.start_time) {
+                    batch.start_time_formatted = formatTime(batch.start_time);
+                }
+            });
         }
         
         return { 
-            response: response, 
-            batchData: batchData
+            response: response[0], 
+            batchData: batchData[0]
         };
     } catch (error) {
         console.error('Error in getData:', error);
@@ -79,14 +92,29 @@ async function getData(center, batchNo) {
     }
 }
 
-function checkDownloadAllowed(batchDate) {
-    const today = moment().startOf('day');
-    const batchMoment = moment(batchDate).startOf('day');
-    console.log(today,batchMoment);
-    const differenceInDays = batchMoment.diff(today, 'days');
-    console.log(differenceInDays);
-    // Allow download if it's the day of the batch or one day before
-    return differenceInDays <= 1 && differenceInDays >= 0;
+// Updated function to allow downloads 3 days before batch date
+function checkDownloadAllowed3DaysBefore(batchDate) {
+    const kolkataZone = 'Asia/Kolkata';
+    
+    // Parse the batchDate and convert to Kolkata timezone
+    const batchDateKolkata = moment(batchDate).tz(kolkataZone).startOf('day');
+    
+    // Get current time in Kolkata timezone
+    const now = moment().tz(kolkataZone).startOf('day');
+    
+    // Calculate difference in days
+    const differenceInDays = batchDateKolkata.diff(now, 'days');
+    
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Date (Kolkata):', now.format('YYYY-MM-DD'));
+    console.log('Difference in Days:', differenceInDays);
+    
+    // Allow download from 3 days before batch date until 1 day after batch date
+    // differenceInDays will be:
+    // - Positive if batch date is in future
+    // - 0 if batch date is today
+    // - Negative if batch date is in past
+    return differenceInDays >= -1 && differenceInDays <= 4;
 }
 
 function checkDownloadAllowedStudentLoginPass(batchDate) {
@@ -99,38 +127,41 @@ function checkDownloadAllowedStudentLoginPass(batchDate) {
     // Get current date in Kolkata timezone
     const nowKolkata = moment().tz(kolkataZone).startOf('day');
 
-    // Calculate the date 1 day before the batch date
-    const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
+    // Calculate the date 3 days before the batch date (updated from 1 day)
+    const threeDaysBefore = batchDateKolkata.clone().subtract(4, 'days');
 
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
     console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
-    console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+    console.log('Three Days Before (Kolkata):', threeDaysBefore.format('YYYY-MM-DD'));
 
-    // Check if current date is after or equal to 1 day before the batch date
-    return nowKolkata.isSameOrAfter(oneDayBefore);
+    // Check if current date is after or equal to 3 days before the batch date
+    return nowKolkata.isSameOrAfter(threeDaysBefore);
 }
 
 function addHeader(doc, data) {
-    // Only try to display the logo if it exists
     if (data.departmentLogo) {
-        doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
+        try {
+            doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
+        } catch (error) {
+            console.error('Error loading department logo:', error);
+        }
     }
 
     doc.fontSize(14).font('Helvetica-Bold')
-        .text(data.departmentName, 110, 50, {
+        .text(data.departmentName.toUpperCase(), 110, 50, {
             width: 450,
             align: 'center'
         });
 
-    // doc.fontSize(12).font('Helvetica')
-    //     .text('GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2024', 110, doc.y + 5, {
-    //         width: 450,
-    //         align: 'center'
-    //     });
+    doc.fontSize(12).font('Helvetica')
+        .text(data.departmentExam.toUpperCase(), 110, doc.y + 5, {
+            width: 450,
+            align: 'center'
+        });
 
     doc.fontSize(12).font('Helvetica')
-        .text('ATTENDENCE REPORT', 110, doc.y + 5, {
+        .text('ABSENTEE REPORT', 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
@@ -148,10 +179,16 @@ function addHeader(doc, data) {
     doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 300, yPosition + 10);
     doc.text(`EXAM TIME: ${data.examTime}`, 440, yPosition + 10);
 
-    return doc.y + 20;
+    doc.fontSize(11).font('Helvetica')
+        .text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 50, doc.y + 8, {
+            width: 500,
+            align: 'left'
+        });
+
+    return doc.y + 10;
 }
 
-function createTable(doc, seatNumbers, headerData) {
+function createTable(doc, students, headerData) {
     const tableTop = 190;
     const tableLeft = 50;
     const cellWidth = 100;
@@ -164,8 +201,8 @@ function createTable(doc, seatNumbers, headerData) {
     const columnsPerRow = 5;
     const maxRowsPerPage = Math.floor((pageHeight - tableTop - marginBottom - signatureHeight - signatureGap) / cellHeight);
 
-    if (!Array.isArray(seatNumbers)) {
-        console.error('seatNumbers is not an array:', seatNumbers);
+    if (!Array.isArray(students)) {
+        console.error('students is not an array:', students);
         return tableTop;
     }
 
@@ -187,7 +224,7 @@ function createTable(doc, seatNumbers, headerData) {
     currentY = drawHeaderRow(currentY);
     let rowsOnCurrentPage = 0;
 
-    for (let i = 0; i < seatNumbers.length; i += columnsPerRow) {
+    for (let i = 0; i < students.length; i += columnsPerRow) {
         if (rowsOnCurrentPage >= maxRowsPerPage) {
             currentY = addSignatureLines(doc, currentY, signatureGap);
             doc.addPage();
@@ -201,12 +238,18 @@ function createTable(doc, seatNumbers, headerData) {
             const currentX = tableLeft + j * cellWidth;
             doc.rect(currentX, currentY, cellWidth, cellHeight).stroke();
 
-            if (i + j < seatNumbers.length) {
+            if (i + j < students.length) {
+                const student = students[i + j];
                 doc.fontSize(10).font('Helvetica');
                 const textHeight = doc.currentLineHeight();
                 const textY = currentY + (cellHeight - textHeight) / 2;
 
-                doc.text(seatNumbers[i + j], currentX, textY, {
+                // Display student ID with status indicator (optional)
+                const displayText = student.student_id.toString();
+                // You can add a marker for absent students if needed:
+                // const displayText = student.loggedin === 0 ? `${student.student_id} (A)` : student.student_id.toString();
+
+                doc.text(displayText, currentX, textY, {
                     width: cellWidth,
                     align: 'center'
                 });
@@ -240,48 +283,63 @@ function addSignatureLines(doc, y, gap = 40) {
 
 function createAttendanceReport(doc, data) {
     addHeader(doc, data);
-    doc.fontSize(10).text('Note: Make a circle on the Seat Number below for absent students with a red pen.', 55, 160).stroke();
-
-    createTable(doc, data.seatNumbers, data);
+    createTable(doc, data.students, data);
 }
 
 function getDateFromISOString(isoString) {
-    const date = new Date(isoString);
-    return date.toISOString().split('T')[0];
+    // Updated to return YYYY-MM-DD format in Kolkata timezone
+    return moment(isoString).tz('Asia/Kolkata').format('YYYY-MM-DD');
 }
 
-async function generateReport(doc, center, batchNo) {
+async function generatePostAbsenteeReport(doc, center, batchNo, departmentId) {
     try {
-        const Data = await getData(center, batchNo);
-        
-        if (!Data) {
-            throw new Error('No data returned from getData');
-        }
+        const Data = await getData(center, batchNo, departmentId);
 
         const response = Data.response;
         if (!Array.isArray(response) || response.length === 0) {
-            throw new Error('No student data found');
+            throw new Error('No data returned from getData');
         }
-
+        
         if (!Array.isArray(Data.batchData) || Data.batchData.length === 0) {
             throw new Error('No batch data available');
         }
 
         const batchInfo = Data.batchData[0];
-        const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
         
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
+        const examDate = formatDate(batchInfo.batchdate);
+        
+        // Handle time formatting with fallback
+        let examTime = 'Not specified';
+        if (batchInfo.start_time) {
+            try {
+                examTime = formatTime(batchInfo.start_time);
+                if (examTime === 'Invalid time') {
+                    // Fallback: try to extract time from the raw value
+                    examTime = batchInfo.start_time.toString();
+                }
+            } catch (timeError) {
+                console.error('Time formatting error:', timeError);
+                examTime = batchInfo.start_time.toString();
+            }
         }
+        
+        console.log('Formatted Exam Date:', examDate);
+        console.log('Formatted Exam Time:', examTime);
+        
+        // Use the updated 3-day check function
+        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+        //     throw new Error("Download not allowed at this time - must be within 3 days of batch date");
+        // }
         
         const data = {
             centerCode: center,
             batch: batchNo.toString(),
             examDate: examDate,
-            examTime: batchInfo.start_time,
-            seatNumbers: response.map(student => student.student_id.toString()),
-            departmentName: response[0].departmentName || 'GCC Examination',
-            departmentLogo: response[0].logo || null
+            examTime: examTime,
+            students: response, // Changed from seatNumbers to students array
+            departmentName: response[0].departmentName,
+            departmentExam: response[0].departmentExam,
+            departmentLogo: response[0].logo
         };
 
         createAttendanceReport(doc, data);
@@ -292,4 +350,10 @@ async function generateReport(doc, center, batchNo) {
     }
 }
 
-module.exports = { generateReport };
+// Add an alias function for backward compatibility
+async function generateReport(doc, center, batchNo, departmentId) {
+    return generatePostAbsenteeReport(doc, center, batchNo, departmentId);
+}
+
+// Fixed: Single module.exports statement
+module.exports = { generatePostAbsenteeReport, generateReport };

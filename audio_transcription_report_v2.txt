@@ -1,0 +1,3094 @@
+====================================================================================================
+AUDIO TRANSCRIPTION REPORT (Hybrid: Whisper + IndicConformer)
+====================================================================================================
+
+Generated: 2026-01-18 14:18:10
+Total Records Processed: 35
+
+--------------------------------------------------
+SUMMARY
+--------------------------------------------------
+Total Audio Files: 105
+✓ Successfully Transcribed: 102
+✗ Failed: 3
+○ Skipped (No URL): 0
+
+====================================================================================================
+DETAILED TRANSCRIPTIONS
+====================================================================================================
+
+--------------------------------------------------------------------------------
+Record ID: 1
+Subject: Shorthand Mock English (ID: 40)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/40_0A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute. Passage A. Ready, start. Dear Sir, Paira
+  , referring to your letter dated, first instant, I have the honor to state that 
+  the information called for could not be supplied immediately from this office as
+   the necessary particulars have it to be collected from various offices under ou
+  r control. We are anyhow in a position to let you know that steps will be taken 
+  shortly to collect the particulars and send them on to you pending the receipt o
+  f details from our subordinate offices. I would like to suggest that the statist
+  ics in detail may be prepared in your office so that the tabulation may be made 
+  according to your requirements. Further, we are just now very busy in connection
+   with the proposed legislation in the local assembly regarding labor immigration
+  . I have very great pleasure to inform you that we are organizing a new departme
+  nt to look after the interests of those people who land in India in utter despai
+  r after spending a good deal of their time in foreign lands. The sight of such m
+  iserable men has shocked many of us in India and therefore we have been able to 
+  get a decent start in funds for our activities. I would expect your cooperation 
+  in all our efforts and I hope we can depend upon your guidance. If you will make
+   an appointment next week, I shall be glad to see you and I may be able to give 
+  you, and I may be able to give you more particulars, Pira, you are sincerely.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/40_0B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute. Passage B. Ready, start. Dear Sirs, Pher
+  a, we confirm the following telegram sent to you just now. Delivery will be made
+   tomorrow. Tara, we are really sorry for the delay. We have done our utmost to e
+  xpedite delivery, but the pressure of orders for good blankets from our own stat
+  e has made it difficult for us to deliver as promptly as we wish. And this is so
+   even when our meals are working day and night. As a result of the sudden change
+   of weather, we know you require the goods at once. We have in order to how you 
+  that we are annexed not to cause you inconvenience put aside other orders which 
+  in fact should have been executed before yours. Our customers are pressing on al
+  l sides for immediate delivery and the demand is heavy. We are not the only manu
+  facturers of blankets whose resources are overtaxed at present. We are confident
+   that this explanation will convince you of our endeavor to meet your wishes and
+   because until this recent rush we have never failed to execute your orders with
+  in the stipulated time. We rely upon your leniency in the present case. We need 
+  hardly mention that your orders will always receive our most careful and prompt 
+  attention. We request you to remit the amounts due to date by a draft on the Res
+  erve Bank of India. Navi Mumbai at your earliest convenience, there are yours tr
+  uly Sreya's party.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/40_0T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute, trial passage. Ready? Start. Dear Sirs, 
+  Pera, we have given careful consideration to the request contained in your lette
+  r of 2 April for the sole agency in your letter of 2nd April for the sole agency
+   in your district of our new machine. We have no agency at present in the north 
+  of Bombay and as we understand that you are an old established concern with firs
+  t-class connections in this type of machinery.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 2
+Subject: Shorthand Mock Marathi (ID: 41)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/41_0A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट पॅसेज ए रेडी स्टार्ट परिछित आपल्या देशातील शेत
+  ी व्यवसा याचे एक दुर्दैव म्हणजे अनेक वर्षांच्या कालावधीनंतर शेतकरी व शेतमजूर यां
+  ना आवश्यक असणाऱ्या वाजवी जीवनमानाचा विचार झाला नाही तसेच उत्पादन खर्चाचा विचार क
+  रून त्यावर आधारित अशा किफायतशीिर किंमतीची हमी अजून मिळत नाही कारखानदार आपल्या मा
+  लाची किंमत स्वत निश्चित करतो व त्याला परवडेल अशा किमतीला तो आपला माल विकतो परंतु
+   शेतकऱ्याने पिकविलेल्या मालाची किंमत बाजारपेठेत लिलावाच्या पद्धतीने केली जाते पर
+  िछेत शेतकरी वर्गापैकी मूठभर धनिकांचा वर्ग वगळल्यास बहुसंख्य शेतकरी हे दरिद्री व 
+  कर्जबाजारी आहेत त्यातील बहुतेक शेतकरी कनिष्ठ प्रकारचे जीवन तर अनेकजण उपासमारीच्य
+  ा छायेत कसेबसे जगत आहेत त्यांची नगद पैशांची गरज इतकी तीव्र असते की ते योग्य किंम
+  त येईपर्यंत वाट पाहूच शकत नाहीत सुगीमध्ये किंमती जेव्हा ढासळलेल्या असतात तेव्हाच
+   त्यांना आपला माल मिळेल त्या किंमतीने विकणे भाग पडते परिछेत गरीब शेतकऱ्यांची ही 
+  लूट व पिळवणूक थांबविण्यासाठी व त्याच बरोबर बाजारपेठेतील किमतीच्या चढउतारापासून त
+  ्यांची मुक्तता करून त्यांच्या मालाला सर्व राज्यभर आणि संपूर्ण हंगामभर एकच भाव मि
+  ळावा म्हणून शासन प्रयत्नशील आहे या दिशेने एक प्रयत्न म्हणून कापूस खरेदी योजना पु
+  न्हा हाती घेण्यात आली जो शेतकरी आजपर्यंत केवळ कच्चा कापूस विकत आला आहे त्याला गा
+  ठीचा कापूस विकण्याची संधी या योजनामुळे प्राप्त होत आहे
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/41_0B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट पॅसेज बी रेडी स्टार्ट महोदय आपले दहा ऑक्टोबर द
+  ोन हजार तेवीसचे पत्र मिळाले त्याबद्दल आम्ही आपले आभारी आहोत परिछित आपल्या वरील प
+  त्रात आपण ज्या मालाची मागणी केली आहे त्याचे उत्पादन आम्ही नुकतेच बंद केले आहे का
+  रण त्यासाठी जो कच्चा माल लागतो त्याला परदेशातून हल्ली चांगल्या किमतीला बरीच मागण
+  ी येऊ लागली आहे त्यामुळे या देशात तो दिवसेंदिवस महाग होत चालला असून त्याचे आजचे 
+  भाव आम्हाला परवडण्यासारखे नाहीत किंबहुना परदेशातील वाढत्या मागणीमुळे चढ्या किमती
+  त देखील तो माल या देशात दुर्मिळ होत चालला आहे या परिस्थितीत उत्पादनासाठी करावी ल
+  ागणारी यातायात व खर्च आणि त्यातून शेवटी होणारा नफा यांचा सर्व बाजूननी विचार करून
+   त्या मालाचे उत्पादन बंदच करण्याचा निर्णय आम्हाला नाइलाजाने घ्यावा लागला शिवाय य
+  ा बाबतीत दुसरी महत्त्वाची गोष्ट अशी आहे की इतके सगळे करून सरून मालाचा उठाव ताबडत
+  ोब होईलच याची शाश्वती नाही तसा तो झाला नाही तर त्यासाठी गुंतवलेले भांडवल तर दीर्
+  घकाळ अडकून पडतेच पण त्याखेरीज मालही खराब होऊन फायद्याऐवजी नुकसान सोसण्याची आपत्त
+  ी निर्माण होते वरील परिस्थितीत आपली मागणी आम्ही पूर्ण करू शकत नाही याबद्दल आम्हा
+  स खेद होतो परिचित आमच्या कंपनीचे दरपत्रक सोबत पाठविले आहे त्यात नमूद केलेल्या मा
+  लाची मागणी केल्यास ती पूर्ण करण्यास आम्हाला केव्हाही आनंद वाटेल परिचित आपले विश्
+  वासू
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/41_0T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट ट्रायल पॅसेज रेडी स्टार्ट महाशय पारा आज जगात ल
+  ोकसंख्या वाढीचा प्रश्न तोंड वासून उभा आहे वेळीच त्याला पायबंद न घातल्यास विपरीत 
+  परिणाम झाल्याशिवाय राहणार नाही भारताची एकतीस मार्च एकोणीशे पंच्याऐंशी पर्यंत लोक
+  संख्या चौऱ्याहत्तर कोटी होती एवढी लोकसंख्या असण्याची मुख्य तीन कारणे आहेत वाढते 
+  जन्म प्रमाण घटते मृत्यू प्रमाण व अशिक्षतीपणा
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 3
+Subject: Shorthand Small Audio (ID: 42)
+QSet: 1
+Department ID: 10
+Target Language: None
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://hgasggsgkd.s3.ap-south-1.amazonaws.com/trialpassagemar.mp3
+  Status: FAILED
+  Reason: Download failed
+
+  [PASSAGE2]
+  URL: https://hgasggsgkd.s3.ap-south-1.amazonaws.com/This+is+testing+file+mar+eng+hin.m4a
+  Status: FAILED
+  Reason: Download failed
+
+  [TESTAUDIO]
+  URL: https://hgasggsgkd.s3.ap-south-1.amazonaws.com/marathi+testing+file.m4a
+  Status: FAILED
+  Reason: Download failed
+
+
+--------------------------------------------------------------------------------
+Record ID: 4
+Subject: English Shorthand 60 wpm (ID: 50)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_1A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute. Passage A. Ready. Start. My dear Vijay. 
+  Para. I am in receipt of your letter and noted the contents. If you want to be s
+  uccessful in getting high speed, you should also cultivate the reading habit. Yo
+  u should also attach as much importance to reading practice as to the actual not
+  e-taking. I would again impress upon you that it is absolutely necessary that yo
+  u should read your shorthand notes. Although reading practice is helpful,  Trans
+  cription is most essential. It is for the errors in the transcript that the shor
+  thand writer is penalized. Therefore, it is quite useless if you do not pay your
+   attention to transcription also para. I would say that there is one other metho
+  d for developing high speed within a very short period. Select speeches or writi
+  ngs of great men and have them correctly copied in your notebook with the correc
+  t outlines and phrases. You should write the same passage over and again. You sh
+  ould increase the speed gradually until you are able to write that passage at ve
+  ry high speed by following this method your hand moves freely and your mind will
+   not struggle to think of new outlines and you will be able to maintain a high s
+  peed at all times para. In my practical experience, I have found that by merely 
+  writing new passages daily in the evening, you cannot expect a rapid improvement
+   in the attainment of high speed and it is not a real speed practice.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_1B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute. Passage B. Ready. Start. Dear Sir, Parra
+  , we are in receipt of your esteemed favor dated 5th of this month and thank you
+   very much for the same. In this connection we wish to inform you that the goods
+   of particular quality you want are not readily available. You are aware that th
+  is is the busy season and we have a large number of orders on hand. However, as 
+  you are our permanent customer, we assure you that the goods will be supplied to
+   you before the end of this month. Please let us know your opinion in this regar
+  d as early as possible. If you are agreeable, kindly fill in the enclosed pro fo
+  rma and post the same per return of post. Your reply in this behalf should reach
+   us positively before 20th instant. Otherwise, it would not be possible for us t
+  o accept your orders in the matter. We are also happy to inform you that the rem
+  aining goods are being sent to you by passenger train. The railway parcel receip
+  t and bills in duplicate are dispatched separately by post for your information.
+   We have taken all precautions to the best of our ability to see that the goods 
+  are packed as safely as possible. We request you kindly to confirm the same. If 
+  the goods are damaged in transit, we assure you that such goods will be replaced
+   at our cost. You may receive the railway parcel receipt and bills on Monday.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_1T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute, trial passage ready. Start. Dear Serves,
+   Para, we have given careful consideration to the request contained in your lett
+  er of 2 April for the sole agency in your district of our new machine. We have n
+  o agency at present in the north of Bombay and as we understand that you are an 
+  old established concern with first class connections in this type of machinery.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 5
+Subject: English Shorthand 60 wpm (ID: 50)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_2A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 WPM, Passage A. Ready, Start. Dear Sir, Para, as you are a
+  ware, we are one of the largest producers of iron and steel products, mainly wit
+  h a view to export from this country. During the past few years, our exports of 
+  these commodities have exceeded rupees 1 crore each year, while we have been con
+  fining ourselves till now to some of the European countries. We are anxious that
+   we should take full advantage of vast potentialities of the markets in Asia. We
+   have therefore been planning the expansion of our factory to meet the pricing d
+  emands. In this context, you will kindly appreciate that we would need the fulle
+  st cooperation and help from our department unless and until. Therefore, we are 
+  given the full quota of two tons of steel, which we have applied for on priority
+   basis. We are afraid our export trade will be greatly affected. We are anxious 
+  as we are sure the government of India to that we should expand our export trade
+   as much as possible and earn the much valuable foreign exchange. One of the mos
+  t important considerations in the export trade, you will kindly realize is that 
+  we should keep to the schedule and we cannot do this but for your cooperation in
+   the matter. It is unfortunate that last year due to variety of factors we could
+   not get the full quota of our allotment in time which had considerably damaged 
+  our reputation in the foreign market.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_2B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 WPM. Passage B. Ready. Start. Dear Sir, Pera, we have rece
+  ived your letter of the seventh instant. Our contract with you was entered into 
+  the clear understanding that you will observe its terms and conditions. We shoul
+  d like to point out that our expectations have not been fulfilled under the term
+  s of the settlement. The work has to be finished by the middle of May and there 
+  is no reasonable certainty of this result being achieved, you had better conside
+  r what would be the result of your action if the work you have undertaken is not
+   finished on the date in question. We should like to have a definite assurance a
+  s to your intentions. You will remember that we went into the matter at great le
+  ngth in our previous communication, and we should not have had to reopen the sub
+  ject so soon but for the way in which our instructions have been disregarded. We
+   hope you will excuse us for saying so, but it looks as though you will never pu
+  t your heart and soul into the work or carry out the terms of the contract. We c
+  annot resist the conclusion that you could have done more with greater vigilance
+  . If you could finish work rapidly now, we would not take any technical objectio
+  n on the ground of delay. It may seem to you that we are unduly harsh but on car
+  eful consideration, you will find that you are wrong in thinking so.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_2T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute, trial passage. Ready? Start. Dear sirs, 
+  para, we have given careful consideration to the request contained in your lette
+  r of 2nd April for the sole agency in your district of our new machine. We have 
+  no agency at present in the north of Bombay and as we understand that you are an
+   old established concern with first-class connections in this type of machinery.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 6
+Subject: English Shorthand 60 wpm (ID: 50)
+QSet: 3
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_3A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute. Passage A ready. Start. Dear Sir Spara, 
+  I thank you for your prompt reply with enclosures to my letter of the instant re
+  garding my appointment. I am satisfied with the prospects you hold out and I am 
+  worried to show my ability to convince likely customers of the mastery of your p
+  roductions over the many replacements now existing. There are, however, several 
+  most important points in the agreement which require adjustment before it can be
+   concluded. With respect to cloths. I think it would avoid the danger of dispute
+  s if it stated exactly what are included. I am also worried that it should be di
+  stinctly understood that I am not expected to be answerable for payments to trav
+  elers in connection with Commission. I recommend that you forward each week a ch
+  eck covering the likely amount which I shall disburse holding to your credit any
+   sum remaining in hand. I respectfully suggest that the sum of thousand rupees b
+  e deposited with me for this purpose. I hope you will have no objection for givi
+  ng the necessary sanction. Turning to the question of samples, I understand thes
+  e are to be free. Perhaps you will give instructions for considerable stock of t
+  hese to be sent passenger train as it is unnecessary for me to say that prospect
+  ive buyers like to inspect the commodities before giving their orders respecting
+   calculation of agreement will you kindly state distinctly merely as formality t
+  o avoid possibility of future misunderstanding yours faithfully.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_3B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute. Passage B. Ready? Start. Dear friend, Pa
+  ra, an opportunity is provided for everybody in this country to support the effo
+  rts of the government to make this country self-sufficient financial and army. T
+  he scheme of gold bonds is so attractive that, properly explained, it will catch
+   the imagination and swell the gold bond fund. What is to be explained to the ma
+  ss of our population is the fact that gold in their possession, which does not y
+  ield any income invested to government for years will not only bring some income
+   to the individual but will save the huge interest which government of India hav
+  e otherwise to pay to other countries every year in foreign exchange and enable 
+  the government to repurchase gold out of the saving of interest in foreign excha
+  nge. In years, this country will save croars of rupees in foreign exchange by si
+  mply parting with gold for this limited period. There cannot be any greater oppo
+  rtunity for the people of this country than the investment in gold bonds. As you
+   know, many schemes, how so ever beneficial and praiseworthyworthy they might be
+  , do not catch the imagination unless they are given proper publicity and explai
+  ned, I am confident the sincere efforts in every state will swell the spirit and
+   boost up the enthusiasm internationally. It will raise the prestige and create 
+  confidence in ability of this country to be self-sufficient.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_3T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute, trial passage ready. Start. Dear Serves,
+   Para, we have given careful consideration to the request contained in your lett
+  er of 2 April for the sole agency in your district of our new machine. We have n
+  o agency at present in the north of Bombay and as we understand that you are an 
+  old established concern with first class connections in this type of machinery.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 7
+Subject: English Shorthand 60 wpm (ID: 50)
+QSet: 4
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_4A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute. Passage 8. Ready? Start. Dear Krishna, P
+  aira, many thanks for your report, which I have not yet had time to analyze a ca
+  sual reading of it. However, it is sufficient to show that you have done extreme
+  ly well during the past three months and I heartily congratulate you upon the ex
+  cellent result obtained. I will let you have my detailed comments early next wee
+  k. The purpose of this letter is to warn you that Mr. Vijay Patil mentioned on p
+  age 4 of your report is most unreliable and to ask you to exercise the utmost ca
+  ution in dealing with him, especially if he asks for credit or for any privilege
+  s of a financial character. I also write to tell you that I have been discussing
+   with Mr. Bajaj the possibilities of an extension of your area. I am also quite 
+  sure that we will achieve it very soon. I think that it will be practicable to r
+  educe the time that you find it necessary to spend in the near east which on the
+   whole is not profitable as other areas that have not been yet fully worked. A d
+  efinite decision will not be reached until next month. In the meantime, I shall 
+  be glad if you will let me have your opinion upon one or two points. Can you fin
+  d a expert assistant who will be able to relieve you of some of the endore work 
+  awaiting your so good by thank you take care
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_4B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute. Passage B. Ready. Start. Dear Sirs, Pera
+  , we acknowledge receipt of your letter of 15 May, while thanking you for the co
+  nsideration you have been extending to us. We have below given our comments on t
+  he points raised by you. Our office premises are in the famous bank street easil
+  y available to all sections of people. The showroom is in the ground floor and i
+  s spacious enough for keeping all types of agricultural machinery and implements
+   you want us to display. And as you know, the office is located in the first flo
+  or. We have already taken steps for recruitment of required personnel trained in
+   the use of agricultural implements we undertake to give adequate security as de
+  sired by you for the machinery in display and inspection by the intending purcha
+  sers. It would, however, be advisable of this stop is booked to your account ini
+  tially. We assure you that we will take all responsibility for their servicing a
+  nd good condition. We are pleasant for the other terms and conditions specified 
+  by you accepting the Commission on credit sales. As you are aware, we are in the
+   line. Since we are to be responsible for the realization on credit sales, it wo
+  uld be reasonable if commission of percent on cash sales retained for credit sal
+  es as well. We are expecting good demand for supply of spare parts also. As the 
+  space limited in present premises, we are bargaining for lease of the land.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/50_4T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 60 words per minute, trial passage. Ready, start. Dear Sirs, 
+  Pera, we have given careful consideration to the request contained in your lette
+  r of 2 April for the sole agency in your district of our new machine. We have no
+   agency at present in the north of Bombay and as we understand that you are an o
+  ld established concern with first-class connections in this type of machinery.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 8
+Subject: English Shorthand 80 wpm (ID: 51)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_1A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute. Passage A. Ready. Start para. There is a
+  bnormal delay in obtaining revenue records and farmers have to go from pillar to
+   post to obtain their records and have to spend heavy amounts, obtaining no obje
+  ction certificate according to the Act normally one to two months. If this provi
+  sion is removed from the Act, our Bank will be able to sanction loans within 15 
+  days. The Bank has already moved the government for amending the Act and as the 
+  amendment would take some time, I submit to the Honourable Ministers to get an o
+  rdinance issued dispensing with the obtaining of no objection certificate para. 
+  At present, state government has given exemption of stamp duty up to 10,000 only
+  . With the increase in the cost of labor and material, the investment needed to 
+  individual borrower for different purposes exceeds 10,000 rupees and goes up to 
+  30,000 rupees as the borrowers cannot meet the huge cost on account of stamp dut
+  y and registration charges. I request the state government to exempt the stamp d
+  uty and registration charges for all types of loans, irrespective of the amount 
+  advanced by the land development banks as is vogueu in other states' para. Yeste
+  rday, we celebrated the prestigious mark of sanctioning loans for one-luck irrig
+  ation whales. All these whales could be better utilized, provided there is suppl
+  y of power for lifting water. Non-supply of power at a time required by the farm
+  er is a great setback in increasing production in spite of making deposits with 
+  Karnataka Electricity Board. The board is ple pleading inability to supply power
+  . Unless electric power is supplied, the investment on the well becomes unproduc
+  tive. May I request the government to solve this problem with the Electric Board
+   by giving priority to this item in their program para. I now conclude and expre
+  ss my sincere gratitude to the Honorable Chief Minister for Agriculture, who hav
+  e spared their precious time with us and give their valuable advice.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_1B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute, passage B. Ready. Start. Dear Sir, Para,
+   I am happy to inform you that your tender for the supply of stationary and othe
+  r materials to our main office at Pune and various branch offices located in Mah
+  arashtra, Uttar Pradesh and Madhapradesh has been accepted. You are. Therefore, 
+  requested to arrange to remit a sum of rupees, $5,000 as security deposit on or 
+  before 10th of this month. This amount may be paid either in cash or through ban
+  k draft drawn in favor of our managing director. This security deposit will be r
+  epunded to you with 5% interest as soon as you complete the contract para. In th
+  is connection, I would like to make it clear once again that all the materials s
+  hould confirm to the quality you have quoted in your tender. The actual requirem
+  ents of our various offices is furnished in the statement appended to this lette
+  r. The goods shall have to be delivered in good condition at the addresses given
+   in the enclosed statement. You have to bear the transportation and all other in
+  cidental expenses in this regard. The time schedule given should also be adhered
+   to, in the event of not adhering to the time schedule, you will have to renounc
+  e 5% of the total bill amount. Further, if you fail to supply the goods before t
+  he end of this month, we will be at liberty to refuse goods at your cost and mak
+  e alternate arrangements to suit our convenience. The payment will be made as pe
+  r the rates quoted by you and no request for higher rates will be entertained fo
+  r any reason, para. You are also required to send us a copy of the pro forma inv
+  oice and delivery note duly signed by our branch managers for having received th
+  e materials in good condition. Your bills will be settled within one week from t
+  he date of your furnishing the above documents para, thanking you once again, yo
+  urs, faithfully.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_1T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand 80 words per minute. Trial passage ready. Start. Para. As you 
+  have moved into our new offices over one week and last May, and on the Monday mo
+  rning, we were operating in our new surroundings as planned. The whole exercise 
+  was a great credit to the chief office staff and such was there. Cooperation tha
+  t there was no hold up in the normal running of our business para. Now, that we 
+  have been in occupation for some months. It is a great pleasure to report our co
+  mplete satisfaction with the new office.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 9
+Subject: English Shorthand 80 wpm (ID: 51)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_2A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute. Passage A. Ready. Start. Dear Sir's Para
+  , we thank you for your letter of the second instant enclosing a check for rupee
+  s 30,000 in full settlement of our three outstanding bills. In this connection, 
+  we have great pleasure to inform you that we are having clearance sale of our to
+  ilet articles as it is necessary for us to dispose of some of our stocks as earl
+  y as possible. We are sending here with copy of our latest catalog, as well as f
+  ew pamphlets which we think you will like to have. Our catalog describes the dif
+  ferent items fully. You will please note that each item has been given separate 
+  code number. In order to enable you to make a selection, we are also sending per
+   passenger train few samples of the different toilet items that we can offer. In
+   view of the fact that this is our last clearance sale, we are giving special di
+  scount on this occasion. We hope you will take advantage of this special offer a
+  nd favor us with your valuable order which will receive our prompt attention. We
+   have also to inform you that during the next month we propose to increase the p
+  rices of number of items at present included in our catalog. The increases have 
+  become necessary in view of the higher costs that we now have to incur in purcha
+  se locally of some of our raw materials which used to come formerly from the Uni
+  ted States. In spite of our best efforts, we could not get the local materials a
+  t cheaper rate. In the circumstances, we have no alternative but to increase our
+   prices. We extremely regret that we are forced to pass on the higher charges to
+   our customers. But at the present time, this is the only course which we can fo
+  llow. As you are one of our most important dealers, we think we should not take 
+  you by surprise by revising our rates without notice.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_2B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute. Passage B. Ready Start. Dear shareholder
+  s, Para, I have pleasure in informing you that your company's automobile tires a
+  nd tubes planned at Pune was successfully commissioned on the month of February.
+   After the initial trials, commercial production of automobile tires has commenc
+  ed and the product is being marketed. The production of tires for trucks and bus
+  es, scooters has commenced the production of other types of tires for tractors, 
+  motorcycles, is being gradually taken up coming few months. As you are aware, th
+  is plant has been set up with technical collaboration of General Tyre Internatio
+  nal Company and under the collaboration terms number of foreign technicians are 
+  at our plant for training our workers as well as for assisting us in attaining p
+  roduction targets both in terms of quality and quantity. A good number of Pikran
+  t tyres have been on the road for some time now. It is indeed threatening to not
+  e that they have been well received in market and the response with regard to qu
+  ality and performance from the consumers is very encouraging. We have also expor
+  ted our tires to few countries and have substantial orders on hand awaiting exec
+  utions. We shall soon be marketing steel-belted tyres, both for trucks and cars,
+   for the first time in the country. Emperor tires are the latest innovation in t
+  he field of tire technology. They give up to 100% extra mileage, nearly 10% savi
+  ng fuel consumption, better road, grip, and more riding comfort. Emperor tires w
+  ill also open new vistas for exports because the world trend is shifting towards
+   the use of such tires. The company has already established effective distributi
+  on organization throughout the country. You will be glad to know that we have al
+  ready made supplies to state road transport corporations. I would request those 
+  of you who have not exchanged the receipt letter of allotment for the share cert
+  ificates from the company to do so at the earliest.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_2T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute, trial passage. Ready? Start. As you have
+   moved into our new offices over one week end last May. And on the Monday mornin
+  g, we were operating in our new surroundings as planned. The whole exercise was 
+  a great credit to the chief office staff and such was their cooperation that the
+  re was no hold up in the normal running of our business. Now that we have been i
+  n occupation for some months, it is a great pleasure to report our complete sati
+  sfaction with the new office.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 10
+Subject: English Shorthand 80 wpm (ID: 51)
+QSet: 3
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_3A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute, passage A. Ready. Start. Dear Sir's Para
+  , we have pleasure in sending you a sample packet of our modern soap powder whic
+  h we have placed on the market as a result of a long and careful research this p
+  roduct has been brought into being. We are confident that it will fulfill a long
+  -failed need from the catalog enclosed. You will find that it possesses many spe
+  cial merits which place it ahead of other competitors. It is highly economical. 
+  It dissolves readily in water and cleans all kinds of clothes quickly. The use o
+  f this new powder will save a lot of labor in rubbing and rinsing 20 grams of po
+  wder mixed in a bucket full of water will work wonders even with a dozen pieces 
+  of clothes, a novel feature added to this is that it acts equally well on any ty
+  pe of cloth. Moreover, it gives a longer life to the clothes. We have engaged ou
+  r representatives all over the clothes. We have engaged our representatives in t
+  he districts all over the country in order to carry on door-to-door canvassing o
+  f our product. They explain to the consumers the better quality of our soap powd
+  er by means of practical demonstration. We have been receiving many inquiries fr
+  om different parts of the country. This goes to proof that the public at large h
+  ave recognized the merits of the product. We are. Therefore, confident that it i
+  s usefulness will easily enable you to find a ready market. The terms of our off
+  er of this unique product are very liberal. It has been priced at a very economi
+  cal level so as to be within the easy reach of the common man. We offer a 15% di
+  scount with 30 days credit on all purchase above thousand rupees. The goods will
+   be dispatched promptly and delivered right at your stores, the freight charges 
+  being borne by us. We now request you to consider our offer keeping in view the 
+  favorable terms para, thanking you, yours, faithfully.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_3B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute, passage B. Ready? Start. Dear Sir, Para,
+   we wish to refer to the discussion held in your chambers on the 10th instant re
+  garding the supply of electronic digital clocks to various branches of your bank
+  . As already, informed by our representative, we can supply your complete requir
+  ement and arrange to install clocks at various branches within period of about m
+  onth from the date of firm orders. However, we wish to make it clear that the co
+  st of clock would go up in case installation of clocks at different parts of the
+   state has to be done by us since we have to depute our service engineer and his
+   assistant duly meeting their travel expenses. As such, we suggest to you to tak
+  e delivery of your requirement at your head office and arrange to distribute to 
+  the branches. We are prepared to provide necessary training in installation and 
+  operation of the clock to your staff coming from various branch offices the proc
+  ess of installation and operation are quite simple and one of your staff attache
+  d to watch and ward duties at the respective places can be trained fully within 
+  an hour or two. Regarding the design and color of the clock suggested by you, we
+   calculated the production cost and we wish to indicate that it involves additio
+  nal cost. However, in view of your bulk orders, we are prepared to accept your o
+  ffer of rupees 2,000 per clock. We need hardly stress here that we are the pione
+  ers in the manufacture of electronic digital clock with large size display. And 
+  so far, we have supplied thousands of clocks to various banks, public sector und
+  ertakings, including railway and bus stations. We have pleasure in accepting you
+  r offer and assure you of our best services. Our terms and conditions include th
+  e supply of clocks within a month from the date of firm orders and payment again
+  st delivery. We also offer one year guarantee for any manufacturing defect.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_3T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand 80 words per minute. Trial passage ready. Start. Para. As you 
+  have moved into our new offices over one week and last May, and on the Monday mo
+  rning, we were operating in our new surroundings as planned. The whole exercise 
+  was a great credit to the chief office staff and such was there. Cooperation tha
+  t there was no hold up in the normal running of our business para. Now, that we 
+  have been in occupation for some months. It is a great pleasure to report our co
+  mplete satisfaction with the new office.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 11
+Subject: English Shorthand 80 wpm (ID: 51)
+QSet: 4
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_4A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute. Passage A. Ready. Start. Dear Sirs. We t
+  hank you for your letter of 1 February asking for the terms and conditions for t
+  he supply of printing and developing machines of the specification mentioned the
+  rein. We greatly appreciate your interest for the said machine, but regret to in
+  form you that the machine you require is not readily available with us. In this 
+  connection, when we had requested our principles at Mumbai to intimate the stock
+   position and the cost. Thereof our Mumbai office informs that they have only on
+  e machine of the said specification but regrets its inability to quote for Pune 
+  price due to transport and other difficulties. They state that the machines at M
+  umbai will cost rupees $2,000 exclusive of local taxes and advice that the purch
+  aser should arrange for its career. For your study, we are enclosing a booklet s
+  howing all the mechanical details. We wish to bring to your kind notice that the
+  re are two other types of printing and developing machines manufactured by a wel
+  l-known Nagpur firm and are available from our ready stock. The machines are of 
+  latest design and strongly built with excellent finish. These machines prove to 
+  be more economical in the long run, though the initial cost is slightly high, we
+   hasten to assure you that this slightly higher cost is negligible when compared
+   to the use and performance of the machine. In this connection, it may be stated
+   that we have quite a large number of orders on hand for these machines and we w
+  ill be able to comply with your request only after two months from the date of r
+  eceipt of your firm order. However, we assure you that we will try our utmost to
+   deliver the machine earlier if the transport position improves. Two, booklets r
+  egarding the above types of machines are enclosed here with. From a study, you w
+  ill find certain mechanical and practical advantages over the other type of mach
+  ines.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_4B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute. Passage B. Ready. Start. Dear sir, para,
+   we are in receipt of your complaint about the low quality of the goods supplied
+   to you. We must, however, state that it has caused us considerable surprise bec
+  ause such complaint about the quality of our product has been received from you 
+  only in our smooth business. With regard to our mandate sent to you by railway p
+  arcel, we are definitely of a different opinion to that stated in your letter. I
+  t is our practice to examine the products carefully prior to packing and only af
+  ter confirmation that it is exactly the same as required by the customer. It wil
+  l be packed. Therefore, our clerk in the packing department is in a position to 
+  deny that the goods sent to you were in any way inferior to the sample sent by u
+  s to you along with quotation. As regards the color, your complaint that it is m
+  uch darker is only an overstated. We have again compared your sample piece with 
+  reference to sample taken from consignment sent to you and found that the color 
+  is exactly the same. In view of the above facts, we desire to know from you why 
+  we shall be called upon to make any allowance when we have delivered the goods e
+  xactly to your order in every respect. We are required to come to conclusion tha
+  t someone at your side is not acting honestly with an intention to cause trouble
+   to us and claim an allowance from us. We are sorry to inform you that we are no
+  t satisfied with the manner in which you treat mandates as we have to allow some
+   claim or suffer some loss on every mandate sent to you. We are afraid to think 
+  what would be our ultimate loss on this business with you if we go on in this wa
+  y. However, we look forward to better understanding between us in future, para, 
+  yours, faithfully.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/51_4T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 80 words per minute. Trial passage. Ready, start. As you have
+   moved into our new offices over one week and last May and on the Monday morning
+  , we were operating in our new surroundings as planned. The whole exercise was a
+   great credit to the chief office staff and such was their cooperation that ther
+  e was no hold up in the normal running of our business. Tara. Now that we have b
+  een in occupation for some months, it is a great pleasure to report our complete
+   satisfaction with the new office.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 12
+Subject: English Shorthand 100 wpm (ID: 52)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_1A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute, passage A. Ready, start. Dear friends, 
+  Para, it is my privilege once again to welcome you all to the 10th annual genera
+  l meeting of the company today. As the director's report and accounts of your co
+  mpany for the year ended, 30th June have been in your hands for some time. I sho
+  uld like, with your approval, to take them. Before I touch on the present econom
+  ic conditions in the country, I feel it would be helpful as a background to refe
+  r to some of the points in my speech last year. I had expressed certain fears on
+   that occasion and made a reference to the drop in our agricultural output. Prog
+  ressing inflation, growing shortage of working capital, the difficulties faced b
+  y textile industry, and last but not the least, conditions arising from new oil 
+  prices. I also mentioned on that occasion that a tendency was developing for und
+  erutilization of installed capacities and increasing unemployment, particularly 
+  among the qualified class. Power cuts imposed at that time resulted in sharp fal
+  l in production, as they do so even at present in some parts of the country. The
+   effect of all these factors naturally led to so many events and had already sho
+  wn the bad results. We have now put our hopes on few points. Economic program br
+  ought about by the Prime Minister under conditions which are definitely better t
+  han what they were earlier. I hope that conditions will improve rapidly in the c
+  oming year. You will have observed that the saidID program is a real approach to
+   our economic condition and lays down for the first time in our history. Economi
+  c priorities for achieving social justice so that we can confer on weaker sectio
+  ns of the society a hope of better opportunities than the mere privilege of a vo
+  te which independence had brought forth for them. Para, coming now to our own op
+  erations, I am sure you are pleased with the results of our company, which have 
+  been substantially better than those reflected during the last year. In fact, on
+   the whole, the tire industry has had a successful year of operation in spite of
+   number of difficulties. This happy position can be attributed to decontrol of p
+  rices of tires from April and other favorable factors, exercise duty and other i
+  ndirect taxes which were imposed on the industrial output in order to cover up t
+  he margins during the days of inflation are today affecting of tech.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_1B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, hundred words per minute, passage B. Ready, start. Ladies and
+   gentlemen, para, I am happy to be with you this morning and to associate myself
+   with this pleasant function. On this occasion, I would like to state that every
+   person who is not dealing with a specific subject in an expert way would natura
+  lly like to go in for generalizations. I am not an expert in any subject, and so
+   I can say many things about many subjects. Looking at this institute from a dis
+  tance and going through its publications, it seems to me that it has been making
+   good progress. We have been informed that similar institutes in other countries
+   have begun to appreciate the work of this institute. There can be no doubt abou
+  t the importance of the work which you are called upon to do. I am glad that fro
+  m a small annual business session, this gathering of so many distinguished perso
+  ns will spread out into a conference on a specific subject matter, namely recrui
+  tment for the public services. I feel that this is something really solid and wo
+  rthwhile and would bring definitely good results. It may be that results are not
+   very obvious, but it will be in any case an earnest discussions of subjects of 
+  high importance. Para, I often wonder how we should approach these subjects. The
+  re are several possible approaches to them. I hope most of you here are either o
+  f the administrator type with actual experience or the professor type. Both havi
+  ng fund of knowledge are very important. I do not think the man in the streets a
+  pproach is likely to be well-informed or even helpful. However, it is obviously 
+  an important approach because the administration is ultimately meant to serve su
+  ch people. You must remember that, aspect, otherwise, you will have no solid gro
+  und under your feet. The administration not only has to be felt to be good by th
+  e people affected. That should always be so, but it is all the more necessary in
+   fully democratic setup. Para, an administrator who is doing honest work, who kn
+  ows that he is doing his utmost often does not receive the recognition that is d
+  ue to him. In fact, he meets with severe criticism and feels hurt. An able admin
+  istrator will always do the right thing and also make the people feel that he re
+  flects their wishes. A feeling must come to the people that he is reflecting the
+  ir wishes.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_1T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute, trial passage. Ready, start. Ladies and
+   gentlemen, para, I have great pleasure in welcoming you all to the 12th annual 
+  general meeting of the company. The 12th annual report covers nine months of com
+  mercial operations. I am sure you must have gone through the accounts for the ye
+  ar under review and I take them as red. The operation of the plant has now estab
+  lished and a capacity utilization of percent has been achieved in the first six 
+  months period. It is expected that the whole year we would be able to achieve a 
+  capacity utilization in excess of 9%.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 13
+Subject: English Shorthand 100 wpm (ID: 52)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_2A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute. Passage A. Ready? Start. Ladies and gen
+  tlemen. Piarra, it gives me great pleasure to welcome you to this annual general
+   meeting of your company. It is with regret that I have to report that the profi
+  ts of this year have not been as good as last years, of course. Last years were 
+  record profits. The sales have continued to show an upward trend and were better
+   than the last year's mark. Your directors have recommended to maintain the divi
+  dend at 15% on equity share capital. The performance of any company is naturally
+   conditioned by environment in which it operates. Last year, Indian industry was
+   overtaken by recession and number of enterprises suddenly found themselves conf
+  ronted with fall in demand. Rising costs and increase in stocks and eventually w
+  ere forced to cut down production. Commercial vehicles, automobile tire paper te
+  xtile were some of major industries which came directly under the spale of reces
+  sion. Major company operations like textiles units in Rajasthan were affected no
+  t only recession, but also by saver power cuts. We are not only country which ha
+  s been attacked by recessionary forces. As a matter of fact, in last years, almo
+  st all industrialist countries have been facing recession. We have been saved so
+   far, partly because our economy is somewhat covered from such international tre
+  nds and partly because growth to us is compelling necessity. There is something 
+  wrong somewhere which has disturbed the balance and force the industry to move b
+  ackward instead of going forward. I am aware that the present industrial situati
+  on cannot be adequately described by a single phenomenon like recession. There a
+  re many other factors in operation which have made the problem little complex. F
+  or instance, there have been excessive imports which can be described as dumping
+   following our liberalized import policy and the recession abroad. Power storage
+   continues in most of the states. Our foreign exchange, earnings have not increa
+  sed and the reserves have come down to an alarming law level. Industrial relatio
+  ns are disturbing and have taken a gigantic form in Mumbai. We have to view thes
+  e trends in the perspective of the development set out in the six-five-year plan
+  . It was hoped that the average rate of growth of industrial production would be
+   little over 8%. I was the opinion at that time that even this growth was small 
+  in comparison with both our needs as also probabilities.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_2B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute. Passage B. Ready? Start. Ladies and gen
+  tlemen, Paira, it gives me great pleasure to welcome you to this annual general 
+  meeting of your company. The 31st annual general meeting of your company. The 31
+  st annual general meeting of your company. The 31st annual general meeting of yo
+  ur company is for me a very special occasion. I have been working throughout my 
+  life in this company. The Board of Directors has rightly taken a decision that I
+   should retire as a managing director from the end of March Making Way for the y
+  ounger generation. The board has decided that Mr. Joshi be appointed as the chai
+  rman and Mr. Fatil, the managing director from April onwards. I will be addressi
+  ng you for the last time as chairman. Being a man of sentiment, I cannot help re
+  calling the joy and the toil that I have shared in steering the affairs of this 
+  company for more than four decades. The 60s was a period when we initiated major
+   diversification in this company from textiles and sugar to fertilizers and tyre
+  s cord. The 70s was a period when our emphasize shifted towards building a new g
+  eneration of managers who could bring both stability and growth to the company. 
+  Achieving such balance between stability and growth, I believe, is the perpetual
+   challenge before top management. Some have handled it better than others, and t
+  hose who have handled it better have taken their corporations to new heights. In
+   this respect, I believe that our company on the whole has been imminently succe
+  ssful. Despite the fact that it has been weighed down by an aging textile indust
+  ry, it has succeeded in launching new ventures with growth, potential for the fu
+  ture. Having made the general remarks, I would like to underscore the central th
+  eme of my speech, which I shall call the management of transition. I would like 
+  to take you into my confidence by saying that your present top management had pr
+  epared for this transition well in advance by exposing both of them to various a
+  reas of responsibility within and outside the company. The result is that they w
+  ill be taking over as a team of seasoned and experienced business leaders. I hav
+  e full faith in them and I am sure you will extend to them the same support and 
+  cooperation as I have been receiving from you during all these years. At any poi
+  nt of time in the history of Enterprise, there always remains some unfinished bu
+  siness, despite the handsprings of hope and confidence. Pera, thanking you yours
+   faithfully.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_2T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute, trial passage. Ready? Start. Ladies and
+   gentlemen, Paira, I have great pleasure in welcoming you all to the 12th annual
+   general meeting of the company. The 12th annual report covers nine months of co
+  mmercial operation. I am sure you must have gone through the accounts for the ye
+  ar under review and I take them as read. The operation of the plant has now esta
+  blished and a capacity utilization of percent has been achieved in the first six
+   months period. It is expected that of the whole year we would be able to achiev
+  e a capacity utilization in excess of 9%.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 14
+Subject: English Shorthand 100 wpm (ID: 52)
+QSet: 3
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_3A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, hundred words per minute. Passage A. Ready. Start. Gentleman,
+   Farah, I have great pleasure to welcome you to this 33 annual general meeting o
+  f the company. The director's report and the accounts have been with you for som
+  e time. Now and with your permission, I take them as read. I am sure you have re
+  ad the report and the accounts for the last year and found them interesting and 
+  satisfactory. As I told you, this time, last year, the year commenced with a com
+  fortable order book. The flow of orders during the year was even and adequate. T
+  his was despite the fact that conditions in markets for most of your companies' 
+  products were extremely competitive. A notable achievement was that the exports 
+  increased to a greater extent and crossed rupees one-crower mark for the first t
+  ime. Although, as you must have noticed from the accounts, the volume of sales m
+  ore than its rate of increase, the increase in profits was less than proportiona
+  te. In fact, the increase has been only marginal. The factors responsible for th
+  is lower profitability were mainly competitive prices, higher cost of inputs, pa
+  rticularly in the case of important projects undertaken by your company, which i
+  nvolve a large percentage of bought-out materials and last but not least unsettl
+  ed labor conditions. One of the side effects of which was go slow. Tactics resul
+  ting in the last few months of the year in lower recovery from your company's pl
+  ant. In spite of these adverse factors, I am happy to inform you that your compa
+  ny has performed well and has been able to plug back a good sum to its resources
+  . I am sure you will appreciate the performance and join me in extending hearty 
+  congratulations to our beloved managing director and his excellent team. The cur
+  rent year commenced with a full-order book and position and with plans for a hig
+  her sales. However, the sales during the first five months of this year are only
+   slightly higher than in the corresponding period of the previous year. The deve
+  lopments on the labor front in the past few months have caused serious concern t
+  o your management. Your company has always believed in harmonious industrial rel
+  ations and has been taking steps for promoting the interest of the workers. This
+   will be borne out by the fact that since the inception, the management has exce
+  llent and cordial relations with the workers, except for a very brief period.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_3B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute. Passage B. Ready Start. Ladies and gent
+  lemen. Tara, I am happy to be here and speak to you a few words on this importan
+  t occasion. Let me at the outset offer my congratulations to the graduates of th
+  e year who, by hard work and discipline, effort have attained their degrees and 
+  some of whom have achieved distinctions also. Today, you have honored some disti
+  nguished sons and daughters of the country. They have rendered dedicated service
+  s in their respective fields, and as such, they have beloved themselves to one a
+  nd all. The university has a sense of satisfaction in having honored such immine
+  nt persons whose contribution to the nation is unique. Your university has grown
+   from strength to strength during the past 40 years. It has been considered as o
+  ne of the most beautiful universities of India. It is situated on an ever-green 
+  hill. The main building of the university, which is raising its head to the sky,
+   is a symbol of man's aspiration for higher and higher knowledge. The building i
+  s surrounded by a very well-maintained garden. Many distinguished visitors have 
+  admired this university as an ideal place for an academic life and higher educat
+  ion. In this university, you have conditions which make it possible to develop t
+  rue university life. You do not suffer from blockage. I am glad that you pay att
+  ention to research work. No teacher can inspire his students or win their respec
+  t if he is not himself interested in extending the range of knowledge. The abili
+  ty to teach pupils to teach themselves to inspire students to new lines of inqui
+  ry are rare gifts. The work and reputation of a university depend on the presenc
+  e of such teachers. One of the first objects of the universities all over the wo
+  rld is to produce a class of men who would devote themselves to research and sch
+  olarship on the highest plane. Many of us are apt to think that those who loom l
+  argely in the eyes of the public are the only ones that lead really youthful liv
+  es, which sometimes talk and write as though only one or two individuals were re
+  ally doing useful work and rest doing nothing. It is, however, a mistake to thin
+  k so. A nation's true greatness depends upon its average man and woman. It is th
+  e life, thoughts, and action of the average man and woman that the solid strengt
+  h of a nation really lies.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_3T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute. Trial passage. Ready, start. Ladies and
+   gentlemen, para, I have great pleasure in welcoming you all to the 12th annual 
+  general meeting of the company. The 12th annual report covers nine months of com
+  mercial operation. I am sure you must have gone through the accounts for the yea
+  r under review and I take them as real. The operation of the plant has now estab
+  lished any capacity utilization of percent has been achieved in the first six mo
+  nths period. It is expected that the whole year we would be able to achieve a ca
+  pacity utilization in excess of 9%.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 15
+Subject: English Shorthand 100 wpm (ID: 52)
+QSet: 4
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_4A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute. Passage A. Ready? Start. Pera. I am dee
+  ply touched by the kind thoughts and sentiments that you have expressed. In fact
+  , I feel overwhelmed. You and me are not strangers to each other. We have met be
+  fore, and you already know how deeply I value and esteem your friendship. You al
+  so know how high you are in the esteem of my people. We know you as a great and 
+  tireless fighter for the freedom of your country, as a symbol of the energies, t
+  he hopes, and the aspirations of your people. We have watched with admiration ho
+  w you have led your people through years of joyful and we hope satisfactory that
+   you will continue to lead them in their steady progress towards the glorious fu
+  ture, that is their destiny. Both of our peoples have drawn inspiration from our
+   common struggle for freedom. Representatives of both our countries have in the 
+  deliberations of various international organizations in which our countries part
+  icipated lent their support to the demand for freedom and independence of depend
+  ent people, particularly in Asia and Africa, who were or still are under foreign
+   domination. We are living in a dynamic, though difficult, period. The advances 
+  made in science and technology in our lifetime have been surprising. Only evolut
+  ion of our moral and spiritual ideals have not kept pace with these tremendous a
+  dvances in science and technology. The world is passing through terrible stress 
+  and strengths are the advances in science and technology to be harnessed to the 
+  economic and social development of the world and removed of hunger, poverty, and
+   disease for all men and thus make their contribution to the increase of human h
+  appiness and fulfillment? Or are these advances to be used for destruction of th
+  e human race? These are the questions facing us and the world today. Both our go
+  vernments have been doing all they can to secure that those in authority all ove
+  r the world make the right choice and instead of warming away the great gains of
+   science on destructive purposes, put them to constructive use for the benefit o
+  f all men regardless of race. Basically, our national problems are also similar.
+   Having gained freedom, our countries are engaged in the more complex and diffic
+  ult task of giving economic and social content to our freedom. Without these ess
+  ential developments which improve the lot of the common man, liberty, freedom ha
+  ve little meaning. There are thanking you once again.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_4B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute. Passage B. Ready Start. Ladies and gent
+  lemen, Paira, it is a matter of gratification that this state is forging ahead w
+  ith schemes for provision of medical relief, sanitation and other necessary serv
+  ices. In a wide country like India, with a large population, much of it ill-main
+  tained and with ill health it is more or less inevitable and necessary consequen
+  ce. We are therefore trying our best to tackle this question from both ends, whi
+  le on one side efforts are being made to improve the living conditions to raise 
+  the general living standard of our people, which will include also improvement i
+  n their health. On the other side, attempts are being made to provide medical fa
+  cilities and service on as large a scale as we can possibly do in our present co
+  nditions. I am therefore happy to learn that in this state you have made good pr
+  ogress already and that deficiencies I have various services are being made good
+   very quickly. In modern medicine for detecting testing facilities and also for 
+  electric treatment, various kinds of drugs are an absolute necessity. It is foun
+  d by experience that there are several diseases which can be controlled. They ha
+  ve been controlled in other countries and to the extent we have been able to use
+   old methods and facilities. We have been able to control them in our country to
+  o. It is therefore essential that each state should have all the necessary equip
+  ments for the purpose of supplying the drugs, the tonics, and the boosters, whic
+  h are required for the purpose. I know that in some states we have got up to dat
+  e and very good laboratories which are doing this work, but as they are not suff
+  icient for this country, you are going in for more by expanding the laboratory h
+  ere, as well as by establishing regional laboratories. In modern days, everyone 
+  who goes to a doctor finds that a doctor by himself is not able to detect his il
+  lness. He needs the health and assistance of a laboratory and each laboratory re
+  quires scientific instruments and other kinds of equipment besides a staff of tr
+  ended men. Unless all these are, provided the medical facilities cannot be said 
+  to be complete and how your good efficient and experience a doctor may be, he wi
+  ll very often find himself more or less, helpless in the absence of all these fa
+  cilities. It is therefore absolutely necessary that these facilities should be p
+  rovided.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/52_4T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 100 words per minute, trial passage. Ready? Start. Ladies and
+   gentlemen, Paira, I have great pleasure in welcoming you all to the 12th annual
+   general meeting of the company. The 12th annual report covers nine months of co
+  mmercial operation. I am sure you must have gone through the accounts for the ye
+  ar under review and I take them as read. The operation of the plant has now esta
+  blished and a capacity utilization of percent has been achieved in the first six
+   months period. It is expected that of the whole year we would be able to achiev
+  e a capacity utilization in excess of 9%.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 16
+Subject: English Shorthand 120 wpm (ID: 53)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_1A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute, passage A. Ready, start. Ladies and gen
+  tlemen, para, it gives me great pleasure to welcome you all to this ancient city
+   of Pune and particularly to this historic hall. You will find history staring a
+  t you from the front and also from the back. We have retained these pictures on 
+  the walls so that we may sometimes feel the change that has taken place. Sometim
+  es it is necessary to remember the past also. That is why we have written these 
+  pictures in this hall. Many of you are perhaps visiting Pune for the first time,
+   and some of you would have come here on many occasions. A few amongst you belon
+  g to the Pune, and it is coming back to their own home for them. We are particul
+  arly grateful to the chairman for having agreed to have the board meeting here. 
+  For some time past, the meetings have been held only at Mumbai. I suppose from n
+  ow on the various states will get their chance and the board meetings will be he
+  ld in all the states. There are certain advantages in having these meetings outs
+  ide Mumbai. It gives one and intimate pictures of things happening in the variou
+  s states. The officers and others concerned are greatly benefited by the visit o
+  f eminent educationalists from outside the state, and I'm sure the visitors also
+   would be benefited in the same way by having a look at things in the particular
+   state. It is through this process of mutual consultation that it would be possi
+  ble for us to make progress. The occasion we are meeting now is of some signific
+  ance, particularly in growing and developing country. We are just now going thro
+  ugh the process of the completion of the second five-year plan. There are only t
+  wo years more, and we have to think of the third five-year plan. There are only 
+  two years more and we have to think of the third five year plan. Therefore, it i
+  s appropriate that we should take into account the experiences we have gained an
+  d the lessons we have learned in the formulating, the working ofthe second five-
+  year plan. I am sure these experiences and lessons would guide us properly for t
+  he purpose of formulating the third five-year plan and more than that in success
+  fully implementing them. We are all aware that when the second five-year plan wa
+  s being formulated, persons particularly interested in the development of educat
+  ion were disappointed. To the extent as regards the allocation of resources for 
+  the educational development. But I do not think we can blame the Planning Commis
+  sion for this. I say that we ourselves are to be blamed because we did not formu
+  late the plan with reference to fiscal targets and what do you mean in terms of 
+  finances? We did not place before the Planning Commission perhaps the proper pic
+  ture. We had the benefit of very valuable reports, one in respect of university 
+  education and the other in respect of secondary education.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_1B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute, passage B. Ready, start. Mr. Speaker, a
+   large number of honourable members have participated in this debate and have ma
+  de useful suggestions. Since I was interested with the responsibility of this mi
+  nistry in the first trade conference, I made it clear that the food problem has 
+  to be tackled as a national problem. It should not be treated as a party questio
+  n and no attempt should be made to take advantage for party purposes of a seriou
+  s situation in one part of the country or the other. It should be the joint effo
+  rt of the central government and the state governments to meet the serious situa
+  tion that is facing the country. Unless we make a joint endeavor in this matter,
+   I fear that the problem will continue to challenge us. Therefore, joint efforts
+   is necessary. The joint effort should be not only by the governments, but also 
+  by the people in every state, because the problem is such that the entire countr
+  y will have to be mobilized to face this situation. Sir, the suggestions that ha
+  ve been made divide the entire issue into four broad aspects. The four important
+   aspects on which emphasis has been laid for the various sides of the house are 
+  the aspects of procurement, distribution, production, and price. Procurement wil
+  l help us to some extent. Some of the state governments have their own systems o
+  f procurement, and in some states, the procurement policies have been quite succ
+  essful. By and large, it will have to be left to the state governments as to wha
+  t system they will follow for the successful procurement of the surplus food gra
+  ins in their respective states. In some states, it may be the levy system, while
+   in some others it may be directly from the cultivators or from the millers. It 
+  will all depend upon the circumstances existing in each state. So it will be dif
+  ficult to have a uniform policy so far as procurement is concerned. But it will 
+  have to be an effort of the state governments to have some system of procurement
+   so that whatever surplus is available in the surplus state is made available to
+   the deficit states. The system of distribution also differs in various states. 
+  At certain places, we have rationing and in many rural areas in the deficit stat
+  es we have fair price shops. It will require a bold person to say that in any of
+   these systems of distribution there is no scope for leakages. So it should be t
+  he endeavor of those who are in charge of all these distribution systems. To see
+   that, in view of the scarcity, we are faced with all channels of leakages are e
+  fficiently plugged. If there is any leakage, the people for whom the food grains
+   are mint would not get the food grains. Instead, the food grains would go to a 
+  class of people who have a better purchasing capacity. Param, thanking you, your
+  s, faithfully.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_1T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute, trial passage. Ready, start. Communicat
+  ing with a person who is in front of your is face-to-face communication, and thi
+  s is mostly oral in nature. Communicating with a person who is away from you is 
+  communicating over a distance and is called distance communication. It may be ei
+  ther oral or written in nature. In this unit, you are going to look at distance 
+  communication and some of the ways in which it is managed. Param, one of the mos
+  t common modes of distance communication is male. It is also one of the earliest
+   systems of such communication. In its simplest form, mail means a letter which 
+  sent by post. Mail is cheapest form of communication. A new development in this 
+  field of communication is speed post.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 17
+Subject: English Shorthand 120 wpm (ID: 53)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_2A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand 120 words per minute. Passage A. Ready. Start. Sir, para. At t
+  he outset, I would like to express my gratitude to the honorable members on both
+   sides of the House for participating in the discussion and making very valuable
+   suggestions. They have expressed their views in their own way, but at the same 
+  time they have touched on some of the issues which are very important from the p
+  oint of view of the national economy. I would not say that the views that they h
+  ave expressed are due to any political consideration, but they were really expre
+  ssed in the national interest. In this connection, I was happy that there was at
+   least one honorable member who said that we should face the question of economy
+   from a national point of view. Last year, if we go through the budget speech, w
+  e will find that the basic aims are national growth and social justice. This is 
+  the thirst of the budget that we have prepared and it may be seen whether it is 
+  reflected in the budget provisions or not. I am sure that if the honorable membe
+  rs go through the budget, they will find that there are a number of new ideas wh
+  ich have been incorporated in the present budget, as this is the last year of th
+  e current five-year plan. I have no doubt that the Honorable Members will be try
+  ing to find whether we have been able to achieve the plan targets for this purpo
+  se. I would like to draw the attention of the House to the fact that we have bee
+  n able to exceed the financial provisions. It is for the first time that we are 
+  going to achievement of the target. This is in regard to the financial provision
+  s. So no ministry can say that sufficient funds were not available and that is t
+  he reason why it is not able to achieve the target set for itself. But at the sa
+  me time, I agree that merely spending money is not adequate. On the other hand, 
+  there should be adequate return in physical terms. That is why we have been maki
+  ng provisions every year with a view to seeing that the various sectors are able
+   to achieve the targets that they have set for themselves. If the honorable memb
+  ers go through the documents which have been presented to the house, they will f
+  ind that there are two or three things which are very important, the first is th
+  e rate of growth. I do not understand why the leader of the opposition was very 
+  angry about the rate of growth because of the fact that somehow or other this ti
+  me on account of the favorable monsoon. We were able to achieve almost million t
+  ons of food grains production. There is still one more year left and if we have 
+  normal monsoon, I'm sure we will be able to achieve more next year.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_2B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand 120 words per minute. Passage B. Ready Start. Mr. Chairman, Pa
+  ra, I am glad to participate in the discussion on the railway budget. At the out
+  set, I must say that I have every phrase for the railway men who are doing their
+   best to improve the efficiency of the Indian railways. It is only because of th
+  eir clear efforts that we are having a surplus budget. But I am sorry that the s
+  econd class fare has been increased in this year's budget. We were expecting tha
+  t at least in this budget our new minister would not increase the second class f
+  are. I would request him to reconsider the decision and see whether the second c
+  lass passengers can be exempted for this levy. Coming to the various aspects of 
+  the railways, I must say that the work regarding electrification of the railways
+   has been done very effectively, but at the same time, the employees who are doi
+  ng this work have submitted a memorandum to the railway administration. I would 
+  request that something should be done in their case to redress their genuine com
+  plaints. I would request the railway minister to hold a meeting with the represe
+  ntatives of the All India Railway Mainz Federation and also with the representat
+  ive of railway electrification workers to decide this issue by talking across th
+  e table. Now I would like to draw the attention of the Honorable Minister to ano
+  ther important point, namely the appointment of a wage board. This demand has be
+  en supported by the National Federation of Railwaymen also. I happen to the Pres
+  ident of South Eastern Railwaymen's Union which is affiliated to the All India R
+  ailwaymen's Federation. We requested the appointment of a wage board with full p
+  owers because all the complaints of the railwaymen cannot be beated out by sitti
+  ng across the table or sitting around the table. The time has come when the reco
+  mmendations of the Pay Commission have no relation with the rising cost of livin
+  g today because it was thought by the pay commission that prices would stabilize
+   somewhere but unfortunately it has not been possible to hold the price line. I 
+  know the railway ministry will say that they appointed committee and its recomme
+  ndations have also been implemented, though in certain cases the committee's rep
+  ort was accepted in two by the railway board with slight modifications. It has n
+  ot been implemented in certain places. I would request the Honorable Minister to
+   see that recommendations of the committee are implemented fully. Then appointme
+  nt of wage board has become question of life and depth for railway employees thr
+  oughout the country. I'm sure railway minister will see that wage board is appoi
+  nted. The railway employees do not want an immediate increase, but they want an 
+  objective analysis of their jobs, where the correct man is doing the correct job
+  . I request that wage board may be appointed soon and the government should not 
+  have any hesitation in appointing wage board.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_2T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute, trial passage, ready, start, para, comm
+  unicating with a person who is in front of your, is face to face, communication 
+  and this is mostly oral in nature. Communicating with a person who is away from 
+  you is communicating over a distance and is called distance communication. It ma
+  y be either oral or written in nature. In this unit you are going to look at dis
+  tance, communication and some of the ways in which it is managed. Para. One of t
+  he most common modes of distance communication is male. It is also one of the ea
+  rliest systems of such communication. In its simplest form, male means a letter 
+  which sent by post, male is cheapest form of communication. A new development in
+   this field of communication is speedpost.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 18
+Subject: English Shorthand 120 wpm (ID: 53)
+QSet: 3
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_3A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand 120 words per minute. Passage A. Ready? Start. Mr. Speaker, Pa
+  ra. I have been in charge of finance for the last two years. Now, I may assure t
+  he members of the house that we have been able to manage the financial affairs o
+  f this state successfully during a very critical period. If honourable members w
+  ould go through the budget proposals for the previous two years, I am sure. They
+   will agree with me that we have got over a very difficult period, even if it wa
+  s necessary to get assistance from the central government also. Honorable member
+  s have said that we have not been able to meet their demands in respect of their
+   nations and also some other general demands, as I have already stated on anothe
+  r occasion. The things that we have got to achieve are so many and so great that
+   it will not be possible to meet all these demands within a short period of time
+   because those needs have been accumulating for many years. But I should like to
+   add that they can be achieved within a few years. That is why we have now formu
+  lated a plan with reference to the resources available and the achievements whic
+  h we can make with reference to these resources. So if the Honorable Gentleman h
+  as made a charge on the floor of the house, that in spite of the fact that for t
+  he last two years, Honorable Members have been making demands in respect of thei
+  r nations, they have not been met properly. I plead guilty to that charge. It wo
+  uld have meant spending further croars of rupees. If we had got another rupees t
+  o cross from center, perhaps we would have been able to meet a major portion of 
+  the demands made on the floor of the house. We have been able to get on all thes
+  e years. I may assure the Honorable Members that we have got over the crisis, an
+  d I think I will not be wrong if I say that we are entering a period of uniformi
+  ty. I hope and pray that in this year we will have a normal year and our expecta
+  tions will be fulfilled. I'm sure that in the next year whoever is called upon t
+  o present the budget, he will have more comfortable time. I am sure the present 
+  sacrifices will have the way for the future generations. That is my hope, and wi
+  th this satisfaction, I may tell this house that I have carried on as finance mi
+  nister to the best of my ability. My only prayer is that hereafter draughts and 
+  flurts may not occur. We cannot prevent these things occurring even if they occu
+  r. They may not occur on the same scale and I'm sure that our people will be abl
+  e to face all these difficulties while we are prepared for the worst I'm hoping 
+  for the best. Thanking you once again, you respectfully.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_3B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute, passage B. Ready, start. Mr. Speaker, S
+  ir, Para, at the outset, I thank the Honourable Members for the constructive sug
+  gestions they have made in the course of the debate. I shall now reply to some o
+  f the points raised by them. First of all, with reference to the small surplus o
+  n the revenue side. The leader of the opposition said that I had done this by de
+  creasing the expenditure. I do not know whether there is any other method of bal
+  ancing a budget. So far as I know we can do it only by adjusting the expenditure
+   to the income and this is the only way in which we can do it. But I have to poi
+  nt out that we have still to meet our capital expenditure and for this purpose w
+  e require the assistance of the center. As far as revenue expenditure is concern
+  ed, we cannot go on having deficits year after year. As honourable members are a
+  ware for the last three years, we are having deficits and it is necessary to bal
+  ance our budget. In this connection, I am glad to say that the Finance Commissio
+  n has gone into the question of the revenue expenditure on account of the develo
+  pmental expenditure of the states, so it has made some revenue resources availab
+  le to the states. There was money which was available to the center. Now, it has
+   been allocated to the states by the Finance Commission. To that extent, I will 
+  be able to cut the assistance which we have to give under the plan. If this is d
+  one, we will gain to some extent by the recommendations of the Finance Commissio
+  n. Then I come to the taxation measures which I have proposed in my budget speec
+  h. It is really unfortunate that even those who are not members of the house say
+   that the court fee should not have been increased. As far as this criticism is 
+  concerned, I am sorry that a wrong view has been taken of the proposal. I am sur
+  e the members who are lawyers will realize the anomalies which exist in the pres
+  ent Court Fees Act. We want to remove these exceptions and in that way we will a
+  lso be able to get some money. It is not as if we want to make the poor people s
+  uffer on account of this. Then with regard to the tobacco tax, it has been said 
+  that we are taxing luxury of poor man and that it should not be taxed. Now, I wa
+  s really surprised to see speech made by a person connected with commerce to the
+   effect that government, which had been adopting the policy of prohibition shoul
+  d not levy tax on tobacco. It seems to me that he thinks the excites revenue we 
+  will be getting by selling toddy comes from people who are not poor. I am not ab
+  le to appreciate the stand taken by him.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_3T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute, trial passage, ready, start, para, comm
+  unicating with a person who is in front of your, is face to face, communication 
+  and this is mostly oral in nature. Communicating with a person who is away from 
+  you is communicating over a distance and is called distance communication. It ma
+  y be either oral or written in nature. In this unit you are going to look at dis
+  tance, communication and some of the ways in which it is managed. Para. One of t
+  he most common modes of distance communication is male. It is also one of the ea
+  rliest systems of such communication. In its simplest form, male means a letter 
+  which sent by post, male is cheapest form of communication. A new development in
+   this field of communication is speedpost.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 19
+Subject: English Shorthand 120 wpm (ID: 53)
+QSet: 4
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_4A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute. Passage A. Ready. Start. Sir, Para. I t
+  hank you for giving me an opportunity to say a few words on this occasion. I did
+   not want to intervene in this debate, but there seems to be a serious discussio
+  n on the issue of sales tax. I did not expect this in the debate on this demand 
+  for grants. I thought that we could deal with it in the budget debate for the wh
+  ole year to be discussed in a short time. But the remarks that have been made co
+  mpelled me to say a few words. In this occasion, we may discuss this problem of 
+  sales tax, not from the point of view of party politics, but from the point of v
+  iew of the welfare of the state and the requirements of the government to carry 
+  on their functions. There is no doubt that this tax forms the most important par
+  t of the state revenues in these dates. So I would like to say that we may take 
+  into consideration this question and discuss the issues involved. One of the mos
+  t important things that we should consider with reference to this matter is this
+  . The question is whether we should tax only those who drink and get a large amo
+  unt of revenue to carry on our functions or whether we should tax all the people
+   and get the same amount by indirect taxation. It seems to me that it is better 
+  to levy a tax upon all the people than to levy a tax upon an unfortunate section
+   of the people only. There is no reason why it should not be done. When we know 
+  that the source of revenue is bad and that the victims are only an unfortunate s
+  ection of the people, it seems to me clear that we should find a way out. I'm su
+  re that one indirect acts on all the people will be the right thing so far as th
+  is matter is concerned. At the same time, I do not say that it is a good thing t
+  o all people. I do not say that foodstuffs should be taxed. But in this connecti
+  on, one point that must be borne in mind is this. When we want some revenue and 
+  when we have to decide whether we should tax a few unfortunate people who are po
+  or or whether we should tax everybody. We have to take into account the incidenc
+  e of the tax so that it may fall on everybody. It is right on the part of the ho
+  norable members to say that food stops should not be taxed. It may seem to be al
+  l right, but we are aware of the poverty of our people. The consumption is mostl
+  y of essentials. The trade is mostly in essential articles. So we cannot get a l
+  arge amount of revenue by taxing everybody unless we take into account what ever
+  ybody consumes.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_4B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute. Passage B. Ready. Start. Mr. Chairman. 
+  Para, I intervene in this debate for a few minutes in order that I may explain t
+  he position with reference to certain questions dealt with by honorable members.
+   I would like to deal with the question relating to food prices. There is no dou
+  bt that the position of high prices of food grains is really a matter for worry 
+  for all of us. As a matter of fact, the prices have been rising and there has be
+  en fluctuation in the prices of food grains for some time. As has been pointed o
+  ut by an honorable member, perhaps this food problem is a result of the war. Eve
+  r since the last war, we have been facing the question of high prices and someti
+  mes scarcity of food. In this connection, I would like to point out that before 
+  the war, we had reserve stocks which were built up year after year. But on the o
+  ther hand, during the war, production was affected by the failure of the monsoon
+  s and there was scarcity. So all the reserve stocks were consumed year after yea
+  r. Then after the war, there were no reserve stocks and there was less productio
+  n. Not only that, but our requirements of food also were going up year after yea
+  r. Of course, we have taken some steps to increase the production of rice and mi
+  llets. One thing should be noted here. People have been taking more and more of 
+  rice now. Those who were eating millets have taken to rice. We are trying to cop
+  e with the demand and production has been going up. I am glad that we have been 
+  lucky in having good monsoons. In addition to that, I am happy that the cultivat
+  or have come forward to adopt improved methods of cultivation and have increased
+   production. Of course, I am aware that we have to step up production still furt
+  her. We have to meet not only the needs of the increased population, but also we
+   should be able to meet situation where there is a failure of the monsoon. So we
+   are taking all steps to see that production is further increased to a great ext
+  ent. It is also the only way in which we can improve the economic condition of t
+  he agriculturalist in this state. Of course, I may claim that we have been produ
+  cing as much as is necessary to meet the food requirements of the state. In spit
+  e of that, the prices have been going up from time to time. That is the problem 
+  that we have to face so far as the question of food prices is concerned. It is n
+  ot merely question of supply and demand. I wish to point out that there is adequ
+  ate rice. I have been inquiring, district after district, and there is no compla
+  int of scarcity of food grains anywhere but at the same time the prices have bee
+  n rising.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/53_4T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 120 words per minute, trial passage, ready, start, para, comm
+  unicating with a person who is in front of your, is face to face, communication 
+  and this is mostly oral in nature. Communicating with a person who is away from 
+  you is communicating over a distance and is called distance communication. It ma
+  y be either oral or written in nature. In this unit you are going to look at dis
+  tance, communication and some of the ways in which it is managed. Para. One of t
+  he most common modes of distance communication is male. It is also one of the ea
+  rliest systems of such communication. In its simplest form, male means a letter 
+  which sent by post, male is cheapest form of communication. A new development in
+   this field of communication is speedpost.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 20
+Subject: English Shorthand 130 wpm (ID: 54)
+QSet: 1
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/54_1A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 130 words per minute, passage A. Ready, start. In Companies A
+  ct provides that every company shall cause minutes of all proceedings of general
+   meetings, all proceedings at meetings of its directors and where there are mana
+  gers, all proceedings at meetings of its managers, all proceedings at meetings o
+  f its managers, to be entered in books kept for that purpose. Any such minute is
+   purporting to be signed by the chairman of the meeting at which the proceedings
+   were held or by the chairman of the next succeeding meeting shall be evidence o
+  f the proceedings, where minutes have been made in accordance with the provision
+   of the section, then until the contrary is proved, the meeting shall be deemed 
+  to have been duly held and convened and all the proceedings threat to have been 
+  duly held and all appointments of directors, managers or liquidators shall be de
+  emed to be valid. Failure to prepare minutes as required by the section renders 
+  the company and every officer of the company in default liable to a default fine
+  . As will be noticed, the minutes of a meeting are not required to be read at a 
+  subsequent meeting of the board of directors or of the shareholders in the case 
+  of a general meeting and they require no approval from the directors or the shar
+  eholders before they are signed by the chairman. It is customary, however, for m
+  inutes of a board meeting to be read by the secretary at the next board meeting 
+  of the company or for the minutes to be copied and circulated to the directors f
+  or their approval before the next meeting, in which case there is no necessity t
+  o have then read. But if the chairman considered fit, we could decide that the m
+  inutes of a meeting drafted by the secretary should be submitted only to him for
+   approval and signature, and that his colleagues should not be acquainted with t
+  he actual wording of the decisions arrived at before the minutes were written up
+  . He could not however prevent his colleagues from inspecting the minute book of
+   the company provided they were doing so in the interest of the company as a who
+  le and not in their individual interest. Param, it is to avoid any possibility o
+  f subsequent legal action that the practice of reading the minutes of obtaining 
+  the approval of the body there too has sprung up. The world confirmation used in
+   that connection is not correct. As minutes require no confirmation, the decisio
+  ns having once been made stand without further confirmation. If the necessity fo
+  r altering minutes arises before they are signed by the chairman, but subsequent
+   to their writing up in the minute book. The alterations may be inserted and ini
+  tial by the chairman when he signs, but when once minutes have been signed by sh
+  ould not under any circumstance be altered. If it becomes necessary to vary a re
+  solution previously adopted, that variation should always be carried out by mean
+  s of a minute passed at subsequent meeting. There are some companies keep their 
+  minutes on the loose leaf principle and if proper safeguards are provided, there
+   is nothing against this practice. Now the modern loose leaf minute book is prov
+  ided with the locking device.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/54_1B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 130 words per minute, passage B. Ready, start. With reference
+   to the cooperative societies, as far as the cooperative societies are concerned
+  , I can realize the anxiety of the Honorable Minister that if cooperative societ
+  ies are employing less than 50 people, and if they are not employing power, it i
+  s desirable that this obligation should not be imposed on these cooperative soci
+  eties in view of the fact that it is our intention to encourage cooperative soci
+  eties. These cooperative societies might not have the necessary resources and th
+  erefore may not be in a position to contribute to the provident fund. On the oth
+  er hand, there is another aspect of the question which it is also necessary to t
+  ake into consideration and in this behalf it is necessary because this type of p
+  rotection and many other types of protection are given by way of encouragement t
+  o the cooperative societies. Again, there are many unscrupulous people who form 
+  some sort of cooperative society which is a cooperative society only in name and
+   which in fact is merely a proprietary concern and then they take advantage of t
+  his particular provision. Sir, we have realized that there were owners and there
+   were employers who were taking advantage of the fact that the number was kept a
+  t 50. It was only when the employees were more than 50 that this particular act 
+  was applicable so far. They were partitioning their establishment into various d
+  epartments and into various units and thereby they were trying to escape from th
+  e provisions of this act. Fortunately, the government has now made it clear in t
+  his bill that no such partitioning will be useful to the employer because even i
+  f there is partitioning, now they will all be considered as one consolidated est
+  ablishment and if there were more than 20 people employed, then this particular 
+  law will be applicable to them. Some such trick is likely to be resorted to buy 
+  the employer by calling his concern a cooperative society and thereby trying to 
+  escape the extension of the benefits that are being provided for the employees i
+  n this particular bill. Now, sir, there are cooperative societies acts and there
+   are cooperative constitutions where it is made compulsory that after a particul
+  ar employee has worked for a certain number of years in a given establishment wh
+  ich is a cooperative establishment that employee automatically becomes member of
+   the cooperative society. Constitutions of this type where the right of membersh
+  ip in the cooperative society is granted to the employees who are working for pa
+  rticular number of years in that particular society. I can understand that if th
+  is particular bill exempts such societies which permits their own employees to b
+  ecome members of those cooperative societies. It would be quite fair because in 
+  that case, these employees themselves will become members and therefore they wil
+  l have dual role of employers being members of the cooperative society and also 
+  of employees. If, however, particular constitutions does not provide for such co
+  mpulsory registration of its employees who have worked for a particular number o
+  f years in that concern as members, then that kind of relationship is as between
+   and employer and an employee.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/54_1T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand, 130 words per minute, trial passage. Ready, start. Sir, I mus
+  t thank the honorable mover of this bill for the opportunity that he gave to the
+   house and to myself on behalf of the government to discuss this very important 
+  measure as honourable members have more or less unanimously projected, the objec
+  t of this bill is that in a vast country of our size, it is essential that as ma
+  ny articles as are essential to life are brought under a system of price discipl
+  ine which ultimately reflects into a label being fixed to a community on the bas
+  is of a reasonable profit and return to the producer and the seller. One can eas
+  ily see that there cannot be any objection to it. As a matter of fact, on behalf
+   of government and myself, I wholeheartedly welcome this objective.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 21
+Subject: English Shorthand 130 wpm (ID: 54)
+QSet: 2
+Department ID: 10
+Target Language: en
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/54_2A.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  English shorthand. 130 words for a minute. Passage A. Ready. Start. A glacier is
+   a large body of ice and snow. It forms because the snow is an area, does not al
+  l melt in summer. Each winter, more snow is added. The weight of all, the snow c
+  reates pressure. This pressure turns the lower parts of snow into ice. After thi
+  s happens for many years, the glacier will start growing large. It becomes so he
+  avy that gravity causes the ice to move. It flows downwards like water, but very
+   slow the glacier only move about 50 meters per year. New snowfalls replace the 
+  parts that flow away. Glaciers are the largest sources of fresh water on earth. 
+  The largest bodies of salt water are the oceans. Glaciers will only form in plac
+  es that are cold enough and get enough snow over time. This can take a long time
+  . It often takes tens or hundreds of years for a glacier to form. There are two 
+  kinds of glaciers, continental glaciers and alpine glaciers. Alpine glaciers are
+   also called mountain glaciers. Continental glaciers are glaciers that spread ou
+  t over a large area of land. They were created mostly during the ice ages a long
+   time. There are still some continental glaciers in Greenland and Antarctica. Th
+  ey often flow downwards into the sea and break up. The broken parts that float i
+  n the sea are called icebergs. Alpine glaciers form in mountain areas. They are 
+  smaller than continental glaciers. Alpine glaciers usually flow until they reach
+   a point where the temperature is warm enough that ice melts completely during t
+  he summer. Glaciers are very important. They have a large effect on the environm
+  ent. They do this because they are very large and heavy. When they move, they er
+  ode mountains and land. Since they froze long ago, snow crystals and air bubbles
+   inside are kept in good condition. These can provide a large amount of informat
+  ion for scientists, sir. Recently glaciers have been melting more than they did 
+  in the past. Many scientists think this is happening because global warming is c
+  hanging the climate. Glaciers are blue in color, this is because water is very g
+  ood at absorbing light. Only the strongest light with the most energy is able to
+   escape blue is the color of light that has the most energy. Because of this blu
+  e is the only color of light that can escape without being absorbed. A glacier i
+  s a persistent body of dense ice that is constantly owing under its own weight. 
+  Glaciers slow, deform and flow under stresses induced by their weight, creating 
+  and other distinguishing features. Glaciers form honoly on land and are, distinc
+  t from the much thinner sea ice and lake ice that forms on the surface of bodies
+   of water. Many glaciers from temperature alpine and seasonal polar climates sto
+  re water as ice during the colder seasons and release it later in the form of me
+  lt water as warmer summer temperatures because the glacier to melt creating a wa
+  ter source that is specially important for plants, animals and human uses when o
+  ther sources may be scantle.
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/54_2B.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  We ready. English shorthand. 130 words per minute. We ready for the passage B. S
+  tart. Mr. Deputy Chairman. I have a few brief remarks to make. If I may say so, 
+  I think in this Honorable House House when we discuss such a matter as this, it 
+  would be better and in the fitness of things if we discuss it in terms of princi
+  ple instead of introducing names of individuals. How many rupees who get are the
+   names of individual firms? I am not in the list interested to defend high salar
+  ies paid by any business firm either in Civil Street, Calcutta or in any other s
+  treet anywhere else. But I think as a matter of principle, we should avoid menti
+  oning names of individuals and firms because it seems to be unjust and unfair. W
+  e in this house are a privileged group of people. But we should be very careful 
+  about using our privilege, otherwise we might do damage to the prestige of autho
+  rity or parliament in the eyes of the public. Now, sir, I think we should discus
+  s this major in terms of principles and policies and the two important basic poi
+  nts that are involved in this are a question of investment and a question of inc
+  entives. We have decided to bring about what we call a socialist society in this
+   country and a socialist society does not mean that we should engage ourselves i
+  n working out a just distribution of poverty. The main purpose of a socialist so
+  ciety is to produce a sufficiently large volume of wealth so that we can provide
+   our people with at least the minimum requirements of civilized human existence 
+  in terms of food cloth, housing, health, education and so on. Obviously this wea
+  lth production and and a volume of it that we require in terms of our situation 
+  requires investment on a massive scale. A socialist society has to invest capita
+  l in order to produce wealth. It may interest my honourable friend to know that 
+  in the Planning Commission in Russia, there is a whole-time member whose designa
+  tion is member in charge of capital investment, it sounds rather odd that a soci
+  alist country has to appoint man whose principal anxiety is to work out the best
+   way of capital use, para. Sir, in any kind of society such as ours, it is possi
+  ble to work out the amount of savings that the society can possibly make in term
+  s of its own situation and amount of investment that is necessary in order to pr
+  oduce the volume of wealth that we have got to produce if we are going to achiev
+  e our social objectives. The difference between what we have got to invest and w
+  hat we can possibly save in terms of our own society is very wide gap in our sit
+  uation and that gap has to be filed obviously by importing capital from wherever
+   we can get it if we can get from socialist or communist society by all means we
+   should take it if we cannot get enough from them we have to take from other kin
+  ds of society whether we agree or disagree with the social purposes or the kind 
+  of political organization that they believe in.
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/54_2T.mp3
+  Status: SUCCESS
+  Detected Language: en (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  We are ready. English shorthand. 130 words per minute. Ready for the trial passa
+  ge. Start. Sir, I must thank the honourable mover of this bill for the opportuni
+  ty that he gave to the House and to myself on behalf of the government to discus
+  s this very important measures. As several honourable members have more or less 
+  unanimously projected, the object of this bill is that in a vast country of our 
+  size, it is essential that as many articles are essential to life are brought un
+  der a system of price discipline which ultimately reflects into a label being fi
+  xed to a commodity on the basis of reasonable profit and return to the producer 
+  and seller. One can easily see that there cannot be any objection to it as a mat
+  ter of fact. On behalf of government and myself, I wholeheartedly welcome this o
+  bjective.
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 22
+Subject: Marathi Shorthand 60 wpm (ID: 60)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_1A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनट पसेज ए रेडी स्टार्ट भारत हा एक कृषीपधान देश आहे
+   भारताच्या या खाद्य संपन्नतेमागे शेतकऱ्यांचे योगदान मोलाचे आहे भारत ही शेतकऱ्याच
+  ी भूमी आहे आपल्या देशाची बरीचशी लोकसंख्या गावामध्ये राहते व शेती करते भारतीय शेत
+  कऱ्याचा सगळीकडे सन्मान होतो कारण शेतकरीच संपूर्ण देशासाठी खाद्य उगवतो शेतकऱ्याचे
+   जीवन अतिशय व्यस्त असते शेत नांगरणे बी लावणे रात्रंदिवस शताची राखण करणे इत्यादी 
+  कार्यामध्ये शेतकरी कायम गुंतलेला असतो शेतकरी सकाळी लवकर उठतो आपले बैल आणि इतर सर
+  ्व सामान घेऊन शेताकडे निघतो तासन तास शेतात तो काम करतो शेतकऱ्याच्या घरचे इतर लोक
+   सुद्धा शेतात त्याची मदत करतात शेतकऱ्याचे जेवण अतिशय साधे असते बरेच शेतकरी चटणी 
+  भाकर खाऊन दिवस काढत असतात दुपारी शेतकऱ्याच्या घरून त्याची पत्नी किंवा दुसरे कोणी
+   तरी जेवण घेऊन येते शेतकरी जेवण करून काही मिनिटांच्या विश्रांती नंतर पुन्हा आपल्
+  या कामाला लागतो तो कठीण परिश्रम करतो पण एवढ्या परिश्रमा नंतर देखील त्याला जास्त 
+  लाभ होत नाही परिचछेत शेतकऱ्याचे जीवन खूपच साधे असते त्याचा पेहराव ग्रामीण असतो ब
+  रेच शेतकरी कच्च्या घरात राहतात शेतकऱ्याची संपत्ती बैल आणि काही ए जमीन असते शेतकर
+  ी हा देशाचा आत्मा असतो आज शेतकऱ्याला सरकार दवारे अधिकाधिक मदत मिळायला हवी त्याला
+   शेतीचे सर्व आधुनिक यंत्र व कीटकनाशके उपलब्ध करून द्यायला हवेत स्वातंत्र्य प्राप
+  ्तीच्या अनेक वर्ष नंतरही शेतकऱ्यांची स्थिती जशीच्या तशी आहे असे म्हणायला हरकत ना
+  ही
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_1B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट पॅसेज बी रेडी स्टार्ट भारताला कृषी प्रधान देश 
+  म्हटले जाते भारतीय अर्थव्यवस्थेचा कणा शेती हाच आहे शेतात काम करणाऱ्या व्यक्तीला 
+  शेतकरी म्हटले जाते शेतकरी हा संपूर्ण दिवस शेतात काम करतो ऊन वारा पाऊस इत्यादीची 
+  परवा न करता आपले कार्य करीत असतो शेतकरी कठीण परिश्रमाचे प्रतीक आहे त्याच्यात फार
+   संयम असतो वर्षभर शेतात काम करून तो आपल्या कष्टाच्या फळाची वाट पाहत असतो आपले जी
+  वन सन्मानाने जगतो आपले संपूर्ण आयुष्य निसर्गाच्या सानिध्यात घालवतो शेतकऱ्याचे जी
+  वन संतुलित असते तो दररोज सकाळी लवकर उठतो दिवसभरात त्याला अनेक कामे करायची असतात 
+  सकाळी लवकर उठून तयारी वगैरे करून तो शेताकडे निघतो तो आपला संपूर्ण दिवस शेतातील प
+  िकांच्या काळजीमध्ये घालवतो शेत नांगरणे पीक पेरणे पिकाला पाणी देणे ऊन वाऱ्यापासून
+   आपल्या पिकाचे रक्षण करणे इत्यादी अनेक कामे शेतकऱ्याला करावी लागतात परिच्छद शेतक
+  री त्याचे पीक अनेक नैसर्गिक आपत्तीपसून संरक्षित करतो पशु पक्षी किडे मुंग्या इत्य
+  ादीपसून तो आपल्या पिकाचे रक्षण करतो शेतात सुंदर बहरलेल्या पिकामागे शेतकऱ्याची शे
+  ती विषयीची भक्ती प्रेम आणि कठीण परिश्रम असते एक शेतकरी संपूर्ण जगातील मानवाला अन
+  ्न पुरविण्यासाठी आपले जीवन व्यतीत करतो दिवसभर शेतात काम केल्यावर संध्याकाळी सूर्
+  य मावळल्यानंतर शेतकरी आपल्या घरी पोहोचतो ज्या वेळी तो घरी पोहोचतो तेव्हा तो अत्य
+  ंत थकलेला व समाधानी असतो
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_1T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट ट्रायल पॅसेज सरावाचा उतारा रेडी स्टार्ट महाशय 
+  आज जगात लोकसंख्या वाढीचा प्रश्न तोंड वासून उभा आहे वेळीच त्याला पायबंद न घातल्या
+  स विपरीत परिणाम झाल्याशिवाय राहणार नाही भारताची एकतीस मार्च एकोणीशे पंच्याऐंशी प
+  र्यंत लोकसंख्या चौऱतर कोटी होती एवढी लोकसंखण्याची मुख्य त कारणे आहेत वाढते जन्मप
+  ्रमाण घटते मृत्यू प्रमाण व अशिक्षित पणा
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 23
+Subject: Marathi Shorthand 60 wpm (ID: 60)
+QSet: 2
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_2A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्र्रतिमिनिट पॅसेज ए रेडी स्टार्ट बंधून नो परिच्छेद माझ्य
+  ापूर्वी या ठिकाणी वैद्यकीय व्यवसायातील अनेक अनुभवी व नामवंत लोकांची मार्गदर्शनपर
+   भाषणे झालेली आहेत त्यांच्या भाषणातून त्यांनी स्वतचे जे अनुभव अतिशय स्पष्टपणे सा
+  ंगितलेले आहेत ते आपणा सर्वांना भावी आयुष्यात बहुमलाचे ठरतील यात शंका नाही तथापि 
+  या सभेचा अध्यक्ष या नात्याने मला आपणाशी काही शब्द बोलावयाचे आहेत परिच्छेद आपल्या
+  सारख्या वैद्यकीय पदवीधरांसमोर भाषण करण्याची माझी ही पहिलीच वेळ आहे साधारणत कुठेह
+  ी अध्यक्ष म्हणून जबाबदारी स्वीकारताना त्या सभेच्या विषयाशी माझा काही संबंध असेल 
+  किंवा त्या सभेच्या विषयाचे मला काही ज्ञान असेल अगर त्याबद्दल काही माहिती असेल तर
+  च मी ती जबाबदारी स्वीकारतो उद्देश एकच असतो की माझ्या अशा सभातील उपस्थितीमुळे संब
+  ंधित जनतेला काही मदत होऊ शकते व काही मार्गदर्शन मी त्यांना करू शकतो मी व्यवसायान
+  े कारखानदार व जातीने मागासवर्गीय आहे त्यामुळे कारखान्याचे अगर उद्योगधंद्यांचे उद
+  ्घाटन समारंभ मजूर संघटनांच्या सभा दलित बांधवांचे मिळावे आणि त्यांचे विविध कार्यक
+  ्रम अशाच कार्यक्रमात मी भाग घेत असतो माझ्या सामाजिक जीवनाचे क्षेत्र एवढेच मर्याद
+  ित असताना मी आपल्या या चर्चासत्राच्या समारोपाचे निमंत्रण का स्वीकारले असाही प्रश
+  ्न त्यामुळे निर्माण होऊ शकेल तसा वैद्यकीय व्यवसायाशी माझा काहीही संबंध नाही हे ख
+  रे आहे परंतु मला या क्षेत्राची आवड आहे म्हणून मी हे निमंत्रण स्वीकारले आहे परिच्
+  छेद कळावे आपला
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_2B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट पॅसेज बी रेडी स्टार्ट परिच्छेद आजच्या काळात जा
+  हिरातींना हे जे महत्त्व आले आहे ते विक्रेते आणि ग्राहक यांच्या गरजेतून आले आहे ज
+  ाहिरात ही केवळ विक्रेत्यांच्याच फायद्यासाठी असते असे नव्हे जाहिरात हा विक्रेता उ
+  त्पादक आणि ग्राहक यांच्यातील संवाद आहे उत्पादनाच्या क्षेत्रात औद्योगकरणामुळे एवढ
+  ी विविधता आणि प्रचंड स्पर्धा निर्माण झालेली आहे की ग्राहकाला आपल्या गरजेच्या पूर
+  ्तीसाठी योग्य वस्तूची निवड करणे अवघड झालेले आहे एकच वस्तू अनेक उत्पादक तयार करू 
+  लागल्यामुळे त्यांच्यातही अंतर्गत स्पर्धा सुरू झाली आहे अन्य उत्पादनाहून आपल्याच 
+  उत्पादनाची गुणवत्ता उपयुक्तता कशी मोठी आहे हे ग्राहकांना पटवून देण्यात त्यांच्या
+  मध्ये चढा ओढ लागली आहे कुठलीही जाहिरात ही विक्रेता आणि ग्राहक यांच्यामधील उत्पाद
+  क संवाद असल्याने ती अधिकाधिक वेधक असणे आवश्यक असते त्यामुळे जाहिरातीचा मथळा त्या
+   मथळ्यात समाविष्ट झालेल्या वर्णनाचा तपशील कंपनीचे बोधचिन्ह किंवा मुद्रा कंपनीचे 
+  नाव व पत्ता आणि घोषवाक्य अशा सर्व गोष्टीकडे लक्ष द्यावे लागते ती सोपी सर्वांना स
+  मजेल अशी असावी लागते जाहिरातीत जे काही सांगितले आहे ते आपले आहे विश्वासार्ह आहे 
+  असेही वाटण्याची गरज असते सभोवतालची परिस्थिती त्या परिस्थितीमधील वास्तवतेचे भण आण
+  ि जाण दोन्ही असावे लागते जाहिरात ही मनआकर्षून घेणारी त्याचबरोबर अंतःकरणावर ठसे उ
+  मटविणारी असली पाहिजे स्पर्धेच्या युगात जाहिरातीला महत्त्व प्राप्त झालेले आहे जाह
+  िरातीमुळे ग्राहकांची पसंती वस्तूंना मिळत असते
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_2T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट ट्रायल पॅसेज रेडी स्टार्ट महाशय परिच्छेद आज जग
+  ात लोकसंख्या वाढीचा प्रश्न तोंड वासून उभा आहे वेळीच त्याला पायबंद न घातल्यास विप
+  रीत परिणाम झाल्याशिवाय राहणार नाही भारताची एकतीस मार्च एकोणावीशे पंच्याऐंशी पर्य
+  ंत लोकसंख्या चौऱ्यातर कोटी होती एवढी लोकसंख्या असण्याची मुख्य तन कारणे आहेत वाढत
+  े जन्म प्रमाण घटते मृत्यू प्रमाण व अशिक्षितपणा
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 24
+Subject: Marathi Shorthand 60 wpm (ID: 60)
+QSet: 3
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_3A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रति मिनिट पॅसेज ए रेडी स्टार्ट पॅरा भारतीय महिलांनी प्र
+  गती आणि आव्हाने दोन्ही अनुभवली आहेत पूर्वीच्या काळात महिलांना भेदभावाचा सामना कर
+  ावा लागत होता विशेषत शिक्षण आणि नोकरीमध्ये तथापि वाढत्या जाणीवेसह आता बरेच लोक व
+  िविध क्षेत्रात काम करतात आणि नेतृत्वाची पदे भूषवतात असे असूनही लिंग आधारित हिंसा
+  चार आणि असमानता यासारखे प्रश्न अजूनही कायम आहेत निरोगी समाजासाठी महिलांसाठी समान
+  ता आणि आदर सुनिश्चित करणे आवश्यक आहे गेल्या काही वर्षात भारतातील महिलांची स्थिती
+   बदलली आहे पूर्वी त्यांच्या भूमिका मुख्यत्वे घरापुरत्या मर्यादित होत्या आणि त्या
+  ंना मर्यादित अधिकार होते स्वातंत्र्य आणि आधुनिक शिक्षणासह अधिक मुली शाळेत जात आह
+  ेत आणि महिला कामाच्या ठिकाणी सामील होत आहेत कायद्यांमुळे महिलांची सुरक्षा आणि अध
+  िकार सुधारले आहेत तरीही भेदभाव आणि हिंसाचार हे प्रमुख चिंतेचे विषय आहेत पॅरा शिक
+  ्षण आणि संधीद्वारे महिलांना सक्षम बनवणे हे भारताच्या विकासासाठी महत्त्वाचे आहे भ
+  ारतातील महिलांची बदलती स्थिती समानतेच्या दिशेने एक सकारात्मक पाऊल आहे खरी प्रगती
+   साध्य करण्यासाठी त्यांना आदर संरक्षण आणि समान संधीना प्रोत्साहन देणे अत्यंत महत
+  ्त्वाचे आहे प्राचीन काळापासून आधुनिक भारतात महिलांचे स्थान कसे विकसित झाले आहे य
+  ावर जास्त भर देतो वैदिक काळात महिलांना काही स्वातंत्र्य होते परंतु सामाजिक रीतीर
+  िवाजांमुळे हळूहळू त्यांचे अधिकार गमावले गेले आज महिला शिक्षण राजकारण आणि व्यवसाय
+  ात पुन्हा स्थान मिळवत आहेत मुलींच्या शिक्षणाला प्रोत्साहन देणारे उपक्रम हे सकारा
+  त्मक पाऊल आहे
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_3B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट पॅसेज बी रेडी स्टार्ट पॅरा महिलांच्या हक्क प्र
+  गती आणि सततच्या समस्या या दोन्ही गोष्टींचा विचार केला आहे प्राचीन भारतात बालविवा
+  ह आणि सती यासारख्या सामाजिक गैरकृत्यांनी त्यांचे अधिकार मर्यादित केले होते त्याप
+  ेक्षा महिलांची स्थिती चांगली होती स्वातंत्र्यानंतर सुधारणा जसे की मतदानाचा अधिका
+  र आणि समान वेतन कायदे परिस्थिती सुधारण्याचे उद्दिष्ट होते आज महिला डॉक्टर अभियंत
+  े आणि राजकीय नेत्या आहेत परंतु अनेकांना अजूनही घरगुती हिंसाचार आणि शैक्षणिक अडथळ
+  ्यांसारख्या आव्हानाना तोंड द्यावे लागते ग्रामीण भागातील मुलींना अनेकदा शाळांमध्य
+  े प्रवेश नसतो ज्यामुळे मुलांपेक्षा साक्षरता दर कमी होतो मुली वाचवा मुली शिकवा सा
+  रख्या योजना या अंतरांना भरून काढण्याचा उद्देश ठेवतात विविध क्षेत्रात नावाजलेल्या
+   नामवंत महिला त्यांच्या कामगिरीने राष्ट्राला प्रेरणा देतात समान संधी देण्याचा सक
+  ारात्मक परिणाम दर्शवितात शतकानुशतके महिलांना कुटुंब आणि समाजात आदर आणि स्वातंत्र
+  ्य होते कालांतराने हुंडा छळ आणि लिंगभेद यासारख्या प्रथांमध्ये त्यांचे स्वातंत्य 
+  मर्यादित होते तथापि आधुनिक युगात सकारात्मक बदल झाले आहेत शिक्षण रोजगाराच्या संधी
+   आणि कायदेशीर हक्क वाढले आहेत तरीही अनेक महिलांना अजूनही भेदभाव आणि हिंसाचाराचा 
+  सामना करावा लागतो अशा समस्या ज्या खऱ्या लिंग समानतेला अडथळा आणतात सक्षम महिला भा
+  रताच्या विकासासाठी आवश्यक आहेत त्या आरोग्य शिक्षण अर्थव्यवस्था आणि संस्कृतीत योग
+  दान देतात घरगुती हिंसाचार प्रतिबंधक कायदा आणि स्वच्छ भारत सारख्या मोहिमांनी महिल
+  ांना अनेक योजनेद्वारे मदत केली आहे
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_3T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट ट्रायल पॅसेज रेडी स्टार्ट महाशय पारा आज जगात ल
+  ोकसंख्या वाढीचा प्रश्न तोंड वासून उभा आहे वेळीच त्याला पायबंद न घातल्यास विपरीत 
+  परिणाम झाल्याशिवाय राहणार नाही भारताची एकतीस मार्च एकोणीशे पंच्याऐंशी पर्यंत लोक
+  संख्या चौऱ्याहत्तर कोटी होती एवढी लोकसंख्या असण्याची मुख्य तीन कारणे आहेत वाढते 
+  जन्म प्रमाण घटते मृत्यू प्रमाण व अशिक्षतीपणा
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 25
+Subject: Marathi Shorthand 60 wpm (ID: 60)
+QSet: 4
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_4A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट पॅसेज ए रेडी स्टार्ट शेतकरी हे निःसंशयपणे आपल्
+  या देशाचा कणा आहेत मानवी अस्तित्वासाठी आवश्यक असलेल्या सर्वात आवश्यक उत्पादनांचे
+   उत्पादन करण्यासाठी तेच काम करतात एखाद्या व्यक्तीकडे अमर्याद संपत्ती असू शकते पर
+  ंतु दिवसाच्या शेवटी त्याच्या ताटात अन्न आहे की नाही हे महत्त्वाचे आहे आपल्याकडे 
+  इतके पैसे असले तरी आपण अन्न उत्पादन करू शकतो असे नाही परिचछद बाजारात उपलब्ध असले
+  ली धान्य आणि डाळी आपण फक्त तेव्हाच खरेदी करू शकतो जेव्हा आपण आवश्यक असलेले धान्य
+   आणि डाळी खरेदी करू शकतो अन्यथा लोक भयानक दुष्काळाला सामोरे जातील आणि उपासमारीने
+   मरतील बंगालच्या दुष्काळाची सर्वात वाईट आठवण आठवते लाखो लोक खाण्यासाठी अन्न नसल्
+  याने मरण पावले आज आपण आपल्याकडे असलेल्या अन्नाबद्दल कृतज्ञ असले पाहिजे कारण कुठे
+  तरी एक शेतकरी समाजाचे पोट भरण्यासाठी अथक परिश्रम करत आहे शेतकरी खूप महत्वाचे आहे
+  त कारण ते आपल्याला आपण खातो ते अन्न पुरवतात परिच्छेद संपूर्ण देश याच कारणामुळे त
+  ्यांच्यावर अवलंबून आहे आपण नेहमीच शेतकऱ्यांबद्दल बोलतो आणि फक्त शब्दांनी त्यांचे
+   कौतुक करतो शेतकऱ्यांना मदत करण्यासाठी आपण कधीही पुढाकार घेत नाही बहुतेक शेतकरी 
+  गहू आणि तांदूळ कापणीवर अवलंबून असतात कारण ते आपल्या देशात सर्वात जास्त वापरले जा
+  णारे अन्न आहे मोठ्या प्रमाणात शेतकरी असोत किंवा लहान प्रमाणात असोत ते सर्वजण खूप
+   कमी नफ्यासाठी काम करतात आणि समाधानी राहतात
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_4B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनीट पॅसेज बी रेडी स्टार्ट शेती ही शेतकरी आणि शेतकऱ
+  ्यांचे मुले व शेतात काम करणारे मजूर यांच्यासाठीचा विषय आहे व शेतीशी निगडीित माहि
+  ती ही संकल्पना अशी का रूढ झाली असावी तसे बघितले तर शेती हा व्यापक आणि प्रत्येक म
+  ानव सभ्यतेचा विषय आहे हे सर्वांनाच कळले पाहिजे कारण असे नेहमी प्रकर्षाने दिसून य
+  ेते की कुणालाही शेतीसाठी माहिती घेण्याची विशेष रुची नाहीच असा समज लोकांमध्ये दिस
+  ून येतो की शेती म्हणजे फार मेहनतीचे व अवघड काम आहे सर्वांना या गोष्टी समजल्या पा
+  हिजेतेत आपण जो भाजीपाला फळे धान्य पिके इतर आपण रोजच्या दैनंदिन जीवनात खातो ते जम
+  िनीत येते कसे याबद्दल उत्सुकता व माहिती असली पाहिजे वर्तमानातली तरुण पिढी जेव्हा
+   याकडे एक रुची संधी आणि उत्तम व्यवसाय म्हणून पाहण्यास सुरुवात करेल तेव्हा शेती य
+  ा क्षेत्राचे स्वरूप बदललेले व उत्तम झालेले असेल शेती हा विषय फक्त शेतकऱ्यांसाठी 
+  नाही हा विषय सर्व पृथ्वी तलावरील प्रत्येक मानव सभ्यतेचा आहे शेती असे क्षेत्र आहे
+   ज्यामध्ये सर्वांसाठीच मोठ्या व उत्तम संधी दडलेल्या आहेत हे सर्वांना माहत असेल त
+  सेच सर्वच क्षेत्रातील शिक्षण संपादन केलेल्या सर्वांसाठी शेतीमध्ये संधी आहेत शेती
+  मध्ये विविध पद्धतीचे संशोधन व संशोधक होण्यास संधी आहे जसे पिकांमध्ये बियाण्यामध्
+  ये इ्या ठिकाणी संशोधन होत असतात व होण्यास मोठा वाव आहे तसेच शेतीत नवीन तंत्रज्ञा
+  नाला देखील चांगला वाव आहे
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/60_4T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन साठ शब्द प्रतिमिनिट ट्रायल पॅसेज सरावाचा उतारा रेडी स्टार्ट महाशय 
+  आज जगात लोकसंख्या वाढीचा प्रश्न तोंड वासून उभा आहे वेळीच त्याला पायबंद न घातल्या
+  स विपरीत परिणाम झाल्याशिवाय राहणार नाही भारताची एकतीस मार्च एकोणीशे पंच्याऐंशी प
+  र्यंत लोकसंख्या चौऱतर कोटी होती एवढी लोकसंखण्याची मुख्य त कारणे आहेत वाढते जन्मप
+  ्रमाण घटते मृत्यू प्रमाण व अशिक्षित पणा
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 26
+Subject: Marathi Shorthand 80 wpm (ID: 61)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/61_1A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन ऐशी शब्द प्रतिमिनेट पसेज हे रेडी स्टार्ट परिच्छद कोणत्याही देशाचे 
+  नागरिक हेच त्या देशाची संपत्ती असतात जर देशाचे नागरिक आदर्श मेहनती आणि सज्जन असत
+  ील तरच देश प्रगती करतो एक आदर्श नागरिक सर्वात आधी एक आदर्श व्यक्ती असतो तो नेहमी
+   देशाच्या आणि समाजाच्या प्रगतीसाठी कार्यरत असतो असा व्यक्ती आपल्या नियमांचे काटे
+  कोरपणे पालन करतो आपल्या भारत देशात अनेक प्रसिद्ध असे आदर्श नागरिक होऊन गेले आहेत
+   परिछद आदर्श नागरिकाचे अनेक गुण असतात एक आदर्श नागरिक इमानदार कर्तव्यनिष्ठ आणि स
+  त्य मार्गावर चालणारा असतो तो आपल्या देशाची संस्कृती इतिहास आणि भूमीशी प्रेम करतो
+   आदर्श नागरिकाच्या मनात देशप्रेम भरलेले असते तो देशाविषयी आपल्या कर्तव्यांना पुर
+  ेपूर बजावतो आणि नेहमी आपल्या कर्तव्याप्रती जागरूक असतो असा नागरिक वेळ प्रसंगी दे
+  शासाठी आपले प्राण देण्यासही तयार असतो एक चांगला नागरिक स्वच्छेने नियमांचे पालन क
+  रतो तो राष्ट्राच्या उन्नतीसाठी सकारात्मक योगदान देतो आदर्श नागरिक राष्ट्र प्रगती
+  च्या कार्यक्रमात उत्हाने सामील होतो तो समाजाच्या आदर्श मूल्याना सन्मान देतो आणि 
+  समाजात असलेल्या कुरीती समाप्त करण्यासाठी लोकांमध्ये जागरूकता निर्माण करतो आदर्श 
+  नागरिकाचे संपूर्ण जीवन समाजासाठी आणि देशासाठी अर्पित असते परंतु दुसरीकडे काही अस
+  े ह नागरिक असतात जे स्वतःच्या स्वार्थासाठी देश आणि समाजाचा बळी देण्यासाठी देखील 
+  मागे पुढे पाहत नाही आज आपल्या समाजात असे अनेक लोक आहेत जे धोकेबाजी करून देशाला न
+  ुकसान पोहचवतात हे लोक आपल्या देशासाठी हानिकारक असतात परिछद एक आदर्श नागरिक हाच द
+  ेशाची शण असतो तो सर्वांशी प्रेम करतो आणि समाजात असलेले वाईट लोकांचे सत्य सर्वां 
+  समोर आणतो म्हणून आपण सर्वांचे कर्तव्य आहे की आपण देशाचे आदर्श नागरिक बनायला हवे 
+  आणि देशाविषयी आपली जबाबदारी समजून देश सेवेचे कार्य करायला हवे आपली संस्कृती आणि 
+  इतिहास कायम जतन करून ठेवावा
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/61_1B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन ऐंशी शब्द प्रतिमिनेट पॅसेज बी रेडी स्टार परिच्छेद स्त्री पुरुष समा
+  नता म्हणजे स्त्री आणि पुरुष यांना समान हक्क संधी आणि आदर मिळवून देण्याचा मूलभूत 
+  विचार होय एक सुदृढ प्रगत आणि सशक्त समाज निर्माण करण्यासाठी स्त्री पुरुष समानता ह
+  ी अत्यावश्यक आहे परंतु आजही अनेक समाजात लिंग भिदाचा प्रश्न गंभीर आहे समानतेसाठी 
+  प्रत्येकाने एकत्रितपणे प्रयत्न केले पाहिजे स्त्री पुरुष समानता ही आधुनिक समाजाची
+   अत्यंत महत्त्वाची गरज आहे समानता म्हणजे स्त्री आणि पुरुषांना समान हक्क संधी आणि
+   आदर मिळणे परंतु आपल्या समाजात अनेक शतकांपासून स्त्रियांचा दर्जा दुयम समजला जातो
+   शिक्षण नोकरी संपत्तीवर हक्क आणि सामाजिक अधिकार या बाबतीत स्त्रियाना पुरुषांच्या
+   तुलनेत कमी मानले गेले आहे समाजात प्रगती घडवण्यासाठी स्त्री पुरुष समानता अत्यावश
+  ्यक आहे स्त्री ही केवळ कुटुंबाची जबाबदारी अार पाडणारी नसून ती समाजाच्या प्रत्येक
+   क्षेत्रात योगदान देऊ शकते शिक्षण विज्ञान तंत्रज्ञान राजकारण क्रीडा आणि कला अशा 
+  विविध क्षेत्र स्त्रिया चमकत आहेत परंतु त्यांना खऱ्या अर्थाने समानतेचा अनुभव देण्
+  यासाठी मानसिकतेत बदल होणे गरजेचे आहे परिच्छद समाजात समानतेची भावना रुजवण्यासाठी 
+  स्त्री पुरुष दोघांनीही एकमेकांना आदराने वागवायला हवे शिक्षण आणि जनजागृतीच्या माध
+  ्यमातून मुलावर लहानपणापासून समानतेचे संस्कार होणे महत्वाचे आहे घरकाम मुलांची जबा
+  बदारी आणि निर्णय घेण्याच्या प्रक्रियेत दोघांचा समान सहभाग असायला हवा स्त्री पुरु
+  ष समानता हि केवळ महिलांचा प्रश्न नाही ती संपूर्ण समाजाच्या प्रगतीसाठी आवश्यक आहे
+   समानतेच्या मार्गानेच आपण अधिक न्याय सुसंस्कृत आणि शांततामय समाज निर्माण करू शकत
+  ो स्त्री आणि पुरुष एकत्र हातात हात घालून चालल्यासच एक सशक्त आणि सुंदर समाज घडेल 
+  परिच्छद स्त्री आणि पुरुष यांना समान हक्क अधिकार आणि जबाबदाऱ्या मिळाव्यात यालाच स
+  मानता म्हणतात यामध्ये शिक्षण रोजगार कुटुंब राजकारण इत्यादीचा समावेश होतो समानतेच
+  ा अर्थ समानतेच्या आधारावर समाज घडवणे आहे
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/61_1T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लुघुलेखन ऐंशी शब्द प्रतिमिनेिट ट्रायल पॅसेज रेडी स्टार्ट परिच्छद माननीय सद
+  स्यांनी आपला प्रस्ताव मांडताना विनानुदान तत्त्वावर चालणाऱ्या शाळांच्या बाबतीत ज्
+  या सेवा शर्ती व नियम आहेत त्याबद्दल सहानुभूती या ठिकाणी व्यक्त केली आहे ज्या शाळ
+  ा अनुदानतत्वावर चालतात त्यातील शिक्षकांना सेवा शर्तीचे जे नियम लागू आहेत तेच विन
+  ाअनुदान तत्त्वावर चालणाऱ्या शिक्षकांनाही लागू केलेले आहेत आणि करण्यात येतील वेतन
+  ाच्या प्रश्नांचा थोडासा विचार करावा लागेल कारण या शाळांना शासन अनुदान देत नाही
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 27
+Subject: Marathi Shorthand 80 wpm (ID: 61)
+QSet: 2
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/61_2A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन ऐंशी शब्द प्रतिमिनेिट पॅसेज ए रेडी स्टार्ट श्री पुरुष हो परिच्छद आ
+  पल्या कंपनीच्या सर्वसाधारण सभेत आपले स्वागत करताना मला अतिशय आनंद होत आहे हिशोब 
+  तपासलेल्या हिशोबाचे निवेदन आपणास मिळाले असेल आणि संचालकांचा अहवाल आपण वाचला असेल
+  च असे मी आपल्या परवानगीने गृहीत धरून चालतो चालू साली मुख्यत कच्च्या मालाच्या वाढ
+  णाऱ्या किंमती कामगाराचे सुधारित वेतन आणि इतर खर्चामध्ये भरमसाठ वाढ या कारणामुळे 
+  कंपनीच्या नफ्यावर परिणाम झाला आहे उद्योगधंद्यातील वाढणारी तीव्र स्पर्धा व बाजारप
+  ेठेत दिवसेंदिवस उत्पादक वस्तूसाठी जाहिरातीसाठी खर्च करण्याची गरज निर्माण झाली आह
+  े परिच्छेद संचालक मंडळाने वेळोवेळी बदललेल्या धोरणामुळेच वाटाघाटीमध्ये ओढा ताण न 
+  करता कामगारांच्या होणाऱ्या संपास वेळीच उपाययोजना केल्यामुळे उत्पादनात वाढ झाली क
+  ंपनीने आता पावेतो पुष्कळच प्रगती केली आहे कंपनीने आखलेल्या औद्योगिक धोरणांच्या अ
+  ंमलबजावणीसाठी जलदगतीने वास्तववादी दृष्टकोन स्वीकारण्यात आला ही अत्यंत आनंदाची गो
+  ष्ट आहे मागील साली कंपनीची परिस्थिती म्हणावी तितकी समाधानकारक नव्हती कच्च्या माल
+  ाच्या किंमती विजेचे वाढते दर कामकाजाचा खर्च व घसारा यांची तरतूद केल्यानंतर कंपनी
+  ला जास्त नफा मिळाला नाही परंतु कंपनीची परिस्थिती समाधानकारक आहे हे मान्य कराल अश
+  ी मी आशा करतो परिच्छेद मागील साली कंपनीच्या उत्कर्षासाठीची महत्त्वाची पावले आपण 
+  उचललीत व ज्या विविध योजना आखल्या त्यामुळे कारखान्याच्या उत्पादनात वाढ झाली व एकं
+  दर कंपनीची परिस्थिती सर्व बाजूनी सुधारली आपण केलेल्या उपाययोजनेमुळे आपल्या कंपनी
+  ने आता पावेतो लक्षणीय प्रगती केली आहे मालाची किंमत व वाढीव मागणी संबंधीच्या कंपन
+  ीने स्वीकारलेल्या धोरणाबाबतचा दृष्टकोन संचालक मंडळाकडून तसेच कामगार प्रतिनिधीकडू
+  न स्वीकारण्यात आला ही कंपनीच्या दृष्टीने व औद्योगिक शांतता टिकवण्यासाठी अत्यंत आ
+  नंदाची गोष्ट आहे परिच्छद आपणास कल्पना असेलच की कंपनीने गेल्या वर्षापासून काटेकोर
+  पणे व्यवहारामधील उदळेपणाला परिणामकारक आळा घातला आहे
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/61_2B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन ऐंशी शब्द प्रतिमनेट पॅसेज बी रेडी स्टार्ट सन्माननीय सहकारी सभासद ब
+  ंधू भगिनींनो आपल्या सहकारी साखर कारखाना सोलापूर लिमिटेड याचा वार्षिक सर्वसाधारण 
+  सभेत आपणा सर्वांचे हार्दिक स्वागत करताना मला आनंद होत आहे परिच्छेद आपल्या साखर क
+  ारखान्याचा मार्च अखेरच्या वर्षाचा वार्षिक अहवाल आपणाकडे आहे तो आपण वाचला असेलच अ
+  से मी आपल्या परवानगीने गृहीत धरून चालतो तसेच वार्षिक अहवाल ताळेबंद व नफ तोटा पत्
+  रके संचालक मंडळाच्या वतीने आपणास सादर करताना मला आनंद होत आहे परिच्छद आपणा सर्वा
+  ंना कल्पना असेलच की हा साखर कारखाना सहकार तत्वावर लहानातल्या लहान शेतकऱ्याच्या ह
+  ितासाठी स्थापन करण्यात आलेला आहे तसेच समाजातील सर्व थरातील सामान्य माणसाचे जीवन 
+  सुजलाम सुफलाम व्हावे यासाठी आपल्या कारखान्याने प्रयत्नांची पराकाष्ठा केली आहे तस
+  ेच कारखाना निरनिराळ्या माध्यमातून सर्व थरातील लोकांचे जीवन समृद्ध व्हावे प्रगतिश
+  ील व्हावे व कृषी औद्योगिक नव समाज निर्माण व्हावा व सहकारी चळवळ भक्कम शक्तिशाली व
+  ्हावी व ग्रामीण जनतेच्या उन्नतीचे व दुर्बल घटकाच्या कल्याणाचे समाज परिवर्तनाचे क
+  ार्य करण्यासाठी स्थापन झालेला आहे परिच्छेद भारताचे सर्वांचे लाडके पंतप्रधान यांन
+  ी अल्पावधीतच सर्व थरातील जनतेच्या तसेच शेतकरी मजूरवर्ग कामगार वर्ग भूमिहीन शेतकर
+  ी मागासवर्गीय यांच्या आशा आकांक्षांची पूर्ती करण्यासाठी सतत प्रयत्नशील आहेत तसेच
+   महाराष्ट्रातील औद्योगिक सामाजिक शैक्षणिक शेतीविषयक कार्यक्रमांना चालना दिली आहे
+   असे नमूद करण्यास अभिमान वाटतो परिच्छेद आपल्या कारखान्यातून पाझर तलाव उपसा जलसिं
+  चन योजना इत्यादीसाठी सरकारकडे मंजुरीसाठी व ग्रामीण युवकांसाठी स्वयंरोजगार योजना 
+  विद्युत पुरवठा पाणी पुरवठा ग्रामीण रस्ते सुधारणा कुक्कुटपालन व शेतीवर अवलंबून अस
+  णारे लघुउद्योग व त्यांचा विकास इत्यादी विविध कल्याणकारी योजनाद्वारे परिश्रमाची प
+  राकाष्ठा करीत आहेत परिच्छेद आपल्या कारखान्याच्या कार्यक्षेत्रात मागच्या वर्षी सो
+  लापूर जिल्ह्यातील काही तालुक्यातील गावांचा नव्यानेच समावेश करण्यात आला आहे आपल्य
+  ा कारखान्याची व्याप्ती वाढत जाईल या पद्धतीची योजना आखली गेली आहे
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/61_2T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लुघुलेखन ऐंशी शब्द प्रतिमिनेिट ट्रायल पॅसेज रेडी स्टार्ट परिच्छद माननीय सद
+  स्यांनी आपला प्रस्ताव मांडताना विनानुदान तत्त्वावर चालणाऱ्या शाळांच्या बाबतीत ज्
+  या सेवा शर्ती व नियम आहेत त्याबद्दल सहानुभूती या ठिकाणी व्यक्त केली आहे ज्या शाळ
+  ा अनुदानतत्वावर चालतात त्यातील शिक्षकांना सेवा शर्तीचे जे नियम लागू आहेत तेच विन
+  ाअनुदान तत्त्वावर चालणाऱ्या शिक्षकांनाही लागू केलेले आहेत आणि करण्यात येतील वेतन
+  ाच्या प्रश्नांचा थोडासा विचार करावा लागेल कारण या शाळांना शासन अनुदान देत नाही
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 28
+Subject: Marathi Shorthand 100 wpm (ID: 62)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/62_1A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन शंभर शब्द प्रतिमिनिट पॅसेज ए रेडी स्टार्ट प्यारा स्त्री पुरुष समान
+  ता म्हणजे समाजात स्त्री आणि पुरुषांना समान हक्क संधी आणि सन्मान मिळणे या समानतेच
+  ा विचार शिक्षण नोकरी कौटुंबिक जबाबदाऱ्या राजकारण तसेच सामाजिक व सांस्कृतिक क्षेत
+  ्रांमध्ये होतो समानतेचे तत्त्व हे मानवतेच्या मुूलभूत तत्वांपैकी एक आहे प्राचीन क
+  ाळात स्त्रियांना समाजात उच्च स्थान होते पण कालांतराने सामाजिक सांस्कृतिक आणि धार
+  ्मिक कारणांमुळे स्त्रियांना दुयम स्थान दिले गेले शिक्षण मालमत्ता आणि सार्वजनिक ज
+  ीवनात सहभाग या बाबतीत त्यांना मर्यादा घालण्यात आल्या प्यारा आजच्या काळात अनेक दे
+  शांमध्ये स्त्री पुरुष समानतेसाठी मोठी पावले उचलली जात आहेत शिक्षण क्षेत्रात स्त्
+  रिया पुढे येत आहेत नोकरीच्या विविध क्षेत्रांमध्ये त्यांचा सहभाग वाढत आहे आणि राज
+  कारणातही त्यांची भूमिका महत्त्वाची ठरत आहे परंतु अजूनही अनेक ठिकाणी समानतेचा अभा
+  व दिसून येतो शिक्षण हे समानतेच्या दिशेने पहिले पाऊल आहे मुलगा आणि मुलगी दोघांनाह
+  ी समान शिक्षणाच्या संधी उपलब्ध करून दिल्या तरच खऱ्या अर्थाने समाज प्रगत होईल शिक
+  ्षणामुळे महिलांना स्वावलंबनाची जाणीव होते आणि स्वतःच्या निर्णयामध्ये सहभाग घेण्य
+  ाचा आत्मविश्वास येतो नोकरीच्या ठिकाणी स्त्रियांना समान वेतन समान संधी आणि समान व
+  ागणूक मिळावी यासाठी प्रयत्न केले जात आहेत पण अनेक ठिकाणी महिलांना दयम वागणूक दिल
+  ी जाते त्यांना बढती नेतृत्वाची संधी यामध्ये मागे ठेवले जाते स्त्री सक्षमीकरण म्ह
+  णजे महिलांना आर्थिक शैक्षणिक आणि सामाजिक दृष्ट्या सक्षम करणे समानतेचा विचार प्रत
+  ्यक्षात आणण्यासाठी महिलांना संधी उपलब्ध करून दिली पाहिजे स्त्रियाना स्वावलंबी बन
+  वणे हे केवळ त्यांचे हक्क नसून समाजाच्या प्रगतीसाठी ह आवश्यक आहे शिक्षण लहानपणापा
+  सून मुला मुलींना समानतेचे शिक्षण दिले पाहिजे कुटुंबातील योगदानामध्ये कुटुंबात स्
+  त्री आणि पुरुष दोघांनाही समान वागणूक देणे आवश्यक आहे सामाजिक मानसिकतेमध्ये समाजा
+  तील रूढी आणि परंपरा बदलण्यासाठी सर्वांनी पुढाकार घेतला पाहिजे राजकीय सहभाग महिला
+  ंना राजकारणात समान प्रतिनिधित्व देणे आवश्यक आहे अलीकडील काळात समानतेसाठी अनेक सक
+  ारात्मक बदल झाले आहेत महिलांनी शिक्षण खेळ उद्योजकता आणि राजकारणात आपले स्थान निर
+  ्माण केले आहे परंतु अजूनही ग्रामीण भागात आणि काही क्षेत्रांमध्ये समानतेच्या बाबत
+  ीत मोठ्या सुधारणा आवश्यक आहेत समानतेच्या मार्गावर अद्याप अनेक अडथळे आहेत जागतिक 
+  स्तरावरील वेतन विषमता अजूनही मोठी समस्या आहे गृहिणीना कुटुंबात योग्य मान्यता दिल
+  ी जात नाही
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/62_1B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन शंभर शब्द प्रतिमनिट पॅसेज बी रेडी स्टार्ट पॅरा झाडे ही पृथ्वीवरील 
+  पर्यावरणाचा महत्त्वाचा घटक आहेत मानवाचे अस्तित्व निसर्गाचा समतोल आणि पर्यावरणाचा
+   टिकाव धरण्याची क्षमता यामध्ये झाडांचे योगदान अमूल्य आहे पण दुर्दैवाने मानवाने प
+  ्रगतीच्या नावाखाली जंगल तोड आणि पर्यावरणाचा रास केल्यामुळे पृथ्वीवरील सजीवसृष्टी
+   धोक्यात आली आहे अशावेेळी झाडे लावा झाडे जगवा हा संदेश केवळ प्रचाराचा मुद्दा नसू
+  न ती काळाची गरज बनली आहे झाडे ही पृथ्वीवरील पर्यावरणाचा महत्वाचा घटक आहेत ती फक्
+  त ऑक्सिजनचा पुरवठा करत नाही तर जीवसृष्टीचे संतुलन राखण्याचे काम करतात झाडांमुळे 
+  आपण शुद्ध हवा अन्न आणि निवासस्थान मिळवतो त्याशिवाय झाडे जमिनीचे धूप थांबवतात आणि
+   जलचक्र संतुलित ठेवण्यास मदत करतात झाडांमुळे पर्जन्यमान वाढते आणि भूजल पातळी टिक
+  ून राहते ती जमिनीचा पोत सुधारतात आणि जैव विविधतेला आश्रय देतात अनेक प्राणी पक्षी
+   आणि कीटकांसाठी झाडे ही निवासाची जागा असतात झाडे वायू प्रदूषण कमी करून पर्यावरण 
+  शुद्ध करतात पॅरा मानवाच्या आर्थिक आणि सांस्कृतिक जीवनातही झाडांचे महत्त्व खूप आह
+  े औषधे इमारतीसाठी लाकूड आणि विविध वस्त्र निर्मितीसाठी झाडे उपयुक्त ठरतात धार्मिक
+   विधीमध्येही झाडांना महत्वाचे स्थान आहे मात्र अलीकडच्या काळात झपाट्याने होत असले
+  ल्या जंगल तोडीमुळे झाडांची संख्या कमी होत आहे यामुळे पर्यावरणीय संतुलन बिघडत आहे
+   आणि हवामान बदलाचा धोका वाढत आहे यावर उपाय म्हणून प्रत्येकाने झाडे लावून ती जगवण
+  ्याची जबाबदारी स्वीकारली पाहिजे झाडांचे महत्व आपल्या जीवनात अमूल्य आहे त्यामुळे 
+  आपण झाडे लावा झाडे जगवा हा संदेश आचरणात आणून निसर्गाचे रक्षण करण्यासाठी पुढे सरस
+  ावले पाहिजे आजच्या आधुनिक युगात झाडांचे स्थान अधिक महत्वाचे आणि आवश्यक झाले आहे 
+  प्रगतीच्या नावाखाली वाढते शहरीकरण औद्योगकरण आणि बेसुमार जंगल तोड यामुळे झाडांची 
+  संख्या झपाट्याने घटत आहे याचा थेट परिणाम पर्यावरणावर होत असून पृथ्वीवर जागतिक ता
+  पमान वाढ पर्जन्यमान कमी होणे आणि जैव विविधतेचा राास यासारखी संकटे निर्माण झाली आ
+  हेत पॅरा झाडे निसर्गाचा समतोल राखण्याचे काम करतात ती जमिनीचा पोत टिकवून ठेवतात भ
+  ूजल साठा वाढवतात आणि वायू प्रदूषण कमी करतात मात्र आज झाडांवरील मानवाचा अवलंबितव 
+  खूप जास्त असून त्यांची तोड बसमार सुरू आहे या परिस्थितीत झाडांचे संवर्धन करून संख
+  ्या वाढवणे ही काळाची गरज आहे झाडे लावा झाडे जगवा ही चळवळ प्रत्येकाने अंगीकारली प
+  ाहि
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/62_1T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन शंभर शब्द प्रतिमनिट ट्रायल पॅसेज रेडी स्टार्ट प आमच्या राज्याचे अध
+  िकृत धोरण समाजवादी आहे म्हणून समाजवाद हा शब्द आम्ही हेतूपरसर वापरतो परंतु समाजवा
+  दाबद्दल आम्ही बोलावयास लागल्यानंतर काही माणसांना अगदी अवघडल्यासारखे वाटू लागले त
+  ्यांना असे वाटू लागले की हे लोक समाजवादाबद्दल बोलावयास लागले तर आमचे सगळे संपलेच
+   आम्ही मग काय बोलावायचे परंतु मीांूो की् ज त्यां सारख नाही ते म्हणतात त्यांचा स 
+  खास आहे त्यांचा सना लखलाभ हो
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 29
+Subject: Marathi Shorthand 100 wpm (ID: 62)
+QSet: 2
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/62_2A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन शंभर शब्द प्रतिमिनिट पॅसेज ए रेडी स्टार्ट परा कोणत्याही देशाचा आर्
+  थिक विकास हा त्या देशातील नैसर्गिक साधने मनुष्यबळ भांडवल व संघटना कौशल्य यांवर अ
+  वलंबून असतो त्याचप्रमाणे सामाजिक संस्था सांस्कृतिक दृष्टकोन यांसारख्या आर्थिक पर
+  िस्थितीच्या घटकांचा सुद्धा महत्वाचा भाग असतो जेव्हा आपण भारताच्या सामाजिक आर्थिक
+   पुनररचनेबद्दल बोलतो तेव्हा त्यांचा अर्थ आपल्याला काही विधायक स्वरूपाची उद्दिष्ट
+  े साध्य करावयाची आहेत असा असतो ते उद्दिष्टे म्हणजे सर्वांना संधी प्राप्त करून दे
+  णे दुर्बळ घटकांमध्ये उद्योजकता वाढीला लावणे सहभागाची जाणीव निर्माण करणे ही आहेत 
+  परा सध्या भारतात असलेली तीव्र स्वरूपाची बेकारी ही सर्वांना खूप अस्वस्थ करणारी सम
+  स्या आहे देशात चार कोटी लोक बेकार आहेत असा अंदाज आहे परा लोकसंख्येमध्ये झपाट्यान
+  े होत असलेली वाढ हे बेकारचे महत्वाचे कारण आहे नियोजनात बेकारीच्या समस्येकडे पुरे
+  से लक्ष दिले जात आहे वास्तविक पहिल्या पंचवार्षिक योजनेच्या सुरवातीपासून बेकारीची
+   समस्या सोडविण्याची गरज शासनाला भासली होती म्हणूनच जेथे शक्य आहे तेथे विशेषत लघु
+   व कुटीर उद्योगाला श्रम प्रधान उपान पद्धतीवर शासनाने भर दिलेला आहे ग्रमीण बेकारी
+  च्या क्षेत्रात आवर्षण प्रवण प्रदेश विकास योजना आहेत्याच्या विविध जिल्हा सेवा योज
+  ना कार्यालतर्फे गेल्या वर्षी त्यांच्या कार्यालयात किती सुशिक्षित व किती अशिक्षित
+   बेची नोंद करण्यात आली त्यापैकी किती बेना काम देण्यात आले आजपर्यंत नोंदलेल्यापैक
+  ी किती बेना अदप काम देणे शिल्लक आहे या संबंधी माहिती देणारी जीणे या विभागात प्रा
+  प्त झाली आहेत त्यांचे संकलन करून एक सविस्तर टिपपणी या विभागात प्राप्त झाली आहेत 
+  त्यांचे संकलन करून एक सविस्तर टिपपणी सोबत जोडली आहे ती कृपया पाहावी या टिप्पणीवर
+  ून हे दिसून येईल कि राज्यातील सर्व प्रकारच्या बेकारांच्या संख्येत प्रत्यक्षात वा
+  ढ होत असून सुशिक्षित बेकारांच्या संख्येत दरवर्षी होणारी वाढ तर भयावह म्हणता येईल
+   अशा पातळीला येऊन पोचली आहे या नोंदणीकृत बेकारांशिवाय न नोंदले गेलेले बेकारही मो
+  ठ्या संख्येने असून बेकारी निवारण्याचा प्रश्न या राज्याने युद्ध पातळीवर हाती घेण्
+  याची तातडीची गरज निमाण झाली आहे असे या विभागाला वाटते या राज्याने ज्या विविध विक
+  ास योजना तसेच रोजगार हमी योजना राज्यात हाती घेतल्या आहेत त्यामुळे मोठ्या प्रमाणा
+  वर बेकारांना काम मिळण्याची सोय झाली आहे
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/62_2B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन शंभर शब्द प्रतिमिनिट पॅसेज बी रेडी स्टार्ट प्यारा शैक्षणिक क्षेत्र
+  ामध्ये काम करीत असताना आपणा समोर छोटी मोठी अनेक आव्हाने येऊन उभी राहतात कधी ती व
+  र्गाच्या कधी शाळेच्या तर कधी ती समाजाच्या संदर्भात असतात कधी ती अध्यापनाच्या तर 
+  कधी ती अध्ययनाच्या संदर्भातील असतात कधी ती व्यक्तिगत तर कधी ती सामूहिक स्वरूपाची
+   असतात कधी ती शालेय सोयी बाबतची तर कधी ती शैक्षणिक साहित्य साधना संबंधीची असतात 
+  कधी ती व्यवसायासबंधीची असतात तर कधी ती व्यवहाराबाबतची असतात शिक्षकांना अशा आव्हा
+  नाना सामोरे जाण्याची नित्य तयारी ठेवावी लागेल त्यासाठी एखादा दुसरा छोटा प्रकल्प 
+  हाती घेऊन एखादी नवी पद्धती हाताळून एखादी नवी रीत शोधून काढून एखादा मार्ग शोधून क
+  ाढून आपणास काम करावे लागेल नवे उपक्रम योजून आपणास आपलाही विकास करून घेता येईल आप
+  ल्या कार्याच्या नव्या दिशा धुंडाळता येतील आपल्या आवडीचा एखादा छंद वाढीला लावणे प
+  ्रसंगी लेखन करणे मुलांसाठी गाणी गोष्टी लिहिणे कथा कथन करणे रंजन मंडळे चालविणे शै
+  क्षणिक पाहणी सारखे उपक्रम हाती घेणे इत्यादी प्रकारचे नवे कार्यक्रम योजून आपणास आ
+  पल्या व्यवसायामध्ये जिवंतपणा आणता येईल हे सारे आपणास स्वयं प्रेरणेने आणि स्वय प्
+  रज्ञेने करावे लागेल प्यारा विद्यापीय शिक्षणाचे हे जे विशेष अंग आहे त्याचा तुम्ही
+   काळजीपूर्वक विचार करावा अशी माझी तुम्हा विनंती आहे ज्या प्रदेशात व ज्या काळात आ
+  पण राहत आहोत त्याच्या संदर्भात वस्तुस्थितीचा व घटनाचा अभ्यास करणे हे तुमचे आद्य 
+  कर्तव्य ठरते प्रत्येक देशाला किबवना देशातील प्रत्येक भागाला त्याचे असे काही विशि
+  ष्ट प्रश्न व गरजा असतात नव्या रक्ताच्या तुम्हा तरुणानी या प्रश्नांचा सखोल अभ्यास
+   करून ते सोडविण्याचा सातत्याने प्रयत्न केला पाहिजे व अशा प्रकारे तुम्ही तुमच्या 
+  प्रदेशातील लोक कल्याणाच्या कार्याचा एक अविभाज्य व जिवंत घटक असले पाहिजे पूर्वीच्
+  या काळी लोक विद्वान व व्यासंगी पुरुषांकडून मार्गदर्शनाची अपेक्षा करीत असत आज विद
+  ्यापीठातून शिक्षण घेतलेल्या तरुण स्त्री पुरुषांकडून अशा मार्गदर्शनाची अपेक्षा आह
+  े प्यारा अर्थात ज्ञानदानाची पूर्वीची पद्धत व आजची पद्धत यात पुष्कळ फरक झालेले आह
+  े त्याचप्रमाणे सुख समृद्धीच्या कल्पनाही आज बदललेल्या आहेत थोडक्यात म्हणजे जीवनाक
+  डे पाहण्याचा दृष्टकोन पूर्वीपेक्षा आज आमूलाग्र बदलला आहे तथापि अखिल मनुष्य मात्र
+  ाचे जास्तीत जास्त कल्याण साधण्याचे मानवाचे अंतिम ध्येय हे बदललेले नाही
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/62_2T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन शंभर शब्द प्रतिमनिट ट्रायल पॅसेज रेडी स्टार्ट प आमच्या राज्याचे अध
+  िकृत धोरण समाजवादी आहे म्हणून समाजवाद हा शब्द आम्ही हेतूपरसर वापरतो परंतु समाजवा
+  दाबद्दल आम्ही बोलावयास लागल्यानंतर काही माणसांना अगदी अवघडल्यासारखे वाटू लागले त
+  ्यांना असे वाटू लागले की हे लोक समाजवादाबद्दल बोलावयास लागले तर आमचे सगळे संपलेच
+   आम्ही मग काय बोलावायचे परंतु मीांूो की् ज त्यां सारख नाही ते म्हणतात त्यांचा स 
+  खास आहे त्यांचा सना लखलाभ हो
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 30
+Subject: Marathi Shorthand 120 wpm (ID: 63)
+QSet: 1
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/63_1A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन एकशे वीस शब्द प्रतिमिनिट पॅसेज ए रेडी स्टार्ट प्रदूषण हे एक हळूहळू
+   प्रभाव दाखवणारे विष आहे आणि ते प्रत्येक दिवसागणिक आपल्या जीवनाला नष्ट करीत आहे 
+  प्रदूषण नैसर्गिक वातावरणाला दूषित करून पर्यावरणात असथिरता निर्माण करते प्रदूषणाल
+  ा मुख्यतः तीन भागात विभाजित केले आहे वायू प्र्रदूषण ध्वनी प्रदूषण आणि जलप्रदूषण 
+  वायू प्रदूषण हे वाहनांमधून निघणारे इंधनाचे धूर औद्योगिक कारखाने उडणारी धूळ इत्या
+  दी कारणांमुळे होते या दूषित वायूला श्वासाद्वारे आत घेतल्याने हृदय संबंधी रोग निर
+  ्माण होतात निसर्गाला हानी पोहोचवणारे दुसरे प्रदूषण ध्वनी प्रदूषण आहे हे प्रदूषण 
+  वाहनांचे हॉर्न औद्योगिक कारखान्यातील मशीनचे आवाज लग्न तसेच इतर समारंभातील आवाज इ
+  त्यादी अनेक कारणांमुळे होते अत्याधिक ध्वनी प्रदूषणामुळे बहिरेपणा आणि कानासबंधी र
+  ोग वाढतात जल प्र्रदूषण ही सुद्धा अतिशय मोठ्या प्रमाणात निर्माण झालेली प्रदूषणाची
+   समस्या आहे नदी व तलावात कारखान्यातून निघणारे टाकाऊ पदार्थ व प्लास्टिक कचरा टाकल
+  ्याने जल प्र्रदूषण होते आज प्रदूषण हे अनेक पद्धतीने होत आहे या प्रदूषणाच्या समस्
+  येला कमी करण्यासाठी जास्तीत जास्त झाडे लावायला हवीत व लोकांना प्रदूषणाने होणाऱ्य
+  ा समस्यांविषयी जागृत करायला हवे आजचे युग हे विज्ञानाचे युग आहे जस जसे विज्ञान आण
+  ि तंत्रज्ञान प्रगत होत आहे तस तसे त्याचे दुष्परिणाम देख वाढत आहेत प्रदूषण हा अशा
+  च तंत्रज्ञानाचा एक दुष्पिणाम आहे आज प्रदूषण एक समस्या बनलेली आहे परिच्छेद आपल्या
+   धर्तीवर आज तीन तऱहेचे प्रदूषण आहे जलप्रदूषण वायू प्रदूषण आणि ध्वनी प्रदूषण विकस
+  नशील देश जसे भारत श्रीलंका पाकिस्तान आणि अन्य अनेक देश प्रदूषणाच्या समस्येला साम
+  ोरे जात आहेत नैसर्गिक स्रोतांचा योग्य वापर न करणे आणि अधिक तंत्रज्ञान माहीत नसले
+  ले हे देश आपल्या नागरिकांना स्वच्छ पिण्याचे पाणी उपलब्ध करण्यास असमर्थ आहेत याचा
+   परिणाम नागरिकांना अशुद्ध पाणी प्यायल्याने अनेक रोग होतात आणि हे रोग आरोग्याला ध
+  ोकादायक ठरतात म्हणून अशुद्ध पाणी हा प्राणघातक शत्रू आहे आज मोठमठे शहर वाढते मोटर
+  सायकल चारचाकी वाहने आणि इतर मोटर वाहनांमुळे वायू प्रदूषणाचा सामना करत आहेत विकसि
+  त झालेल्या शहरात औद्योगकरणाचा दर हा खूप अधिक असतो यामुळे निसर्ग आपले संतुलन वाचव
+  ण्यात अयशस्वी होतो कारखान्यांच्या धुराड्यातून निघणारा अतिशय विषारी वायू वातावरणा
+  तील प्राणवायूचे प्रमाण कमी करतो आणि प्राणवायूचा अभाव झाल्याने श्वासांसबंधी रोग व
+  ्हायला लागतात बऱ्याचदा हे प्रदूषण अधिक झाल्याने हृदय विकाराचा झटका सुद्धा येऊ शक
+  तो परिच्छेद ध्वनी प्रदूषण हे सुद्धा वायू प्रदूषणा एवढेच घातक आहे मोठमठ्या महानगर
+  ात वाहनांचे आवाज आणि कारखान्यांमुळे ध्वनी प्रदूषण वाढते बहिरेपणा मानसिक गोंधळ आण
+  ि मानसिक असंतुलन हे ध्वनी प्रदूषणाचे काही दुष्पिणाम आहेत आज ध्वनी प्रदूषण रोखण्य
+  ासाठी कडक कायदे तयार करण्याची आवश्यकता आहे मोठ्या आवाजात वाद्य वाजविण्यावर बंदी 
+  आणायला हवी मनुष्य निसर्गाला विषारी करीत आहे मनुष्य स्वतः वेळीच सावध झाला नाही तर
+   त्याला या प्रदूषणामुळे होणाऱ्या धोक्यापासून कोणीच वाचवू शकणार नाही
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/63_1B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन एकशे वीस शब्द प्रतिमिनिट पॅसेज बी रेडी स्टार्ट प्रदूषण कोणत्याही प
+  ्रकारचे असो ते मनुष्य जीवनासाठी धोकादायक तर आहेच पण यासोबत वनस्पती आणि प्राण्यां
+  नाही ते घातक आहे प्रदूषण मानव जातीसाठी एक समस्या आहे जोपर्यंत आपण विज्ञान आणि तं
+  त्रज्ञानाने होणाऱ्या या दुषपिणामांना कमी करण्यासाठी उपाय शोधून घेत नाही तोपर्यंत
+   मानवी जीवन धोक्यात आहे शासनाने याची दखल घ्यायला हवी आणि पर्यावरणाला वाचवण्यासाठ
+  ी वृक्ष लागवड जलशुद्धीकरण गॅसवर चालणाऱ्या चुली इत्यादी उपक्रम राबवायला हवेत आपल्
+  याला प्रदूषणाशी लढा देऊन त्याला कोणत्याही किमतीवर संपवायचे आहे आज पृथ्वीवर वाढत 
+  असलेल्या समस्यांमध्ये प्रदूषण ही सर्वात मोठी समस्या आहे प्रदूषणाचा अर्थ होतो नैस
+  र्गिक संतुलनात दोष निर्माण होणे श्वासोच्छवासाठी शुद्ध हवा न मिळणे प्यायला स्वच्छ
+   पाणी न मिळणे स्वच्छ अन्न न मिळणे आणि शांत वातावरण उपलब्ध न होणे प्रदूषण मानव जा
+  तीसाठी किती हानकारारक आहे हे सर्वांनाच माहीित झाले आहे परंतु हे ज्ञान फक्त पुस्त
+  कापर्यंत सीमित आहे वास्तविक जीवनात मनुष्य आपली प्रगती आणि सुख सुुविधामध्ये वृद्ध
+  ी करण्यासाठी दिवसेंदिवस प्रदूषण करीत आहे पृथ्वी पाणी हवा ध्वनी इत्यादीमध्ये आढळण
+  ारे तत्व जर असंतुलित असतील तर त्याला प्रदूषण म्हटले जाते मनुष्याद्वारे निर्माण झ
+  ालेला कचरा व टाकाऊ पदार्थ जे निसर्गात फेकले जातात त्या पदना प्रदूषक म्हटले जाते 
+  प्रदूषण अनेक प्रकारचे असते प्रदूषणाचे काही प्रमुख प्रकार पुढील प्रमाणे आहेत जल प
+  ्र्रदूषण वायू प्रदूषण आणि ध्वनी प्रदूषण भारतातील मोठमठ्या महानगरांमध्ये वायू प्र
+  दूषण मोठ्या प्रमाण पसरत आहे चोवीस तास चालणारे कारखाने गाड्या मोटारी इतदी मधून नि
+  घणारा काळाधूर वायू प्रदूषण वाढवण्याचे कार्य करतो दिल्ली मुंबई यासारख्या मोठ्या श
+  हरांमध्ये श्वास घेणे सुद्धा कठीण आहे मोठ्या प्रमाणात वायू प्रदूषण वाढल्याने श्वा
+  सासबंधी विकार जडतात वायू प्रदूषण रोखण्यासाठी अधिकाधिक झाडे लावायला हवी गाड्या मो
+  टारीचा कमीत कमी वापर करायला हवा परिच्छेद जल प्र्रदूषणानंतर सर्वात मोठी प्रदूषण स
+  मस्या म्हणजे ध्वनी प्रदूषण होय ध्वनी प्रदूषण कारखाने गाड्या मोटारी लाऊड स्पीकर इ
+  त्यादीच्या आवाजामुळे वाढत आहे ध्वनी प्रदूषणामुळे बहिरेपणासारख्या समस्या वाढत आहे
+  त सतत मोठ्या प्रमाणात कर्कश आवाज ऐकल्याने मानसिक तणाव वाढतो म्हणून ध्वनी प्रदूषण
+   कमी करण्यासाठी कारखाने व नागरिकांनी उच्च दर्जाची यंत्रे वापरायला हवी वायू जल व 
+  ध्वनी प्रदूषण कमी करण्यासाठी अनेक प्रकारचे उपाय केले जाऊ शकतात जास्तीत जास्त हिर
+  वळ निर्माण करायला हवी रस्त्याच्या दोन्ही बाजूंना अधिकाधिक झाडे लावायला हवीत झाडे
+   लावा झाडे जगवा हा संदेश प्रसारित करायला हवा कारखान्यांना मनुष्य वस्तीपासून दूर 
+  ठेवायला हवे खजगी वाहनाचा वापर कमी प्रमाणात करायला हवा इत्यादी उपाय जर आपण केलेत 
+  तर प्रदूषण सारख्या समस्येला दूर करण्यासाठी खूप मदत होईल प्रदूषण हे हळूहळू परिणाम
+   करणारे एक विष आहे ते हवा पाणी व धुळीच्या माध्यमाने फक्त मनुष्यच नव्हे तर जीव जं
+  तू पशु पक्षी झाडे झुडूपे या वनस्पतींना देखील नष्ट करते वाढत्या प्रदूषणामुळे देशा
+  चे खूप मोठे नुकसान होते
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/63_1T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन एकशे वीस शब्द प्रतिमिनिट ट्रायल पॅसेज रेडी स्टार्ट उत्पादकांनी जीव
+  न आणि आरोग्याला अपायकारक किंवा मालमत्तेला धोका निर्माण करणाऱ्या वस्तूचे उत्पादन 
+  व विपणन करू नये आरोग्याला अपायकारक असे रंग किंवा स्वाद यांचा वापर करू नये खेळणी 
+  कपडे घरगुती उपकरणे वापरण्यास सुरक्षित आहेत हे पाहण्याची जबाबदारी कायद्याने विक्र
+  ेत्यावर टाकली आहे वस्तूंची गुणवत्ता प्रमाण क्षमता किंमत उत्पादनाची तारीख वस्तू उ
+  त्पादनासाठी वापरलेले घटक माहिती आणि अनु प्रक्षेराती संक्षण्या प्र्येक हक्क आहे य
+  ामुळे वस्तू विकत घेण्यापूर्वी ग्राहकांना संपूर्ण माहितीचा विचार करून वस्तू विकत 
+  घ्यावी किंवा नाही याचा विचार करता येईल
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 31
+Subject: Marathi Shorthand 120 wpm (ID: 63)
+QSet: 2
+Department ID: 10
+Target Language: mr
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/63_2A.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन एकशे वीस शब्द प्रति मिनिट पॅसेज हे रेडी स्टार्ट अध्यक्ष महाराज आज 
+  आपल्या राज्यामध्ये ग्रामीण विभागात पिण्याच्या पाण्याची समस्या अत्यंत उग्र स्वरूप
+   धारण करू लागली आहे याकडे मला शासनाचे लक्ष वेधावयाचे आहे पावसाळ्याचे चार महिने स
+  ोडले तर वर्षातून सहा महिने ग्रामीण विभागातील लोकांना पिण्याच्या पाण्याची टंचाई स
+  हन करावी लागते सरकारने पिण्याच्या पाण्याची टंचाई दूर करण्यासाठी मोठ्या प्रमाणावर
+   योजना हाती घेतल्या आहेत याची मला जाणीव आहे अद्यापही हा प्रश्न सुटलेला नाही किंव
+  ा त्याची गंभीरता कमी झालेली नाही हेही मला येथे नमूद करणे आवश्यक वाटते पाणी ही मा
+  णसाची मूलभूत गरज आहे आणि पाणी नसले की त्याचे सारे व्यवहार थंडावतात त्याचे दैनंदि
+  न जीवन विस्कळीत होते महाराष्ट्रातील बहुतांश ग्रामीण भाग हा टंचाईग्रस्त असतो आणि 
+  ही टंचाई केवळ अन्नधान्याची नसते तर पिण्याच्या पाण्याची असते टंचाईग्रस्त भागात पि
+  ण्याच्या पाण्याचा प्रश्न सोडविणे ही अत्यावश्यक गोष्ट होऊन बसली आहे शासनातर्फे टं
+  चाईच्या काळात टँकरच्या मदतीने ग्रामीण भागातील लोकांना पाणी पुरविले जाते किंवा बै
+  लगाड्यांचीही मदत घेतली जाते परंतु हा वरवररचा उपाय झाला त्या भागातील पाण्याची टंच
+  ाई कायची दूर करावयाची असेल तर त्याकरिता व्यापक प्रमाणावर योजना हाती घेणे आवश्यक 
+  आहे अश टंचाईग्रस्त भागात नवीन कूपनलिका विहिरी खोदणे जुन्या विहिरी अधिक खोल करणे 
+  किंवा नव्या विहिरी बांधणे अशा उपाय योजना शासनातर्फे हाती घेतल्या जात आहेत परच्छद
+   सामुदायिक विहिरी ह बांधल्या जात आहेत परंतु त्यांची डागडुजी वेळेवर करणे आवश्यक अ
+  सते ग्रामपंचायतीकडे हे काम सोपविण्यात आले असून त्यासाठी त्यांना मदतही केली जात आ
+  हे्यात टंचाईग्रस्त भागात आतापर्यंत अशा अनेक नलिका विहिरी खोण्यात आल्या असून जुन्
+  या विहिरी खोल करण्यात आल्या आहेत आवश्यक तेथे नव्या विहिरी बांधण्यात आल्या आहेत प
+  रंतु मला नमूद करणे आवश्यक वाटते की ज्या नवीन विहिरी बांधल्या जातात त्या विहिरींन
+  ा पुरेसे पाणी लागले आहे किंवा नाही याची खात्री संबंधित ग्रामसेवकांतर्फे करून घेत
+  ली जाणे आवश्यक आहे अन्यथा दुसऱ्या वर्षी त्या विहिरी आटतात आणि त्या गावाच्या पिच्
+  या पाण्याचा प्रश्न कायमच राहतो म्हणून जमिनीत कोठे पाणी लागण्याचा संभव आहे याची म
+  ाहिती प्रथम संबंधित विभागाच्या कडून घेतली जावी आणि त्याच ठिकाणी नवीन विहिरी घेतल
+  ी जावी अशी सूचना मला या निमित्ताने करावयाची आहे असे केल्यास आज अयशस्वी झालेल्या 
+  विहिरींची संख्या आणि परिणामत वाया गेलेल्या शासनाच्या पैशांची रक्कम जी सारखी वाढत
+   आहे ती वाढणार नाही हे सारे काम युद्ध पातळीवर हाती घेतले जाणे आवश्यक आहे त्याकरि
+  ता आवश्यक तो निधी उपलब्ध करून देण्यासाठी शासन तयार आहे याचा मला मुद्दाम उल्लेख क
+  रावयाचा आहे पाझर तलावामुळे आसपासच्या भागातील विहिरींच्या पाण्याची पातळी वाढण्यास
+   मदत होते या उपाय योजना पाण्याची टंचाई दूर करण्यासाठी केल्या जातात
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/63_2B.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन एकशे वीस शब्द प्रतिमिनिट पॅसेज बी रेडी स्टार्ट वृक्ष हे मानवासाठी 
+  अत्यंत उपयुक्त असूनही मानवाने अनेक वर्षापासून वृक्षांची अपरिमित तोड केली यामुळे 
+  निसर्गाचे संतुलन बिघडले पर्जन्यमानावर परिणाम झाला प्रदूषण वाढीमुळे मानवाच्या अस्
+  तित्वास धोका झाला अशा संकटांना मानवाने आपल्या अविचाराने दारात आणून सोडले आहे या 
+  संकटाची तीव्रता कमी व्हावी यासाठी महाराष्ट्र शासनाने महावृक्ष लागवडीचा महत्त्वाक
+  ांक्षी कार्यक्रम जुलैमध्ये राबवला आहे हा केवळ शासनाचा कार्यक्रम न राहता यात सर्व
+   थरातील नागरिक उत्साहाने सामील झाले ही अतिशय आनंदाची बाब ठरली आता सर्वांची जबाबद
+  ारी वाढली असून लावलेल्या वृक्षांचे संगोपन आणि संवर्धन करणेही आवश्यक आहे लावलेला 
+  प्रत्येक वृक्ष जगला पाहिजे याचा संकल्प आपण करणे अत्यंत गरजेचे ठरते आपण सर्वांनी 
+  वृक्ष संगोपनाचा केलेला संकल्प महाराष्ट्राला हरित आणि समृद्ध करण्यासाठी उत्तुंग अ
+  शी झेप ठरू शकतो गेल्या काही दिवसांपासून महाराष्ट्राच्या विविध भागात चांगला पाऊस 
+  पडत आहे यामुळे चैतन्यदायी वातावरण निर्माण झाले आहे सामान्य शेतकऱ्यांच्या चेहऱ्या
+  वर हसू परत आले आहे मुख्यमंत्र्यांनी जलयुक्त शिवारच्या कामांवर प्राधान्याने लक्ष 
+  दिले आहे असे दिसून येते उपलब्ध माहितीनुसार विविध जलयुक्त प्रकल्पांमध्ये चांगला ज
+  लसाठा झाला आहे संघ लोकसेवा आयोगामार्फत घेण्यात आलेल्या नागरी सेवा परीक्षेत उत्ती
+  र् झालेल्या आणि नाशिक येथील पोलीस उपनिरीक्षक प्रशिक्षण विशेष पुरस्काराने सन्मानि
+  त झालेल्याची मुलाखत लोकरा्याच्या तरुण वाचकांना निश्चितच मोठे यश मिळवण्यासाठी प्र
+  ेरणा देईल याची खात्री वाटते पररीछेत झाडे लावण्याची जगवण्याची आस्था प्रत्येक सर्व
+   सामानच्या मनात आहे त्या आस्थेला खतपाणी घालण्याची जबाबदारी शासनाने उचलली आहे शास
+  न स्तरावर महावृक्ष लागवड अभियानाला आकार देत असताना सर्वांचा सहभाग हवा आहे झाडे ल
+  ावणारे आणि ते जगवणारे हात हवे आहेत वनमंत्री यांच्या दूरदर्शी विचारधारेतून कोट्या
+  वधी वृक्षारोपणाचा अतिशय महत्वाकांक्षी आगळा वेगळा आणि नाविन्यपूर्ण उपक्रम या वर्ष
+  ाच्या कालावधीमध्ये हाती घेण्यात आला आहे त्यास प्रधानमंत्री राज्यपाल मुख्यमंत्री 
+  महाराष्ट्राचे केंद्रातील मंत्री आणि समाजातील सर्व घटकांचा मोठा पाठिंबा आणि समर्थ
+  न मिळाले आहे वृक्षारोपणाचा कार्यक्रम जन चळवळीतून सातत्यपूर्वक पुढे सुरू राहील अश
+  ी अपेक्षा आहे प्रथम टप्प्यात दोन कोटी वृक्ष लागवडीचे उद्दिष्ट ठरवले असताना प्रत्
+  यक्षात जास्त वृक्ष लावले गेले या उपक्रमाची नोंद जागतिक विश्वविक्रमात घेतली वृक्ष
+   लागवडीचे उद्दिष्ट असताना जनतेच्या प्रचंड उत्साहामुळे आम्ही जास्त झाडे लावू शकलो
+   या उपक्रमाची नोंद जागतिक विश्वविक्रमात दुसऱ्यांदा घेतली आणि राज्य शासनास प्रमाण
+  पत्र दिले राज्याचे वृक्ष व वनच्छादन वाढवण्याच्या दृष्टीने पुढील तीन वर्षांमध्ये 
+  राज्य शासनामार्फत लोकसहभागातून पन्नास कोटी झाडे लावली जाणार आहेत यापूर्वी अनेक व
+  ृक्ष लागवडीच्या उद्दिष्टापेक्षा अधिक वृक्ष लावण्याचा विक्रम राज्याने केला आहे
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/63_2T.mp3
+  Status: SUCCESS
+  Detected Language: mr (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  मराठी लघुलेखन एकशे वीस शब्द प्रतिमिनिट ट्रायल पॅसेज रेडी स्टार्ट उत्पादकांनी जीव
+  न आणि आरोग्याला अपायकारक किंवा मालमत्तेला धोका निर्माण करणाऱ्या वस्तूचे उत्पादन 
+  व विपणन करू नये आरोग्याला अपायकारक असे रंग किंवा स्वाद यांचा वापर करू नये खेळणी 
+  कपडे घरगुती उपकरणे वापरण्यास सुरक्षित आहेत हे पाहण्याची जबाबदारी कायद्याने विक्र
+  ेत्यावर टाकली आहे वस्तूंची गुणवत्ता प्रमाण क्षमता किंमत उत्पादनाची तारीख वस्तू उ
+  त्पादनासाठी वापरलेले घटक माहिती आणि अनु प्रक्षेराती संक्षण्या प्र्येक हक्क आहे य
+  ामुळे वस्तू विकत घेण्यापूर्वी ग्राहकांना संपूर्ण माहितीचा विचार करून वस्तू विकत 
+  घ्यावी किंवा नाही याचा विचार करता येईल
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 32
+Subject: Hindi Shorthand 60 wpm (ID: 70)
+QSet: 1
+Department ID: 10
+Target Language: hi
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/70_1A.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघु लेखन साठ शब्द प्रतिमिनिट पैसेज ए रडी स्टार्ट उपाध्यक्ष महोदय परिचय वित
+  ्त मंत्री को देश की आर्थिक स्थिति और निर्धनता के संबंध में जितनी जानकारी प्राप्त
+   होती है उतनी किसी अन्य मंत्री को संभव नहीं होती बजट बनाते समय वैसे तो बजट में आ
+  य व्यय का ब्यौरा होता ही है लेकिन मूल रूप में देश की आर्थिक नीतियों में किस प्रक
+  ार का परिवर्तन हो तथा किस मार्ग पर वह देश को चलाना चाहते हैं सरकार का लक्ष्य क्य
+  ा है इन सब नीतियों का बजट में विवरण होता है हमारे वित्तमंत्री चाहे जिस पद पर भी 
+  रहे हो चाहे वे मुख्यमंत्री रहे हो या केंद्रीय सरकार में रहे हो उन्होंने शानदार क
+  ाम किया जिस समय उन्होंने बजट प्रस्तुत किया उस समय देश को और विशेष रूप से गरीबों 
+  को उनसे बहुत सी आशाएं थी देश में लगभग छह लाख गांव है उनमें जो बेरोजगारी है गरीबी
+   है उसके संबंध में देश की जनता को उनसे बड़ी आशाए थी और जनता देखना चाहती थी कि इस
+   अवसर पर सरकारी नीतियों के द्वारा देश को वे क्या मार्गदर्शन देना चाहते हैं परिित
+   इस दृष्टि से तीन महत्वपूर्ण बातें इस समय देश के सामने थी देश का आर्थिक विकास ते
+  जी से हो अधिक लोगों को काम मिल सके और मूल्यों में स्थिरता आए जहां तक इन तीन उद्द
+  ेशों का संबंध है हमने देखा कि गरीबी हटाव के संबंध में विशेष रूप से प्रयत्न किए ह
+  ै
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/70_1B.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिदी लघुलेखन साठ शब्द प्रतिमिनट पैसेज ए रेडी स्टार्ट उपाध्यक्ष महोदय परि्द तब उन
+   लोगों को कुछ आशा हुई कि हम लोग भी उसी तरह चल सकते हैं जिस तरह से पहले चल रहे थे
+   लेकिन अभी हाल में जो चुनाव हुआ उससे देश के धनिकों के मन में बड़ा संदेह पैदा हुआ
+   कि इस चुनाव के बाद उनकी स्थिति वैसी नहीं रहेगी जो अब तक चली आती रही है गरीबों औ
+  र अमीरों के बीच में अब तक जो बहुत बड़ा अंतर चला आ रहा था उसको अब तेजी से दूर करन
+  े का प्रयत्न किया जाएगा श्रीमान मैं आपका बहुत आभारी हू जो आपने सदन में चालू वर्ष
+   के बजट पर अपने विचार प्रकट करने का अवसर दिया है मैं इस बजट का समर्थन करना चाहता
+   हूं परिचछद श्रीमान मैं सबसे पहले अपने दल के नेता प्रधानमंत्री को इस बात के लिए 
+  बधाई देना चाहता हूं कि उनके नेतृत्व में देश में कांग्रेस दल को स्पष्ट बहुमत मिला
+   और इसके फलस्वरूप यहां पर केंद्र में एक ऐसी सरकार का गठन हुआ जो कि देश में वास्त
+  व में समाजवाद लाना चाहती हैं मैं वित्तमंत्री जी को इस बात के लिए बधाई देना चाहता
+   हूं कि लोकसभा के मध्यवधि चुनाव में जनता द्वारा विपक्ष दल को जो आदेश दिया गया था
+   उन्हें स्मरण है और वह तन मन धन से उस आदेश का पालन करना चाहते हैं और जरूर उसका प
+  ालन करेंगे
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/70_1T.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघुलेखन साठ शब्द प्रतिमिनिट ट्रायल पैसेज रेडी स्टार्ट उपाध्यक्ष महोदय मै इ
+  स बिल का स्वागत करता हूँ मुझे दुख है कि कई माननीय सदस्यों ने जिन्होंने पता नहीं 
+  किस कारण से कहा तो यह कि वे इस बिल का स्वागत करते हैं लेकिन वास्तव में इसका विरो
+  ध करने का उन्होंने प्रयत्न किया है हम सब इस प्रयत्न का दिल से स्वागत करते हैं
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 33
+Subject: Hindi Shorthand 60 wpm (ID: 70)
+QSet: 2
+Department ID: 10
+Target Language: hi
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/70_2A.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघुलेखन साठ शब्द प्रति मिनट पैसेज ए रेडी स्टार्ट अध्यक्ष जी तारा किसी भी द
+  ेश की विदेश नीति अपने में कोई स्वतंत्र नीति नहीं होती है वरन वह किसी देश की आंतर
+  िक नीति को स्पष्ट करती है उदाहरण के लिए हम अमरीका को ले सकते है उसने अपने यहा अध
+  िक अन्न पैदा किया और जब उसके पास अनाज फालतू बच गया तब वह अपने बकाया अनाज की बिक्
+  री के लिए ऐसे देशों की तलाश करने लगा जो उधार पर माल ले सकते हो किंतु हमारी आंतरि
+  क नीति ने यह तय किया कि खर्चीले ढंग से सरकार चलाएेंगे और स्वदेशी मुद्रा की कोई र
+  ाशि हमारे पास नहीं बचेंगी हमने कर भी लगा दिए और मुद्रा प्रसार भी कर दिया कुछ संक
+  ट पड़ने के बाद इस बात की आवश्यकता को नहीं समझा कि उस पैसे का कहीं अन्यत्र उपयोग 
+  कर सके प्यारा श्रीमन मुझे माननीय प्रधानमंत्री जी के इस कथन पर दुख होता है कि दुन
+  िया के अमीर और गरीब देशों का अंतर लगातार बढ़ता जा रहा है मैं उनसे यह पूछना चाहती
+   हू कि भारत की विदेश नीति ने उस अंतर को घटाने की क्या कोशिश की है क्या भारत सरका
+  र ने कभी दुनिया की पंचायत में यह कहने की हिम्मत की है कि बालिग मताधिकार के आधार 
+  पर यूएन ओ का चुनाव होकर एक संसद बनाई जाए और क्या आप में यह देखने की हिम्मत है कि
+   फौज को कर लगाकर एक विकास का खाता खोल दिया जाए
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/70_2B.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघुलेखन साठ शब्द प्रति मिनट पैसेज भी रेडी स्ार्ट अध्यक्ष जी तारा जिस समय प
+  ाकिस्तान ने भारत पर हमला किया था उस समय उन्होंने देश की रक्षा के लिए महत्वपूर्ण 
+  कार्य किया था इसके साथ ही मैं मंत्री महोदय को यह भी स्मरण दिलाना चाहता हू कि शाय
+  द उन्होंने इस पर ध्यान नहीं दिया कि इस बार जो राष्ट्रीय पुरस्कार मिले है उनमें र
+  ेलवे प्रशासन को केवल दो ही प्राप्त हुए है जब कि मैं ऐसा मानता हू कि हमारी सेना क
+  े बाद अगर किसी ने युद्ध काल में सराहनीय कार्य किया है तो वह रेलवे प्रशासन अथवा र
+  ेलवे कर्मचारी और अधिकारी है इसलिए उनके मनोबल को बनाए रखने के लिए और उनको प्रोत्स
+  ाहित करने के लिए रेल मंत्री को इस बात पर भी ध्यान रखना चाहिए और इसका प्रयास करना
+   चाहिए कि जो भी इस तरह के प्रोत्साहन मिले उनमें रेलवे का विशेष ध्यान रखा जाए तार
+  ा रेल मंत्री महोदय ने अपने वक्तव्य में भी रेलवे कर्मचारियों की प्रशंसा की है या 
+  उनको प्रोत्साहन दिलाया है लेकिन यह प्रोत्साहन शांत काल में भी बना रहना चाहिए रेल
+  वे ने युद्ध काल में जो काम किया वह तो देश की रक्षा का महान उद्देश्य था लेकिन उसक
+  े बाद देश के निर्माण में या गरीबी मिटाने के लिए जो युद्ध होता है उसमें भी प्रत्य
+  ेक रेलवे कर्मचारी का मनोबल उसी तरीके से बना रहे इसके लिए भी रेल मंत्री महोदय को 
+  कुछ कदम उठाने की आवश्यकता है
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/70_2T.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघुलेखन साठ शब्द प्रति मिनट ट्रायल पैसेज रेडी स्टार्ट उपाध्यक्ष महोदय मैं 
+  इस बिल का स्वागत करता हूँ मुझे दुख है कि कई माननीय सदस्यों ने जिन्होंने पता नहीं
+   किस कारण से कहा तो यह कि वे इस बिल का स्वागत करते हैं लेकिन वास्तव में इसका विर
+  ोध करने का उन्होंने प्रयत्न किया है हम सब इस प्रयत्न का दिल से स्वागत करते हैं
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 34
+Subject: Hindi Shorthand 100 wpm (ID: 72)
+QSet: 1
+Department ID: 10
+Target Language: hi
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/72_1A.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघु लेखन सौ शब्द प्रति मिनट पैसेज ए रेडी स्टार्ट महोदय बच्चे किसी भी देश क
+  े भविष्य होते है यह यथार्थ सत्य है और सदियों से इस और विशेष ध्यान देने की आवश्यक
+  ता पर बल दिया गया है जन्म से लेकर बच्चों के स्वास्थ्य रहन सहन और उनकी शिक्षा को 
+  लेकर उनके माता पिता का चिंतित होना स्वाभाविक है लेकिन तेजी से अपनी जड़े जमा रहे 
+  भौतिकवाद ने हर छोटे बड़े समाज के सामने ऐसे कई सवाल खड़े कर दिए है कि बच्चों को क
+  िस तरह उनका हक दिलाया जाए जिससे वे आगे चलकर मजबूती और आत्मविश्वास के साथ समाज के
+   सजग प्रहरी बन सके पिछले कुछ दशकों से बच्चों के भविष्य को लेकर उपजी चिंताओ ने वै
+  ज्ञानिकों और मनोवैज्ञानिकों को शोध और अनुसंधान के लिए बाध्य किया है नित नई नई सम
+  स्याओ ने माता पिता को दुविधा में डाल दिया है एक और जहाँ जीवन यापन के लिए महिलाए 
+  भी पुरुषों की तरह कमर कस कर घर की चार दीवारों से बाहर निकल रही है वही इसके कारण 
+  सदियों से चली आ रही सामाजिक संरचना गड़बड़ाने लगी है आजीविका कमाने और अत्यधिक सुख
+   वैभव की चाहत ने हर दंपति को जीवन शैली बदलने पर मजबूर कर दिया है समाज में हो रहे
+   इस बदलाव के कारण बच्चे सबसे ज्यादा उपेक्षित होने लगे है अब तक की तमाम रिपोर्टो 
+  के मुताबिक यह स्पष्ट है की अगर बच्चों के प्रति माता पिता की उदासीनता इसी प्रकार 
+  बढ़ती रही तो आने वाला वक्त तमाम परेशानियों के कारण जटिलता भरा हो जाएगा बच्चों के
+   सर्वांगीण विकास के लिए जो सबसे पहली समस्या सामने आती है वह है उनका स्वास्थ्य पर
+  ि्छेद माता पिता अपने बच्चों के स्वास्थ्य को लेकर चिंतित रहते है अपने सामर्थ्य के
+   अनुसार वह कम से कम बच्चों के खाने पीने में कोई कोर कसर बाकी नहीं रहने देना चाहत
+  े इस प्रयास में अक्सर यही देखा गया है की माता पिता खाने पीने के मामले में बच्चों
+   पर मनोवैज्ञानिक दबाव रखने में लगे रहते है उनकी कोशिश यही रहती है की उनका बच्चा 
+  हमेशा खाता पीता रहे और फिर यह होता है की बच्चे के खाने पीने का कोई समय निर्धारित
+   नहीं हो पाता असमय खाने पीने के कारण कई प्रकार की समस्याए पैदा होती है बच्चों मे
+  ं मोटापा होना प्रमुख बाब है
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/72_1B.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघु लेखन स शब्द प्रति मिनट पैसेज भी रेडी स्टार्ट महोदय विकसित देशों के भां
+  ति विकासशील देशो में फिलहाल यह समस्या नहीं है लेकिन बदली हुई परिस्थितियों में वि
+  शेषकर संभ्रांत परिवारों और समस्या नहीं है बच्चों के बीच मोटापे की समस्या तेजी से
+   बढ़ रही है वैसे तो बच्चों के मोटे होने के लिए कई परिस्थितिया जिम्मेदार होती है 
+  जैसे उनके पैतृक गुण भूख उसका स्वभाव और दुखी होना किन्हीं विशेष प्रकरणों में हारम
+  ोन संचय में गड़बड़ी होना मोटापे का कारण बन जाता है यदि बच्चे के माता पिता मोटे ह
+  ै तो बच्चे की भी मोटे होने की संभावना बढ़ जाती है पैतृक कारणों के अलावा बच्चे का
+   स्वभाव भी उसके मोटापे के लिए जिम्मेदार साबित होता है जो बच्चे ज्यादा ना खुश रहत
+  े है वे प्रत्यक्ष रूप से ज्यादा खाने की आदि हो जाते है ऐसे बच्चों में असमय खाने 
+  की आदत ज्यादा होती है जब कभी उनका मन नहीं लगता वे कुछ खा पी कर अपना मन बहलाने की
+   कोशिश करते है और धीरे धीरे यह आदत बढ़ती जाती है जो उनके मोटापे का कारण बन जाती 
+  है इसके अलावा जो बच्चे खेल कूद में दिलचस्पी नहीं रखते उनके भी मोटा होने की संभाव
+  ना होती है व्यायाम की कमी से शरीर की ऊर्जा चरबी में परिणत होने लगती है इन सब परि
+  स्थितियों में मोटापे के आसार बढ़ने लगते है अधिक भूख लगना और अधिक भोजन खाना मोटाप
+  े का सबसे बड़ा कारण होता है नवजात शिशु ही क्यों न हो उसे आवश्यकता के अधिक दूध पि
+  लाना अवाछनीय है दूध के स्थान पर ठोस आहार देना अधिक श्रेयस्कर होता है जैसे जैसे ब
+  च्चा बड़ा होता है उसके खाने पीने में खास कर इस बात का ध्यान रखा जाना चाहिए की उस
+  में चर्चा बढ़ाने का कारण बनने वाले खाद्य पदार्थ खासकर घी मक्खन आदि का इस्तेमाल अ
+  नुपात से ज्यादा न होने पाए परि्छेद करीब छह से सात वर्ष से लेकर चौदह से पंद्रह वर
+  ्ष तक की उम्र के बच्चों का शारीरिक विकास अत्यधिक तेज हो जाता है इस उम्र के दौरान
+   विभिन्न शारीरिक एवं हारमोन परिवर्तनों के कारण बच्चों में मोटापा बढ़ने का खतरा र
+  हता है मोटापा बच्चों के लिए कई बार एक अभिशाप बन जाता है अन्य बच्चे उसे मोटा कहकर
+   चिढ़ाते है तथा उसके साथ खेलना पसंद नहीं करते इस प्रकार बच्चे दुखी होते है और स्
+  वयं को अकेलेपन महसूस करते है
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/72_1T.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघु लेखन सौ शब्द प्रति मिनट ट्रायल पैसेज रेडी स्टार्ट सभापति जी शिक्षा का 
+  दूसरा प्रयोजन यह है की वह प्रत्येक मानव को अपनी कर्मेंद्रियों का ऐसा प्रयोग सिखा
+  ए जो उसे अपनी शारीरिक और अन्य प्रकार की आवश्यकताओं की पूर्ति करने के योग्य बना स
+  के इन कर्मेंद्रियों के उचित प्रयोग के लिए तो ज्ञान की आवश्यकता होती है कितना ही 
+  सबल व्यक्ति क्यों न हो कितना ही स्फूर्तिमय कोई क्यों न हो वह तब तक कुछ अधिक फलमय
+   कार्य नहीं कर सकता जब तक की उस कार्य के संपादन के लिए उसकी आवश्यकता पड़ती है
+  ----------------------------------------
+
+
+--------------------------------------------------------------------------------
+Record ID: 35
+Subject: Hindi Shorthand 100 wpm (ID: 72)
+QSet: 2
+Department ID: 10
+Target Language: hi
+--------------------------------------------------------------------------------
+
+  [PASSAGE1]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/72_2A.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघुलेखन सौ शब्द प्रतिमिनट पैसेज ए रेडी स्टार सज्जनों और दवियों परि्ेद विगत
+   दो दशकों से मेरा संपर्क जहा तक कार्यालयन कारभार का प्रश्न है देश के विभिन्न भाग
+  ों में कार्यरत स्वैच्छिक हिंदी संस्थाओं से रहा है आज इस मंच से संस्थाओं और उनके 
+  इर्द गिर्द की बातों पर अपने विचार केंद्रित करूंगा जहाँ हिंदी शिक्षण एवं परीक्षा 
+  संचालन हिंदी प्रचार प्रसार के सर्वाधिक रचनात्मक कार्यक्रम है वही हिंदीतर क्षेत्र
+   में हिंदी के लिए अनुकूल वातावरण निर्माण भी एक महत्वपूर्ण पहलू है आज इन कार्यक्र
+  मों के संचालन सहज सुगम नहीं रह गए बल्कि चुनौती पूूर्ण हो गए है विद्यार्थियों की 
+  योग्यता बढ़ाने के लिए शिक्षा एवं परीक्षा के अतिरिक्त हिंदी वक्तव्य निबंध वाद विव
+  ाद के साथ साथ नाटक एकांकी प्रतियोगिताए आयोजित की जाती है हिंदी शिक्षकों प्रचारको
+  ं के लिए शिविर पुनश्चर्या कार्य शिविर पुरस्कार योजना जैसे कार्यक्रम आयोजित किए ज
+  ाते हैं अनुकूल वातावरण निर्माण के लिए जहाँ इन कार्यक्रमों को अधिक प्रभावी बनाने 
+  की आवश्यकता है वही अन्य प्रभावी कार्यक्रमों की परिकल्पना करनी होगी हिंदी शिक्षण 
+  परीक्षा संचालन और वातावरण निर्माण इन तीनों के सफल आयोजन पर विद्यार्थियों का हिंद
+  ी ज्ञान अर्थात हिंदी बोलने पढ़ने एवं लिखने की दक्षता का पूरा दारमदार टिका रहता ह
+  ै आज जबकि अधिक विद्यार्थी शिक्षक बनने की राह में प्रशिक्षण प्राप्त कर रहे है तो 
+  हिंदी शिक्षक की योग्यता एवं दक्षता ऐसे ध्यान देने का विषय है जो राज्य के इतने सा
+  रे हिंदी सीखने वाले विद्यार्थियों के स्तर के लिए निर्णायक पहलू है यह नकारा नहीं 
+  जा सकता की किसी भी संस्था के लिए उनके प्रचारक ही आधारभूत होते है प्रचारकों के स 
+  प्रयास एवं सुकार्य से संस्था की जड़े मजबूत होती है वास्तव में हिंदी की प्रचार यो
+  जनाओं का सफल कार्यान्वयन सभी संबंधित पक्षों के प्रयास के समन्वय से ही संभव है सं
+  स्था के पदाधिकारी कार्यकर्ता प्रचारक गण विद्यार्थी और अंत में किंतु कदापि कम नही
+  ं सरकारी व्यवस्थता के तालमेल पर इन सबके कार्यों के उचित समन्वय का प्रयत्न स्वस्थ
+   दृष्टि से निरंतर जारी रहना चाहिए और यह भी ध्यान रहे कि जाने अन जााने दामन में द
+  ाग न लग जाए पर्ेद भारत ग्रामों का देश है और अधिकांश भारतीय जनता ग्रामों में बसती
+   है नगरों और शहरों के नागरिकों को शिक्षा की कई सुविधाए प्राप्त है यो उन्हें हिंद
+  ी पढ़ने के उचित अवसर उपलब्ध हो जाते है अधिक अवसर प्रदान किए जाए
+  ----------------------------------------
+
+  [PASSAGE2]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/72_2B.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी लघुलेखन सौ शब्द प्रतिमिनट पैसेज बी रेडी स्टार महोदय परि्ेद कुछ लोग आज यह क
+  हते देखे गए है कि राष्ट्रीय एकता अंग्रेजी के माध्यम से हो सकती है कई लोगों की धा
+  रणा है कि अंग्रेजी निकाल दी जाए तो राष्ट्र टुकड़े टुकड़े हो जाएगा वैज्ञानिक प्रग
+  ति रुक जाएगी आदि इससे बढ़कर भ्रामक विचार और कुछ भी नहीं हो सकता मै अंग्रेजी की उ
+  पादेयता को नकार नहीं रहा किंतु हर जगह उसका वर्चस्व हो यह स्वीकार्य नहीं हो सकता 
+  किसी देश की भाषा के साथ उस देश की संस्कृति विचारधारा और मान्यताए जुड़ी रहती है औ
+  र उन्हें प्रकट करने के लिए उस देश की भाषा ही सर्व सक्षम होती है स्वतंत्रता के पू
+  र्व राष्ट्रीय गौरव आम जनता को दृष्टि में रखकर किया जाता था राष्ट्रीय एकता का अर्
+  थ है करोड़ों भारतीयों की एकता और यह एकता हिंदी से ही लाई जा सकती है अंग्रेजी से 
+  नहीं अंग्रेजी को बनाए रखने की नीति मानसिक दासता की द्योतक है यदि हिंदी और भारतीय
+   भाषाओं के विरुद्ध अंग्रेजी षडयंत्र को विफल नहीं किया गया तो जनतंत्र एक मखौल बनक
+  र रह जाएगा हिंदी और भारतीय भाषाए तो सहोदराय है उनमें आपसी कोई विरोध नहीं उनका वि
+  रोध और संघर्ष तो अंग्रेजी के साथ है जिस दिन क्षेत्रीय भाषाए अपने क्षेत्र के प्रश
+  ासन न्याय शिक्षा आदि में स्थापित हो जाएंग उसी दिन राष्ट्रीय स्तर पर राष्ट्रभााषा
+   राजभाषा और संपर्क भाषा के रूप में हिंदी के स्थापित हो जाने का मार्ग प्रशस्त हो 
+  जाएगा स्वैच्छिक हिंदी संस्थाएं अपने इस मूल उद्देश्य को कभी भी धूमिल नहीं होने दे
+  ंगे क्योंकि हिंदी के प्रचार प्रसार के क्षेत्र में वे सर्वाधिक महत्वपूर्ण इकाइया 
+  है इस दृष्टि से मैसूर हिंदी प्रचार परिषद का यह कार्यक्रम उल्लेखनीय है कि वह हिंद
+  ी के साथ कन्नड़ेतर जिज्ञासओ के लिए कन्नड़ की प्रारंभिक और उच्च कक्षाए एवं परीक्ष
+  ाए चला रही है अपनी दैनदिनी में भी हिंदी के साथ साथ कन्नड़ में दीन और तिथिया दी ह
+  ै इस तरह के छोटे किंतु दीन दिन के व्यवहार में राष्ट्रभााषा और क्षेत्रीय भाषा साथ
+   साथ मिलजुल कर चले इससे बढ़कर सुखद स्थिति और क्या हो सकती है परिछेद और प्रिय स्न
+  ातकों आज का दिन आपका है और कल का दिन भी आपका ही होगा विगत वर्षों में आपने कठिन प
+  रिश्रम कर हिंदी रत्न अथवा हिंदी प्रशिक्षण की परीक्षाएं दी है उत्तीर्ण हुए है आपक
+  ी दीक्षा पूरी हो चुकी है
+  ----------------------------------------
+
+  [TESTAUDIO]
+  URL: https://shorthand2026.s3.ap-south-1.amazonaws.com/audio_jan26/72_2T.mp3
+  Status: SUCCESS
+  Detected Language: hi (confidence: 100.00%)
+  Transcription:
+  ----------------------------------------
+  हिंदी अशलेखन सौ शब्द प्रतिमिनट ट्रायल पैसेज रेडी स्टार सभापति जी शिक्षा का दूसरा
+   प्रयोजन यह है कि वह प्रत्येक मानव को अपनी कर्मेंद्रियों का ऐसा प्रयोग सिखाए जो 
+  उसे अपनी शारीरिक और अन्य प्रकार की आवश्यकताओं की पूर्ति करने के योग्य बना सके इन
+   कर्मेंद्रियों के उचित प्रयोग के लिए तो ज्ञान की आवश्यकता होती है कितना ही सबल व
+  ्यक्ति कों न होतना ही स्फूर्ति्य न हो व तब तक कुछ अधिक फलमय कार्य नहीं कर सकता ज
+  ब तक कि उस कार्य के संपादन के लिए उसकी आवश्यकता पड़ती है
+  ----------------------------------------
+
+
+====================================================================================================
+END OF REPORT
+====================================================================================================

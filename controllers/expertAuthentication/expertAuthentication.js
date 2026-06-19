@@ -1,51 +1,73 @@
 // expertAuthentication.js
 const connection = require('../../config/db1');
+const moment = require('moment-timezone');
 
 // Authentication functions
 exports.loginExpertAdmin = async (req, res) => {
     console.log("Trying expert admin login");
+
     const { expertId, password } = req.body;
-    console.log("expertId: "+ expertId + " password: "+ password);
-    const expertQuery = 'SELECT expertId, password, expert_name, paper_check, paper_mod, super_mod FROM expertdb WHERE expertId = ?';
+
+    const expertQuery = `
+        SELECT expertId, password, expert_name,
+               paper_check, paper_mod, super_mod
+        FROM expertdb
+        WHERE expertId = ?
+    `;
 
     try {
         const [results] = await connection.query(expertQuery, [expertId]);
 
-        if (results.length > 0) {
-            const expert = results[0];
-            console.log("data: "+ expert);
-            console.log(expert)
-            
-            if (expert.password === password) {
-                if (expert.paper_check === 1 || expert.paper_mod === 1 || expert.super_mod === 1) {
-                    // Set expert session
-                    req.session.expertId = expert.expertId;
-                    req.session.expert_name = expert.expert_name;
-                    req.session.paper_check = expert.paper_check;
-                    req.session.paper_mod = expert.paper_mod;
-                    req.session.super_mod = expert.super_mod;
-
-                    res.status(200).json({
-                        message: 'Logged in successfully as an expert!',
-                        expertId: expert.expertId
-                    });
-                }
-                else{
-                    res.status(200).json({
-                        message: 'Not yet allowed for any stages!',
-                    });
-                }
-            } else {
-                res.status(401).send('Invalid credentials for expert');
-            }
-        } else {
-            res.status(404).send('Expert not found');
+        if (results.length === 0) {
+            return res.status(404).json({
+                message: 'Expert not found'
+            });
         }
+
+        const expert = results[0];
+
+        // Password check
+        if (expert.password !== password) {
+            return res.status(401).json({
+                message: 'Invalid credentials for expert'
+            });
+        }
+
+        const hasAccess =
+            expert.paper_check === 1 ||
+            expert.paper_mod === 1 ||
+            expert.super_mod === 1;
+
+        // 🚫 No permissions
+        if (!hasAccess) {
+            return res.status(403).json({
+                message: 'No access rights assigned'
+            });
+        }
+
+        // ✅ Create session only when allowed
+        req.session.expertId = expert.expertId;
+        req.session.expert_name = expert.expert_name;
+
+        if (expert.paper_check === 1) req.session.paper_check = 1;
+        if (expert.paper_mod === 1) req.session.paper_mod = 1;
+        if (expert.super_mod === 1) req.session.super_mod = 1;
+
+        return res.status(200).json({
+            message: 'Logged in successfully as an expert!',
+            expertId: expert.expertId
+        });
+
     } catch (err) {
         console.error("Error during login:", err);
-        res.status(500).send(err.message);
+
+        return res.status(500).json({
+            message: 'Internal server error',
+            error: err.message
+        });
     }
 };
+
 
 
 exports.logoutExpert = async (req, res) => {
@@ -110,14 +132,30 @@ exports.getPassagesByStudentId = async (req, res) => {
     if(expertId === 8){
         try {
             const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id, subjectId, qset
-                FROM expertreviewlog 
-                WHERE student_id = ?
+                SELECT 
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
+                    erl.student_id, 
+                    erl.subjectId, 
+                    erl.qset,
+                    s.departmentId,
+                    d.examType
+                FROM expertreviewlog erl
+                JOIN students s ON erl.student_id = s.student_id
+                JOIN departmentdb d ON s.departmentId = d.departmentId
+                LEFT JOIN audiodb aud ON erl.subjectId = aud.subjectId 
+                    AND erl.qset = aud.qset 
+                    AND erl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON erl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON erl.student_id = tl.student_id
+                WHERE erl.student_id = ?
             `;
             const [results] = await connection.query(query, [studentId]);
     
             if (results.length > 0) {
-                console.log("Assigned student_id:", results[0].student_id);
+                console.log(`Assigned student_id: ${results[0].student_id}, ExamType: ${results[0].examType}, DepartmentId: ${results[0].departmentId}`);
                 res.status(200).json({ ...results[0], expertId }); // Include expertId in the response
             } else {
                 res.status(404).json({ error: 'No assigned passages found' });
@@ -130,14 +168,32 @@ exports.getPassagesByStudentId = async (req, res) => {
     else if(expertId === 100 || expertId === 101){
         try {
             const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id, subjectId, qset, QPA, QPB
-                FROM modreviewlog 
-                WHERE student_id = ?
+                SELECT 
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
+                    mrl.student_id, 
+                    mrl.subjectId, 
+                    mrl.qset, 
+                    mrl.QPA, 
+                    mrl.QPB,
+                    s.departmentId,
+                    d.examType
+                FROM modreviewlog mrl
+                LEFT JOIN students s ON mrl.student_id = s.student_id
+                LEFT JOIN departmentdb d ON s.departmentId = d.departmentId
+                LEFT JOIN audiodb aud ON mrl.subjectId = aud.subjectId
+                    AND mrl.qset = aud.qset
+                    AND mrl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON mrl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON mrl.student_id = tl.student_id
+                WHERE mrl.student_id = ?
             `;
             const [results] = await connection.query(query, [studentId]);
 
             if (results.length > 0) {
-                console.log("Assigned student_id:", results[0].student_id);
+                console.log(`Assigned student_id: ${results[0].student_id}, ExamType: ${results[0].examType}, DepartmentId: ${results[0].departmentId}`);
                 res.status(200).json({ ...results[0], expertId }); // Include expertId in the response
             } else {
                 res.status(404).json({ error: 'No assigned passages found' });
@@ -158,21 +214,33 @@ exports.getStudentPassages = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
     const expertId = req.session.expertId;
-    const { subjectId, qset, studentId } = req.params;
+    const { subjectId, qset, studentId, departmentId } = req.params; // Added departmentId
+
+    console.log(`DepartmentId from URL: ${departmentId}`);
 
     if(expertId === 8){
         try {
             const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id
-                FROM expertreviewlog 
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
+                SELECT 
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
+                    erl.student_id
+                FROM expertreviewlog erl
+                LEFT JOIN audiodb aud ON erl.subjectId = aud.subjectId 
+                    AND erl.qset = aud.qset 
+                    AND erl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON erl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON erl.student_id = tl.student_id
+                WHERE erl.subjectId = ? AND erl.qset = ? AND erl.student_id = ?
                 LIMIT 1
             `;
             const [results] = await connection.query(query, [subjectId, qset, studentId]);
     
             if (results.length > 0) {
                 console.log("Fetched student_id:", results[0].student_id);
-                res.status(200).json(results[0]);
+                res.status(200).json({...results[0], departmentId}); // Include departmentId in response
             } else {
                 res.status(404).json({ error: 'No passages found for this student' });
             }
@@ -181,40 +249,31 @@ exports.getStudentPassages = async (req, res) => {
             res.status(500).json({ error: 'Error fetching student passages' });
         }
     }
-    else if(expertId === 100){
+    else if(expertId === 100 || expertId === 101){
         try {
             const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id, QPA, QPB
-                FROM modreviewlog 
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
+                SELECT 
+                    COALESCE(NULLIF(fps.passageA, ''), tl.texta) as passageA,
+                    COALESCE(NULLIF(fps.passageB, ''), tl.textb) as passageB,
+                    aud.textPassageA as ansPassageA,
+                    aud.textPassageB as ansPassageB,
+                    mrl.student_id,
+                    mrl.QPA,
+                    mrl.QPB
+                FROM modreviewlog mrl
+                LEFT JOIN audiodb aud ON mrl.subjectId = aud.subjectId
+                    AND mrl.qset = aud.qset
+                    AND mrl.departmentId = aud.departmentId
+                LEFT JOIN finalPassageSubmit fps ON mrl.student_id = fps.student_id
+                LEFT JOIN textlogs tl ON mrl.student_id = tl.student_id
+                WHERE mrl.subjectId = ? AND mrl.qset = ? AND mrl.student_id = ?
                 LIMIT 1
             `;
             const [results] = await connection.query(query, [subjectId, qset, studentId]);
-    
+
             if (results.length > 0) {
                 console.log("Fetched student_id:", results[0].student_id);
-                res.status(200).json(results[0]);
-            } else {
-                res.status(404).json({ error: 'No passages found for this student' });
-            }
-        } catch (err) {
-            console.error("Error fetching student passages:", err);
-            res.status(500).json({ error: 'Error fetching student passages' });
-        }
-    }
-    if(expertId === 101){
-        try {
-            const query = `
-                SELECT passageA, passageB, ansPassageA, ansPassageB, student_id, QPA, QPB
-                FROM modreviewlog 
-                WHERE subjectId = ? AND qset = ? AND student_id = ?
-                LIMIT 1
-            `;
-            const [results] = await connection.query(query, [subjectId, qset, studentId]);
-    
-            if (results.length > 0) {
-                console.log("Fetched student_id:", results[0].student_id);
-                res.status(200).json(results[0]);
+                res.status(200).json({...results[0], departmentId}); // Include departmentId in response
             } else {
                 res.status(404).json({ error: 'No passages found for this student' });
             }
@@ -287,6 +346,12 @@ exports.updateStudentMarks = async(req, res) => {
             if (results.length === 0){
                 await conn.rollback();
                 return res.status(404).json({error: 'Updated record not found!'});
+            }
+
+            if (results && results[0]) {
+                if (results[0].updated_at) {
+                    results[0].updated_at = moment(results[0].updated_at).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+                }
             }
 
             await conn.commit();

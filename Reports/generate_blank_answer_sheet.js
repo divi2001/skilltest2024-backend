@@ -4,20 +4,20 @@
 // This will print the Marathi text correctly in a UTF-8 capable console
 const connection = require("../config/db1");
 async function createBlankAnswerSheet(doc,data)  {
-      
       // Constants for layout
       const headerHeight = 85;
       const lineGap = 30;
+      const margin = 40; // Add this line to define margin
       
       // Function to create header
       function createHeader(doc, text1, text2) {
         doc.fontSize(14)
            .font('Helvetica-Bold')
-           .text(text1, {
+           .text(text1.toUpperCase(), {
              align: 'center'
            })
            .fontSize(12)
-           .text(text2, {
+           .text(text2.toUpperCase(), {
              align: 'center'
            });
       }
@@ -37,21 +37,22 @@ async function createBlankAnswerSheet(doc,data)  {
       function drawLines(doc, startY, endY, gap) {
         for (let y = startY; y <= endY; y += gap) {
           doc.moveTo(40, y)
-             .lineTo(doc.page.width - 40, y)
-             .stroke();
+            .lineTo(doc.page.width - 40, y)
+            .lineWidth(0.1)  // Thinner lines for writing
+            .stroke();
         }
       }
-      
-      // Function to draw a single line
-      function drawSingleLine(doc, y) {
-        doc.moveTo(40, y)
-           .lineTo(doc.page.width - 40, y)
-           .stroke();
-      }
+  // Function to draw a single line
+  function drawSingleLine(doc, y) {
+    doc.moveTo(40, y)
+      .lineTo(doc.page.width - 40, y)
+      .lineWidth(0.1)  // Thinner lines
+      .stroke();
+  }
       
       // Function to create a page
       function createPage(doc, isFirstPage) {
-        createHeader(doc, data.departmentName, 'Skill Test Computer Shorthand Examination April 2025');
+        createHeader(doc, data.departmentName, data.departmentExam);
         
         let startY = headerHeight;
       
@@ -87,10 +88,13 @@ async function createBlankAnswerSheet(doc,data)  {
       createPage(doc, false);
     
 }
+
+
+
 async function getData(center, batchNo) {
   try {
       // console.log(center, batchNo);
-      const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
+      const query = 'SELECT s.student_id , d.departmentName , d.departmentExam, d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ?';
       const response = await connection.query(query, [batchNo, center]);
       
       return { 
@@ -114,7 +118,8 @@ async function generateBlankAnswerSheet(doc, center, batchNo) {
 
       const data = {
     
-          departmentName : response[0].departmentName
+          departmentName : response[0].departmentName,
+          departmentExam : response[0].departmentExam,
       };
 
       createBlankAnswerSheet(doc, data);

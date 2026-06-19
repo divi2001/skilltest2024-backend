@@ -24,8 +24,8 @@ def preprocess_text(text):
     # Remove all _x#### encodings
     text = re.sub(r'_x[0-9A-Fa-f]{4}_', '', text)
     text = re.sub(r'\u200c', '', text) 
-    # Replace hyphens, periods, and other specified characters
-    text = text.replace('-', '')
+    # Replace hyphens, periods, slashes and other specified characters
+    text = text.replace('-', '').replace('/', ' ')
     
     # Remove extra spaces (replace two or more spaces with a single space)
     text = re.sub(r'\s{2,}', ' ', text)

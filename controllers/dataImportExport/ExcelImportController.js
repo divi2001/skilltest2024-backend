@@ -1,10 +1,11 @@
+// controllers\dataImportExport\ExcelImportController.js
 const fs = require('fs');
 const xlsx = require('xlsx');
 const fastCsv = require('fast-csv');
 const pool = require("../../config/db1");
 const schema = require('../../schema/schema');
 const moment = require('moment');
-const {encrypt, decrypt} = require('./../../config/encrypt');
+const { encrypt, decrypt } = require('./../../config/encrypt');
 
 const importExcel = async (filePath) => {
   try {
@@ -17,7 +18,7 @@ const importExcel = async (filePath) => {
         const worksheet = workbook.Sheets[sheetName];
         const csvData = xlsx.utils.sheet_to_csv(worksheet);
         const csvFilePath = `${filePath}_${sheetName}.csv`;
-        
+
         fs.writeFileSync(csvFilePath, csvData);
 
         try {
@@ -53,12 +54,12 @@ const processCSV = async (tableName, csvFilePath) => {
 
     const createTableQuery = `CREATE TABLE ?? (
       ${columns.map(column => {
-        const fieldType = schema[tableName][column];
-        if (column.toLowerCase() === 'id') {
-          return `\`${column}\` ${fieldType} PRIMARY KEY AUTO_INCREMENT`;
-        }
-        return `\`${column}\` ${fieldType}`;
-      }).join(', ')}
+      const fieldType = schema[tableName][column];
+      if (column.toLowerCase() === 'id') {
+        return `\`${column}\` ${fieldType} PRIMARY KEY AUTO_INCREMENT`;
+      }
+      return `\`${column}\` ${fieldType}`;
+    }).join(', ')}
     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`;
 
     await executeQuery(createTableQuery, [tableName]);
@@ -85,7 +86,7 @@ const processCSV = async (tableName, csvFilePath) => {
           filteredRow[column] = row[column];
         }
       }
-      
+
       try {
         validateRow(tableName, filteredRow, rowNumber);
         chunk.push(filteredRow);
@@ -158,8 +159,149 @@ const executeQuery = async (query, params, retries = 3) => {
 };
 
 const dropTableIfExists = async (tableName) => {
-  const dropQuery = 'DROP TABLE IF EXISTS ??';
-  await executeQuery(dropQuery, [tableName]);
+  const connection = await pool.getConnection();
+  try {
+    await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+    await connection.query('DROP TABLE IF EXISTS ??', [tableName]);
+    await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+  } catch (e) {
+    console.error("Drop table error:", e);
+    throw e;
+  } finally {
+    connection.release();
+  }
+};
+
+/**
+ * Convert Excel date serial number to JavaScript Date
+ * Excel stores dates as numbers (days since 1900-01-01)
+ * Returns YYYY-MM-DD formatted string for DATE fields
+ */
+const convertExcelDate = (value) => {
+  let date = null;
+  
+  // If it's already a valid date string, try parsing it
+  if (typeof value === 'string') {
+    // Try dd-mm-yyyy format first
+    const ddmmyyyyMatch = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (ddmmyyyyMatch) {
+      const [, day, month, year] = ddmmyyyyMatch;
+      date = new Date(year, month - 1, day);
+    }
+    
+    // Try yyyy-mm-dd format
+    if (!date) {
+      const yyyymmddMatch = value.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+      if (yyyymmddMatch) {
+        const [, year, month, day] = yyyymmddMatch;
+        date = new Date(year, month - 1, day);
+      }
+    }
+
+    // Try standard date parsing
+    if (!date) {
+      const standardDate = new Date(value);
+      if (!isNaN(standardDate.getTime())) {
+        date = standardDate;
+      }
+    }
+  }
+  
+  // If it's a number (Excel serial date)
+  if (!date && typeof value === 'number' && value > 0) {
+    // Excel date serial number (days since 1900-01-01)
+    // Note: Excel incorrectly treats 1900 as a leap year
+    const excelEpoch = new Date(1899, 11, 30); // Dec 30, 1899
+    date = new Date(excelEpoch.getTime() + value * 86400000);
+  }
+  
+  // If we successfully parsed a date, format it as YYYY-MM-DD
+  if (date && !isNaN(date.getTime())) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  
+  return null;
+};
+
+/**
+ * Convert various boolean representations to true/false
+ */
+const convertBoolean = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return false;
+  }
+  
+  // Handle string values
+  if (typeof value === 'string') {
+    const lowerValue = value.toLowerCase().trim();
+    return lowerValue === 'yes' || 
+           lowerValue === 'true' || 
+           lowerValue === '1' || 
+           lowerValue === 'y' ||
+           lowerValue === 'enabled' ||
+           lowerValue === 'active';
+  }
+  
+  // Handle numeric values
+  if (typeof value === 'number') {
+    return value === 1 || value > 0;
+  }
+  
+  // Handle boolean values
+  return Boolean(value);
+};
+
+/**
+ * Convert various numeric representations to integers
+ */
+const convertInteger = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  
+  // If it's already a number
+  if (typeof value === 'number') {
+    return Math.floor(value);
+  }
+  
+  // If it's a string, clean it up
+  if (typeof value === 'string') {
+    // Remove any whitespace and special characters except digits, minus, and decimal point
+    const cleaned = value.trim().replace(/[^\d.-]/g, '');
+    const parsed = parseInt(cleaned, 10);
+    return isNaN(parsed) ? null : parsed;
+  }
+  
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? null : parsed;
+};
+
+/**
+ * Convert various numeric representations to decimals/floats
+ */
+const convertDecimal = (value) => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  
+  // If it's already a number
+  if (typeof value === 'number') {
+    return value;
+  }
+  
+  // If it's a string, clean it up
+  if (typeof value === 'string') {
+    // Remove any whitespace and special characters except digits, minus, and decimal point
+    const cleaned = value.trim().replace(/[^\d.-]/g, '');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? null : parsed;
+  }
+  
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? null : parsed;
 };
 
 const insertChunk = async (tableName, columns, chunk) => {
@@ -169,52 +311,54 @@ const insertChunk = async (tableName, columns, chunk) => {
       let value = row[column];
       const fieldType = schema[tableName][column];
 
+      // Handle empty values
       if (value === '' || value === null || value === undefined) {
         return null;
       }
 
+      // Special handling for specific columns
       if (column === 'courseId' || column === 'subjectId') {
         if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
           value = parseInt(value.replace(/[\[\]\s]/g, ''), 10);
         }
       }
 
-      // if (column === 'loggedin' || column === 'done') {
-      //   return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
-      // }
-
-      if(column === 'centerpass' && tableName === 'examcenterdb'){
+      // Encryption for password fields
+      if (column === 'centerpass' && tableName === 'examcenterdb') {
         return encrypt(value);
       }
 
-      if(column === 'departmentPassword' && tableName === 'departmentdb'){
+      if (column === 'departmentPassword' && tableName === 'departmentdb') {
         return encrypt(value);
       }
 
-      if(column === 'password' && tableName === 'students'){
+      if (column === 'password' && tableName === 'students') {
         return encrypt(value);
       }
 
+      // Handle different field types with improved converters
       if (fieldType === 'TIME') {
         if (value) {
-          const time = moment(value, ['h:mm A', 'HH:mm']);
+          const time = moment(value, ['h:mm A', 'HH:mm', 'h:mm:ss A', 'HH:mm:ss']);
           return time.isValid() ? time.format('HH:mm:ss') : null;
         }
         return null;
       }
 
       if (fieldType === 'BOOLEAN') {
-        return value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value === '1');
+        return convertBoolean(value);
       } else if (fieldType === 'INT' || fieldType === 'BIGINT') {
-        return isNaN(parseInt(value, 10)) ? null : parseInt(value, 10);
+        return convertInteger(value);
       } else if (fieldType === 'DECIMAL') {
-        return isNaN(parseFloat(value)) ? null : parseFloat(value);
+        return convertDecimal(value);
       } else if (fieldType === 'DATE') {
-        return value ? new Date(value) : null;
+        return convertExcelDate(value);
       } else if (fieldType === 'TIMESTAMP') {
-        return value ? new Date(value) : null;
+        const date = convertExcelDate(value);
+        return date || null;
       } else {
-        return value;
+        // String fields - just trim whitespace
+        return typeof value === 'string' ? value.trim() : value;
       }
     });
   });

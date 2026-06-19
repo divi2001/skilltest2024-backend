@@ -1,12 +1,51 @@
 const connection = require("../config/db1");
 const moment = require('moment-timezone'); // Make sure to install and import moment.js for easier date handling
 
-
+// Helper function to format time to 12-hour format
+function formatTime(timeString) {
+    if (!timeString) {
+        return 'Not specified';
+    }
+    
+    // Convert to string
+    const timeStr = timeString.toString();
+    
+    // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    // If it's in HH:MM format, convert to 12-hour format
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+        
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+    
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
+}
 
 async function getData(center, batchNo) {
     try {
         // console.log(center, batchNo);
-        const query = 'SELECT s.student_id , d.departmentName , d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.loggedin = 0';
+        const query = 'SELECT s.student_id , d.departmentName, d.departmentExam, d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.loggedin = 0';
         const response = await connection.query(query, [batchNo, center]);
         console.log(response);
         const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
@@ -66,13 +105,13 @@ function addHeader(doc, data) {
     doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
 
     doc.fontSize(14).font('Helvetica-Bold')
-        .text(data.departmentName, 110, 50, {
+        .text(data.departmentName.toUpperCase(), 110, 50, {
             width: 450,
             align: 'center'
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('Skill Test Computer Shorthand Examination April 2025', 110, doc.y + 5, {
+        .text(data.departmentExam.toUpperCase(), 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
@@ -214,18 +253,21 @@ async function generatePostAbsenteeReport(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
-        }
+        // if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
+        //     throw new Error("Download not allowed at this time");
+        // }
         
+        // Convert start_time to 12-hour format
+        const formattedExamTime = formatTime(batchInfo.start_time);
 
         const data = {
             centerCode: center,
             batch: batchNo.toString(),
             examDate: examDate,
-            examTime: batchInfo.start_time,
+            examTime: formattedExamTime, // Now in 12-hour format
             seatNumbers: response.map(student => student.student_id.toString()),
             departmentName : response[0].departmentName,
+            departmentExam : response[0].departmentExam,
             departmentLogo : response[0].logo
         };
 

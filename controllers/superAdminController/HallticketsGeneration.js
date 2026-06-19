@@ -5,10 +5,33 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 const archiver = require('archiver');
 
+const { decrypt } = require('../../config/encrypt');
+
+function decryptPassword(encryptedPassword) {
+  try {
+    if (!encryptedPassword || !encryptedPassword.includes(':')) {
+      return encryptedPassword || 'N/A';
+    }
+    const decrypted = decrypt(encryptedPassword);
+    return (typeof decrypted === 'object' && decrypted.password) ? decrypted.password : decrypted;
+  } catch (error) {
+    console.error('Password decryption error:', error.message);
+    return encryptedPassword;
+  }
+}
+
 function wrapText(text, maxWidth, pdfDoc) {
-  let words = text.split(' ');
+  // Handle undefined/null/empty text
+  if (!text) {
+    return [''];
+  }
+
+  // Convert to string in case it's a number or other type
+  const textStr = String(text);
+  
+  let words = textStr.split(' ');
   let lines = [];
-  let currentLine = words[0];
+  let currentLine = words[0] || '';
 
   for (let i = 1; i < words.length; i++) {
     let word = words[i];
@@ -78,7 +101,7 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     })
     .fontSize(11)
-    .text("GCC COMPUTER SHORTHAND EXAMINATION DECEMBER 2024", centerX, 50, {
+    .text("GCC COMPUTER SHORTHAND EXAMINATION JANUARY 2026", centerX, 50, {
       width: textWidth,
       align: "center",
     })
@@ -95,19 +118,15 @@ async function generateStudentHallTicket(doc, studentData, assets) {
   const boxHeight = 85;
   doc.rect(boxX, boxY, boxWidth, boxHeight).stroke();
 
-  const maxImageWidth = boxWidth - 10;
-  const maxImageHeight = boxHeight - 10;
-
   try {
     if (studentData.image) {
       const base64Data = studentData.image.replace(/^data:image\/\w+;base64,/, '');
       const imageBuffer = Buffer.from(base64Data, 'base64');
-      doc.image(imageBuffer, boxX + 5, boxY + 5, {
-        width: maxImageWidth,
-        height: maxImageHeight,
-        fit: [maxImageWidth, maxImageHeight],
-        align: 'center',
-        valign: 'center'
+      
+      // Stretch image to fill entire box exactly
+      doc.image(imageBuffer, boxX, boxY, {
+        width: boxWidth,
+        height: boxHeight
       });
     }
   } catch (error) {
@@ -154,18 +173,20 @@ async function generateStudentHallTicket(doc, studentData, assets) {
   // Exam center details
   const maxWidth = 330;
   doc.text("NAME / ADDRESS OF EXAM CENTER :", rightStart, 310);
-  
+
   let yPosition = 330;
-  const wrappedCenterName = wrapText(studentData.examCenter, maxWidth, doc);
-  
+  const examCenterText = studentData.examCenter || 'Exam center not specified';
+  const wrappedCenterName = wrapText(examCenterText, maxWidth, doc);
+
   wrappedCenterName.forEach(line => {
       doc.text(line, rightStart, yPosition);
       yPosition += 15;
   });
-  
+
   yPosition += 5;
-  
-  const wrappedAddress = wrapText(studentData.centerAddress, maxWidth, doc);
+
+  const addressText = studentData.centerAddress || 'Address not specified';
+  const wrappedAddress = wrapText(addressText, maxWidth, doc);
   wrappedAddress.forEach(line => {
       doc.text(line, rightStart, yPosition);
       yPosition += 15;
@@ -179,15 +200,15 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     });
 
-  if (signFile) {
-    doc.image(signFile, boxX + 20, 240, {
-      width: maxImageWidth+45,
-      height: maxImageHeight+45,
-      fit: [maxImageWidth+40, maxImageHeight+40],
-      align: 'center',
-      valign: 'center'
-    });
-  }
+  // if (signFile) {
+  //   doc.image(signFile, boxX + 20, 240, {
+  //     width: maxImageWidth+45,
+  //     height: maxImageHeight+45,
+  //     fit: [maxImageWidth+40, maxImageHeight+40],
+  //     align: 'center',
+  //     valign: 'center'
+  //   });
+  // }
 
   // Commissioner details
   doc
@@ -410,7 +431,7 @@ async function loadStudentData() {
   const excelData = XLSX.utils.sheet_to_json(worksheet);
 
   return excelData.map(row => ({
-    seatNo: row['student_id']?.toString(),
+    seatNo: row['student_id']?.toString() || 'N/A',
     instituteId: row['InstituteId']?.toString(),
     candidateName: row['fullname'],
     motherName: row['mothername'],
@@ -424,25 +445,32 @@ async function loadStudentData() {
     instituteCode: row['InstituteId']?.toString(),
     subject: row['SUBNAME'],
     reportingTime: row['reporting_time'],
-    examCenter: row['center_name'],
-    centerAddress: row['center_address'],
-    image: row["base64"]
+    examCenter: row['center_name'] || 'Exam center not specified',
+    centerAddress: row['center_address'] || 'Address not specified',
+    image: row["base64"] || null
   }));
 }
 
-async function downloadHallTicketForStudent(req, res){
+async function downloadHallTicketForStudent(req, res) {
     try {
         const { seatNo } = req.params;
+        console.log(`[INFO] Request received to download hall ticket for seatNo: ${seatNo}`);
+
         const students = await loadStudentData();
+        console.log(`[INFO] Loaded ${students.length} students`);
+
         const assets = await loadAssets();
+        console.log(`[INFO] Assets loaded:`, assets);
 
         const student = students.find(student => student.seatNo === seatNo);
-
         if (!student) {
+            console.warn(`[WARN] No student found with seatNo: ${seatNo}`);
             return res.status(404).json({
                 error: `No student found with seat number: ${seatNo}`
             });
         }
+
+        console.log(`[INFO] Generating PDF for student: ${student.fullname} (Seat No: ${seatNo})`);
 
         const doc = new PDFDocument({
             size: "A4",
@@ -462,18 +490,20 @@ async function downloadHallTicketForStudent(req, res){
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=student_${seatNo}_hall_ticket.pdf`);
+        console.log('[INFO] PDF headers set');
 
-        // Handle errors during piping
         doc.on('error', (err) => {
-            console.error('PDF stream error:', err);
+            console.error('[ERROR] PDF stream error:', err);
             if (!res.headersSent) {
                 res.status(500).json({ error: "PDF generation failed" });
             }
         });
 
         doc.pipe(res);
+        console.log('[INFO] PDF stream piped to response');
 
         const { regularFont, boldFont } = await registerFonts(doc, assets.regularFontPath, assets.boldFontPath);
+        console.log('[INFO] Fonts registered successfully');
 
         await generateStudentHallTicket(doc, student, {
             ...assets,
@@ -481,17 +511,21 @@ async function downloadHallTicketForStudent(req, res){
             boldFont
         });
 
+        console.log('[INFO] Hall ticket content generated');
+
         doc.end();
+        console.log('[INFO] PDF generation completed and stream ended');
 
     } catch (error) {
-        console.error("PDF generation error:", error);
+        console.error('[ERROR] PDF generation exception:', error);
         if (!res.headersSent) {
             res.status(500).json({
                 error: "Failed to generate PDF: " + error.message
-            })
+            });
         }
     }
 }
+
 
 async function downloadHallTicketsForInstitute(req, res) {
   try {
@@ -640,8 +674,192 @@ async function downloadAllHallTickets(req, res) {
   }
 }
 
+
+async function generateGccTbcHallTicketFromDB(dbStudent, res, departmentId) {
+  try {
+    console.log('🎨 Generating GCC TBC PDF from database...');
+
+    // ✅ Use decrypted password
+    const plainPassword = dbStudent.decryptedPassword || 'N/A';
+    console.log('🔐 Using password:', plainPassword !== 'N/A' ? '✓ Decrypted' : '✗ N/A');
+
+    const studentData = {
+      seatNo: dbStudent.student_id?.toString() || 'N/A',
+      instituteId: dbStudent.InstituteId?.toString() || 'N/A',
+      candidateName: dbStudent.fullname || 'N/A',
+      motherName: dbStudent.mothername || 'N/A',
+      centerNo: dbStudent.center?.toString() || 'N/A',
+      handicap: dbStudent.disability === 1 ? 'Yes' : 'No',
+      subjectCode: dbStudent.subjectId?.toString() || 'N/A',
+      batch: dbStudent.batchNo?.toString() || 'N/A',
+      date: formatDateHelper(dbStudent.batchdate),
+      examTime: formatTimeHelper(dbStudent.start_time),
+      password: plainPassword,
+      instituteCode: dbStudent.InstituteId?.toString() || 'N/A',
+      subject: dbStudent.subject_name || 'N/A',
+      reportingTime: formatTimeHelper(dbStudent.reporting_time),
+      examCenter: dbStudent.center_name || 'Exam center not specified',
+      centerAddress: dbStudent.center_address || 'Address not specified',
+      image: dbStudent.base64 || null
+    };
+
+    const assets = await loadAssets();
+
+    const doc = new PDFDocument({
+      size: "A4",
+      margins: { top: 20, bottom: 20, left: 30, right: 30 },
+      autoFirstPage: false
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=hallticket_gcc_${studentData.seatNo}.pdf`);
+
+    doc.pipe(res);
+
+    const { regularFont, boldFont } = await registerFonts(doc, assets.regularFontPath, assets.boldFontPath);
+
+    await generateStudentHallTicket(doc, studentData, {
+      ...assets,
+      regularFont,
+      boldFont
+    });
+
+    doc.end();
+
+    console.log('✅ GCC TBC PDF generated with decrypted password');
+
+  } catch (error) {
+    console.error('❌ GCC TBC PDF error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate GCC TBC hall tickets from database (BULK)
+ */
+async function generateGccTbcBulkHallTicketsFromDB(students, folderPath, folderName, departmentId) {
+  try {
+    console.log('🎨 Bulk GCC TBC generation...');
+
+    const assets = await loadAssets();
+    let successCount = 0;
+    let errorCount = 0;
+    const generatedFiles = [];
+
+    for (let i = 0; i < students.length; i++) {
+      const dbStudent = students[i];
+
+      try {
+        console.log(`${i + 1}/${students.length}: ${dbStudent.student_id}`);
+
+        const plainPassword = dbStudent.decryptedPassword || 'N/A';
+
+        const studentData = {
+          seatNo: dbStudent.student_id?.toString() || 'N/A',
+          instituteId: dbStudent.InstituteId?.toString() || 'N/A',
+          candidateName: dbStudent.fullname || 'N/A',
+          motherName: dbStudent.mothername || 'N/A',
+          centerNo: dbStudent.center?.toString() || 'N/A',
+          handicap: dbStudent.disability === 1 ? 'Yes' : 'No',
+          subjectCode: dbStudent.subjectId?.toString() || 'N/A',
+          batch: dbStudent.batchNo?.toString() || 'N/A',
+          date: formatDateHelper(dbStudent.batchdate),
+          examTime: formatTimeHelper(dbStudent.start_time),
+          password: plainPassword,
+          instituteCode: dbStudent.InstituteId?.toString() || 'N/A',
+          subject: dbStudent.subject_name || 'N/A',
+          reportingTime: formatTimeHelper(dbStudent.reporting_time),
+          examCenter: dbStudent.center_name || 'Exam center not specified',
+          centerAddress: dbStudent.center_address || 'Address not specified',
+          image: dbStudent.base64 || null
+        };
+
+        const doc = new PDFDocument({
+          size: "A4",
+          margins: { top: 20, bottom: 20, left: 30, right: 30 },
+          autoFirstPage: false
+        });
+
+        const filename = `hallticket_${dbStudent.student_id}.pdf`;
+        const filePath = path.join(folderPath, filename);
+        const writeStream = fs.createWriteStream(filePath);
+
+        doc.pipe(writeStream);
+
+        const { regularFont, boldFont } = await registerFonts(doc, assets.regularFontPath, assets.boldFontPath);
+
+        await generateStudentHallTicket(doc, studentData, {
+          ...assets,
+          regularFont,
+          boldFont
+        });
+
+        doc.end();
+
+        await new Promise((resolve, reject) => {
+          writeStream.on('finish', resolve);
+          writeStream.on('error', reject);
+        });
+
+        generatedFiles.push({
+          student_id: dbStudent.student_id,
+          fullname: dbStudent.fullname,
+          filename: filename,
+          downloadUrl: `/generated_halltickets/${folderName}/${filename}`
+        });
+
+        successCount++;
+
+      } catch (error) {
+        errorCount++;
+        console.error(`✗ Error: ${dbStudent.student_id}`, error.message);
+      }
+
+      if (i < students.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    return { successCount, errorCount, files: generatedFiles };
+
+  } catch (error) {
+    console.error('❌ Bulk error:', error);
+    throw error;
+  }
+}
+
+// Helper functions
+function formatDateHelper(date) {
+  if (!date) return 'N/A';
+  try {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  } catch (error) {
+    return 'N/A';
+  }
+}
+
+function formatTimeHelper(time) {
+  if (!time) return 'N/A';
+  try {
+    const [hours, minutes] = time.split(':').map(Number);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    let displayHours = hours % 12;
+    displayHours = displayHours ? displayHours : 12;
+    return `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+  } catch (error) {
+    return 'N/A';
+  }
+}
+
+// ✅ UPDATE EXPORTS
 module.exports = {
   downloadHallTicketsForInstitute,
   downloadAllHallTickets,
-  downloadHallTicketForStudent
+  downloadHallTicketForStudent,
+  generateGccTbcHallTicketFromDB,
+  generateGccTbcBulkHallTicketsFromDB
 };

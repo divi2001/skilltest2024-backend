@@ -1,6 +1,7 @@
-
 const connection = require('../config/db1');
+const mysql = require('mysql2');
 const moment = require('moment-timezone');
+const { encrypt, decrypt } = require('../config/encrypt');
 
 exports.loginadmin = async (req, res) => {
     const { userId, password } = req.body;
@@ -10,44 +11,28 @@ exports.loginadmin = async (req, res) => {
 
     try {
         const [results] = await connection.query(query1, [userId]);
-
-        console.log(results)
+        console.log(results);
 
         if (results.length > 0) {
             const admin = results[0];
             console.log('Admin found in database:', admin.adminid);
 
-            let decryptedStoredPassword;
-            try {
-                decryptedStoredPassword = (admin.password);
-                console.log('Stored password:', decryptedStoredPassword);
-                console.log('Provided password:', password);
-            } catch (error) {
-                console.error('Error decrypting stored password:', error);
-                res.status(500).send('Error decrypting stored password');
-                return;
-            }
+            // Direct plain-text password comparison
+            const storedPassword = admin.password;
+            console.log('Stored password:', storedPassword);
+            console.log('Provided password:', password);
 
-            // Ensure both passwords are treated as strings
-            const decryptedStoredPasswordStr = String(decryptedStoredPassword).trim();
-            const providedPasswordStr = String(password).trim();
-
-            console.log('Comparing passwords:');
-            console.log('Stored (after trim):', decryptedStoredPasswordStr);
-            console.log('Provided (after trim):', providedPasswordStr);
-            console.log('Passwords match:', decryptedStoredPasswordStr === providedPasswordStr);
-
-            if (decryptedStoredPasswordStr === providedPasswordStr) {
-                console.log('Login successful for admin:', admin.adminid);
+            if (storedPassword === password) {
+                console.log('✅ Login successful for admin:', admin.adminid);
                 req.session.adminid = admin.adminid;
                 res.send('Logged in successfully as an admin!');
             } else {
-                console.log('Password mismatch for admin:', admin.adminid);
+                console.log('❌ Password mismatch for admin:', admin.adminid);
                 res.status(401).send('Invalid credentials for admin');
             }
         } else {
-            console.log('Admin ID not found:', userId);
-            res.status(404).send('admin not found');
+            console.log('⚠️ Admin ID not found:', userId);
+            res.status(404).send('Admin not found');
         }
     } catch (err) {
         console.error('Database error:', err);
@@ -55,7 +40,6 @@ exports.loginadmin = async (req, res) => {
     }
 };
 
-const mysql = require('mysql2/promise');
 
 exports.fetchTableData = async (req, res) => {
     console.log("Fetching table data for admin");
@@ -70,7 +54,7 @@ exports.fetchTableData = async (req, res) => {
         console.log(`Fetching column information for table: ${tableName}`);
         // First, get the column information for the table
         const [columns] = await connection.query(`
-              SELECT COLUMN_NAME, DATA_TYPE 
+              SELECT COLUMN_NAME, DATA_TYPE, COLUMN_KEY 
               FROM INFORMATION_SCHEMA.COLUMNS 
               WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
           `, [tableName]);
@@ -80,6 +64,11 @@ exports.fetchTableData = async (req, res) => {
         if (columns.length === 0) {
             return res.status(404).send('Table not found or has no columns');
         }
+
+        // Find primary key
+        const primaryKeyColumn = columns.find(col => col.COLUMN_KEY === 'PRI');
+        const primaryKey = primaryKeyColumn ? primaryKeyColumn.COLUMN_NAME : null;
+        console.log(`Identified Primary Key: ${primaryKey}`);
 
         // Construct the SELECT part of the query, formatting DATE and DATETIME columns
         const selectParts = columns.map(column => {
@@ -100,7 +89,10 @@ exports.fetchTableData = async (req, res) => {
         const [results] = await connection.query(query);
         console.log(`Query executed successfully. Rows returned: ${results.length}`);
 
-        res.json(results);
+        res.json({
+            data: results,
+            primaryKey: primaryKey
+        });
     } catch (err) {
         console.error('Error fetching table data:', err);
         if (err.code === 'ER_NO_SUCH_TABLE') {
@@ -113,6 +105,7 @@ exports.fetchTableData = async (req, res) => {
         }
     }
 };
+
 
 exports.fetchTableNames = async (req, res) => {
     console.log("Fetching all table names for admin");
@@ -134,7 +127,6 @@ exports.fetchTableNames = async (req, res) => {
     }
 };
 
-
 exports.updateTableData = async (req, res) => {
     console.log("Updating table data for admin");
     const adminId = req.session.adminid;
@@ -149,16 +141,43 @@ exports.updateTableData = async (req, res) => {
         return res.status(400).send('Invalid request: tableName and updatedRows array are required');
     }
 
+    const conn = await connection.getConnection();
     try {
-        // Start a transaction
-        await connection.query('START TRANSACTION');
+        await conn.beginTransaction();
 
-        // First, fetch the primary key column name for the table
-        const [tableInfo] = await connection.query(`SHOW KEYS FROM ${tableName} WHERE Key_name = 'PRIMARY'`);
+        console.log(`[updateTableData] Processing ${updatedRows.length} rows for table: ${tableName}`);
+
+        // Get detailed table information including primary key
+        const [tableInfo] = await conn.query(`
+            SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = ?
+        `, [tableName]);
+
         if (tableInfo.length === 0) {
-            throw new Error(`No primary key found for table ${tableName}`);
+            await conn.rollback();
+            return res.status(404).json({
+                success: false,
+                message: `Table '${tableName}' not found`
+            });
         }
-        const primaryKeyColumn = tableInfo[0].Column_name;
+
+        // Find primary key column
+        const primaryKeyColumn = tableInfo.find(col => col.COLUMN_KEY === 'PRI');
+        if (!primaryKeyColumn) {
+            await conn.rollback();
+            return res.status(400).json({
+                success: false,
+                message: `No primary key found for table ${tableName}`
+            });
+        }
+
+        const primaryKey = primaryKeyColumn.COLUMN_NAME;
+        console.log(`[updateTableData] Using primary key: ${primaryKey}`);
+
+        const results = [];
+        let successfulUpdates = 0;
 
         for (const row of updatedRows) {
             const columns = Object.keys(row).filter(key => key !== 'key' && key !== primaryKeyColumn);
@@ -184,6 +203,8 @@ exports.updateTableData = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error updating table data', error: err.message });
     }
 };
+
+
 
 exports.deleteTable = async (req, res) => {
     const tableName = req.params.tableName;
@@ -688,7 +709,7 @@ exports.approveResetRequest = async (req, res) => {
             // Format the time for the updated request
             const formattedRequest = {
                 ...updatedRequest[0],
-                time: moment(updatedRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+                time: updatedRequest[0].time ? moment(updatedRequest[0].time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : null
             };
 
             return res.status(200).json({
@@ -736,7 +757,7 @@ exports.getRequestData = async (req, res) => {
         // Format the time for each request
         const formattedRequests = resetRequests.map(request => ({
             ...request,
-            time: moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss')
+            time: request.time ? moment(request.time).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss') : null
         }));
 
         res.json(formattedRequests);
@@ -748,13 +769,29 @@ exports.getRequestData = async (req, res) => {
 };
 const formatDate = (date) => {
     if (!date) return null;
-    return moment(date).tz('Asia/Kolkata').format('DD-MM-YYYY hh:mm:ss A')
+    return moment(date).tz('Asia/Kolkata').format('YYYY-MM-DD hh:mm:ss A')
 }
-exports.getStudentData = async (req, res) => {
 
+exports.getStudentData = async (req, res) => {
     const { student_id } = req.body;
     console.log(student_id);
     try {
+        await connection.query(`CREATE TABLE IF NOT EXISTS typingpassagelogs (
+            student_id VARCHAR(50) PRIMARY KEY,
+            trial_time VARCHAR(255),
+            trial_passage MEDIUMTEXT,
+            passage_time VARCHAR(255),
+            passage MEDIUMTEXT,
+            time DATETIME
+        )`);
+
+        await connection.query(`CREATE TABLE IF NOT EXISTS typingpassage (
+            student_id VARCHAR(50) PRIMARY KEY,
+            trial_passage MEDIUMTEXT,
+            passage MEDIUMTEXT,
+            time DATETIME
+        )`);
+
         let studentQuery = `select student_id , base64 , batchNo , center , batchdate , fullname from students where student_id = ?`;
         let shorthandPassageQuery = `select tl.texta AS passage_a_log , tl.textb as passage_b_log , tl.mina , tl.minb , fps.passageA  AS final_passageA ,fps.passageB  AS final_passageB FROM 
                                        students s
@@ -791,7 +828,6 @@ exports.getStudentData = async (req, res) => {
         studentLogs[0].typing_passage_time = formatDate(studentLogs[0].typing_passage_time);
         studentLogs[0].feedback_time = formatDate(studentLogs[0].feedback_time);
 
-
         studentResults[0].batchdate = formatDate(studentResults[0].batchdate);
         typingPassage[0].time = formatDate(typingPassage[0].time);
         res.status(201).json({ shorthandPassage, typingPassage, studentResults, audioLogs, examStages, studentLogs });
@@ -799,9 +835,7 @@ exports.getStudentData = async (req, res) => {
         console.error('Database query error:', error);
         res.status(500).send('Internal server error');
     }
-
 }
-
 exports.getAttendaceReports = async (req, res) => {
     const { center, batch } = req.query;
     try {
@@ -818,15 +852,226 @@ exports.getAttendaceReports = async (req, res) => {
         let query = `select * from attendance_reports where 1=1 ${filter} ORDER BY center `
         console.log(query);
 
-        const [reports] = await connection.query(query,queryParams);
+        const [reports] = await connection.query(query, queryParams);
 
-        if(reports.length === 0) {
-           return res.status(404).json({"message":"Attendance reports not uploaded yet!!"});
+        if (reports.length === 0) {
+            return res.status(404).json({ "message": "Attendance reports not uploaded yet!!" });
         }
-        res.status(201).json({"message":"Attendance reports fetched successfully!!",attendance_reports:reports});
-        
+        res.status(201).json({ "message": "Attendance reports fetched successfully!!", attendance_reports: reports });
+
     } catch (error) {
         console.error('Database query error:', error);
         res.status(500).send('Internal server error');
     }
 }
+
+exports.addTableRecord = async (req, res) => {
+    console.log("Adding table record for admin");
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const { tableName, record } = req.body;
+
+    if (!tableName || !record || typeof record !== 'object' || Array.isArray(record)) {
+        return res.status(400).json({ success: false, message: 'Invalid request: tableName and record object are required' });
+    }
+
+    const columns = Object.keys(record);
+    const values = Object.values(record);
+
+    if (columns.length === 0) {
+        return res.status(400).json({ success: false, message: 'Record must have at least one column' });
+    }
+
+    try {
+        const insertQuery = `
+            INSERT INTO ${mysql.escapeId(tableName)}
+            (${columns.map(c => mysql.escapeId(c)).join(', ')})
+            VALUES (${columns.map(() => '?').join(', ')})
+        `;
+        const [result] = await connection.query(insertQuery, values);
+        res.status(201).json({ success: true, message: 'Record added successfully', insertId: result.insertId });
+    } catch (err) {
+        console.error('Error adding table record:', err);
+        res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
+    }
+};
+
+exports.deleteTableRecord = async (req, res) => {
+    console.log("Deleting table record for admin");
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const { tableName, primaryKey, primaryKeyValue } = req.body;
+
+    if (!tableName || !primaryKey || primaryKeyValue === undefined || primaryKeyValue === null) {
+        return res.status(400).json({ success: false, message: 'Invalid request: tableName, primaryKey, and primaryKeyValue are required' });
+    }
+
+    try {
+        const deleteQuery = `DELETE FROM ${mysql.escapeId(tableName)} WHERE ${mysql.escapeId(primaryKey)} = ?`;
+        const [result] = await connection.query(deleteQuery, [primaryKeyValue]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Record not found' });
+        }
+
+        res.json({ success: true, message: 'Record deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting table record:', err);
+        res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
+    }
+};
+
+exports.enhancedUpdateTableData = async (req, res) => {
+    console.log("Enhanced updating table data for admin");
+    const adminId = req.session.adminid;
+
+    if (!adminId) {
+        return res.status(401).send('Unauthorized: Admin not logged in');
+    }
+
+    const { tableName, updates } = req.body;
+
+    if (!tableName || !updates || !Array.isArray(updates)) {
+        return res.status(400).send('Invalid request: tableName and updates array are required');
+    }
+
+    const conn = await connection.getConnection();
+    const results = [];
+    let hasErrors = false;
+
+    try {
+        console.log(`[enhancedUpdateTableData] Processing ${updates.length} updates for table: ${tableName}`);
+
+        // Get detailed table information including primary key
+        const [tableInfo] = await conn.query(`
+            SELECT COLUMN_NAME, COLUMN_KEY, DATA_TYPE, IS_NULLABLE
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = ?
+        `, [tableName]);
+
+        if (tableInfo.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: `Table '${tableName}' not found`
+            });
+        }
+
+        // Find primary key column
+        const primaryKeyColumnData = tableInfo.find(col => col.COLUMN_KEY === 'PRI');
+        if (!primaryKeyColumnData) {
+            return res.status(400).json({
+                success: false,
+                message: `No primary key found for table ${tableName}`
+            });
+        }
+
+        const primaryKeyColumn = primaryKeyColumnData.COLUMN_NAME;
+        console.log(`[enhancedUpdateTableData] Using primary key: ${primaryKeyColumn}`);
+
+        // Process each update individually
+        for (const update of updates) {
+            try {
+                // Determine the primary key value from the update object
+                const primaryKeyValue = update[primaryKeyColumn];
+
+                if (primaryKeyValue === undefined || primaryKeyValue === null) {
+                    results.push({
+                        success: false,
+                        error: `Missing primary key value for ${primaryKeyColumn}`
+                    });
+                    hasErrors = true;
+                    continue;
+                }
+
+                const columnsToUpdate = Object.keys(update).filter(key => key !== 'key' && key !== '_temp_id' && key !== primaryKeyColumn);
+
+                if (columnsToUpdate.length === 0) {
+                    results.push({
+                        success: true,
+                        message: "No columns to update"
+                    });
+                    continue;
+                }
+
+                const values = columnsToUpdate.map(col => update[col]);
+
+                const updateQuery = `
+                    UPDATE ${mysql.escapeId(tableName)}
+                    SET ${columnsToUpdate.map(col => `${mysql.escapeId(col)} = ?`).join(', ')}
+                    WHERE ${mysql.escapeId(primaryKeyColumn)} = ?
+                `;
+
+                await conn.query(updateQuery, [...values, primaryKeyValue]);
+                results.push({ success: true, id: primaryKeyValue });
+
+            } catch (err) {
+                console.error(`Error updating row:`, err);
+                results.push({ success: false, error: err.message });
+                hasErrors = true;
+            }
+        }
+
+        const responseData = {
+            success: !hasErrors,
+            results: results,
+            message: hasErrors ? 'Some updates failed' : 'All updates successful'
+        };
+
+        // If some succeeded and some failed, return 207 Multi-Status, otherwise 200
+        if (hasErrors && results.some(r => r.success)) {
+            res.status(207).json(responseData);
+        } else if (hasErrors) {
+            res.status(400).json(responseData);
+        } else {
+            res.json(responseData);
+        }
+
+    } catch (err) {
+        console.error('Error in enhancedUpdateTableData:', err);
+        res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
+    } finally {
+        conn.release();
+    }
+};
+exports.getAttendaceReports = async (req, res) => {
+    try {
+        const { batch, center, batchDate, departmentId } = req.query;
+        let query = 'SELECT * FROM attendance_reports WHERE 1=1';
+        const queryParams = [];
+
+        if (batch) {
+            query += ' AND batchNo = ?';
+            queryParams.push(batch);
+        }
+        if (center) {
+            query += ' AND center = ?';
+            queryParams.push(center);
+        }
+        if (batchDate) {
+            // Compare DATE part only in case report_date is DATETIME
+            query += ' AND DATE(report_date) = ?';
+            queryParams.push(batchDate);
+        }
+        if (departmentId) {
+            query += ' AND departmentId = ?';
+            queryParams.push(departmentId);
+        }
+
+        query += ' ORDER BY report_date DESC';
+
+        const [results] = await connection.query(query, queryParams);
+        res.json({ attendance_reports: results });
+    } catch (error) {
+        console.error('Error fetching attendance reports:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

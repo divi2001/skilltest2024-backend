@@ -3,66 +3,70 @@ const connection = require('../../config/db1');
 
 
 exports.getPcRegistrations = async (req, res) => {
-    
+
     const centerCode = req.session.centerId;
 
     // console.log("CenterCode: "+centerCode);
 
-    const query = 'select center, ip_address, disk_id, mac_address from pcregistration where center = ?;';
+    const query = 'select id, center, ip_address, disk_id, mac_address, os, ram, processor from pcregistration where center = ?;';
 
-    try{
+    try {
         const [results] = await connection.query(query, [centerCode]);
-        
-        // console.log("result: "+results);
+
+        console.log("Fetched PC Registrations:", JSON.stringify(results, null, 2));
+
         if (results.length > 0) {
             const pcResitrationDto = results.map(result => {
                 const pcRegistrationDet = new pcRegistrationDTO(
+                    result.id,
                     result.center,
                     result.ip_address,
                     result.disk_id,
                     result.mac_address,
-                    )
-                    return pcRegistrationDet;
-                }
+                    result.os || 'N/A',
+                    result.ram || 'N/A',
+                    result.processor || 'N/A'
+                )
+                return pcRegistrationDet;
+            }
             )
-            
+
             res.status(200).json(pcResitrationDto);
         } else {
             res.status(404).send('No records found!');
         }
-    }catch (err) {
+    } catch (err) {
         res.status(500).send(err.message);
     }
 }
 
 exports.removePcRegistration = async (req, res) => {
     const centerCode = req.session.centerId;
-    const { ip_address, disk_id, mac_address } = req.body;
+    const { id } = req.body;
 
-    // console.log("center:", centerCode);
-    // console.log("ip_address:", ip_address);
-    // console.log("disk_id:", disk_id);
-    // console.log("mac_address:", mac_address);
+    if (!id) {
+        return res.status(400).json({ "message": "ID is required for deletion" });
+    }
 
-    const query = 'DELETE FROM pcregistration WHERE center = ? AND ip_address = ? AND mac_address = ? AND disk_id = ?';
+    const query = 'DELETE FROM pcregistration WHERE id = ? AND center = ?';
 
     try {
-        const [results] = await connection.query(query, [centerCode, ip_address, mac_address, disk_id]);
+        const [results] = await connection.query(query, [id, centerCode]);
         // console.log(results);
-        
+
         if (results.affectedRows > 0) {
-            res.status(200).json({ 
+            res.status(200).json({
                 "message": "PC registration removed successfully",
                 "deletedRows": results.affectedRows
             });
         } else {
-            res.status(404).json({ 
+            res.status(404).json({
                 "message": "No matching PC registration found"
             });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({"message": "Internal Server Error"});
+        res.status(500).json({ "message": "Internal Server Error" });
     }
 }
 

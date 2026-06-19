@@ -1,5 +1,48 @@
+// module.exports = { AttendanceReport };
 const connection = require("../config/db1");
 const moment = require('moment-timezone');
+const checkReportPermission = require('./reportPermission');
+
+// Helper function to format time to 12-hour format
+function formatTime(timeString) {
+    if (!timeString) {
+        return 'Not specified';
+    }
+
+    // Convert to string
+    const timeStr = timeString.toString();
+
+    // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+
+    // If it's in HH:MM format, convert to 12-hour format
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
+}
 
 function createAttendanceReport(doc, data) {
     function addHeader() {
@@ -14,13 +57,13 @@ function createAttendanceReport(doc, data) {
         }
 
         doc.fontSize(14).font('Helvetica-Bold')
-            .text(data.departmentName, 110, 50, {
+            .text(data.departmentName.toUpperCase(), 110, 50, {
                 width: 450,
                 align: 'center'
             });
 
         doc.fontSize(12).font('Helvetica')
-            .text('Skill Test Computer Shorthand Examination April 2025', 110, doc.y + 5, {
+            .text(data.departmentExam.toUpperCase(), 110, doc.y + 5, {
                 width: 450,
                 align: 'center'
             });
@@ -34,7 +77,7 @@ function createAttendanceReport(doc, data) {
         doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
         doc.moveDown();
-        const yPosition = doc.y-8;
+        const yPosition = doc.y - 8;
         const fontSize = 10;
         const spacer = '\u00A0\u00A0';
         doc.fontSize(fontSize).font('Helvetica');
@@ -59,10 +102,10 @@ function createAttendanceReport(doc, data) {
 
         doc.moveTo(leftLineX, y).lineTo(leftLineX + lineLength, y).stroke();
         doc.fontSize(10).font('Helvetica');
-        doc.text('Signature of Supervisor', leftLineX+50, y + textOffset, { align: 'left' });
+        doc.text('Signature of Supervisor', leftLineX + 50, y + textOffset, { align: 'left' });
 
         doc.moveTo(rightLineX, y).lineTo(rightLineX + lineLength, y).stroke();
-        doc.text('Signature of Center Head', rightLineX+50, y + textOffset, { align: 'left' });
+        doc.text('Signature of Center Head', rightLineX + 50, y + textOffset, { align: 'left' });
 
         return y + textOffset + 20;
     }
@@ -73,8 +116,13 @@ function createAttendanceReport(doc, data) {
     const headerRowHeight = 30;
     const pageBreakThreshold = 700;
 
-    const headers = ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE'];
-    const columnWidths = [40, 70, 160, 60, 60, 60, 70];
+    const isSkill = data.examType === 'SKILL';
+    const headers = isSkill
+        ? ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGN\n(uploaded)', 'SIGNATURE']
+        : ['Sr. No.', 'SEAT NO', 'NAME OF STUDENT', 'SUBJECT', 'PHOTO\n(uploaded)', 'SIGNATURE'];
+    const columnWidths = isSkill
+        ? [40, 70, 170, 70, 60, 60, 50]  // Total: 520px with SIGN column
+        : [40, 80, 200, 80, 70, 50];      // Total: 520px without SIGN column
 
     function drawTableHeaders(yPosition) {
         let xPosition = tableLeft;
@@ -158,32 +206,35 @@ function createAttendanceReport(doc, data) {
             }
             xPosition += columnWidths[4];
 
-            // SIGN(uploaded)
-            doc.rect(xPosition, yPosition, columnWidths[5], rowHeight).stroke();
-            if (student.signBase64) {
-                try {
-                    doc.image(Buffer.from(student.signBase64, 'base64'), xPosition + 2, yPosition + 2, {
-                        fit: [columnWidths[5] - 4, rowHeight - 4],
-                        align: 'center',
-                        valign: 'center'
-                    });
-                } catch (error) {
-                    console.error(`Error loading sign image for student ${student.seatNo}:`, error);
+            // SIGN (uploaded) - only for SKILL
+            if (isSkill) {
+                doc.rect(xPosition, yPosition, columnWidths[5], rowHeight).stroke();
+                if (student.signBase64) {
+                    try {
+                        doc.image(Buffer.from(student.signBase64, 'base64'), xPosition + 2, yPosition + 2, {
+                            fit: [columnWidths[5] - 4, rowHeight - 4],
+                            align: 'center',
+                            valign: 'center'
+                        });
+                    } catch (error) {
+                        console.error(`Error loading sign for student ${student.seatNo}:`, error);
+                        doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
+                            width: columnWidths[5],
+                            align: 'center'
+                        });
+                    }
+                } else {
                     doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
                         width: columnWidths[5],
                         align: 'center'
                     });
                 }
-            } else {
-                doc.text('No Sign', xPosition + 2, yPosition + rowHeight / 2 - 5, {
-                    width: columnWidths[5],
-                    align: 'center'
-                });
+                xPosition += columnWidths[5];
             }
-            xPosition += columnWidths[5];
 
-            // SIGNATURE
-            doc.rect(xPosition, yPosition, columnWidths[6], rowHeight).stroke();
+            // SIGNATURE (empty space for manual signature)
+            const sigColIdx = isSkill ? 6 : 5;
+            doc.rect(xPosition, yPosition, columnWidths[sigColIdx], rowHeight).stroke();
 
             yPosition += rowHeight;
             studentsOnCurrentPage++;
@@ -230,7 +281,7 @@ function createAttendanceReport(doc, data) {
         doc.text('', summaryTableLeft, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
         doc.text('', summaryTableLeft + summaryTableWidth / 3, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
         doc.text(totalStudents.toString(), summaryTableLeft + (summaryTableWidth / 3) * 2, startY + summaryRowHeight + 10, { width: summaryTableWidth / 3, align: 'center' });
-        
+
         return startY + summaryRowHeight * 3 + 30;
     }
 
@@ -239,20 +290,16 @@ function createAttendanceReport(doc, data) {
     const afterSummaryY = addCenteredSummaryTable(finalYPosition, data.students.length);
 }
 
-const getData = async(center, batchNo) => {
+const getData = async (center, batchNo, departmentId) => {
     try {
         console.log(center, batchNo);
-        const query = 'SELECT s.fullname, s.student_id, s.base64, s.sign_base64, sub.subject_name_short, d.departmentName, d.logo FROM students s JOIN subjectsdb sub ON s.subjectsId = sub.subjectId JOIN departmentdb d ON s.departmentId = d.departmentId WHERE s.center = ? AND s.batchNo = ?';
-        const response = await connection.query(query, [center, batchNo]);
-        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const batchData = await connection.query(batchquery, [batchNo]);
-        // console.log(batchData[0].batchdate);
-        // if(!checkDownloadAllowedStudentLoginPass(batchData[0].batchdate)) {
-        //     return res.status(403).json({ "message": "Download not allowed at this time" });
-        // }
-        
-        return { 
-            response: response[0], 
+        const query = 'SELECT s.fullname, s.student_id, s.base64, s.sign_base64, sub.subject_name_short, d.departmentName, d.departmentExam, d.logo, d.examType FROM students s JOIN departmentdb d ON s.departmentId = d.departmentId JOIN subjectsdb sub ON s.subjectsId = sub.subjectId AND d.examType = sub.examType WHERE s.center = ? AND s.batchNo = ? AND s.departmentId = ?';
+        const response = await connection.query(query, [center, batchNo, departmentId]);
+        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const batchData = await connection.query(batchquery, [batchNo, departmentId]);
+
+        return {
+            response: response[0],
             batchData: batchData[0]
         };
     } catch (error) {
@@ -261,36 +308,36 @@ const getData = async(center, batchNo) => {
     }
 }
 
-function checkDownloadAllowedStudentLoginPass(batchDate) {
-    // Set the timezone to Kolkata
+// Updated function to allow downloads 3 days before batch date
+function checkDownloadAllowed3Days(batchDate) {
     const kolkataZone = 'Asia/Kolkata';
 
-    // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
+    // Parse the batchDate and convert to Kolkata timezone
     const batchDateKolkata = moment(batchDate).tz(kolkataZone).startOf('day');
 
-    // Get current date in Kolkata timezone
-    const nowKolkata = moment().tz(kolkataZone).startOf('day');
+    // Get current time in Kolkata timezone
+    const now = moment().tz(kolkataZone).startOf('day');
 
-    // Calculate the date 1 day before the batch date
-    const oneDayBefore = batchDateKolkata.clone().subtract(1, 'day');
+    // Calculate difference in days
+    const differenceInDays = batchDateKolkata.diff(now, 'days');
 
-    // console.log('Batch Date (UTC):', batchDate);
-    // console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    // console.log('Current Date (Kolkata):', nowKolkata.format('YYYY-MM-DD'));
-    // console.log('One Day Before (Kolkata):', oneDayBefore.format('YYYY-MM-DD'));
+    console.log('Batch Date (UTC):', batchDate);
+    console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
+    console.log('Current Date (Kolkata):', now.format('YYYY-MM-DD'));
+    console.log('Difference in Days:', differenceInDays);
 
-    // Check if current date is after or equal to 1 day before the batch date
-    return nowKolkata.isSameOrAfter(oneDayBefore);
+    // Return true if current date is within 3 days before batch date (including batch date)
+    return differenceInDays >= -1 && differenceInDays <= 4;
 }
 
-const AttendanceReport = async(doc, center, batchNo) => {
+const AttendanceReport = async (doc, center, batchNo, departmentId) => {
     try {
-        const Data = await getData(center, batchNo);
-        
+        const Data = await getData(center, batchNo, departmentId);
+
         if (!Data) {
             throw new Error('No data returned from getData');
         }
-        
+
         const response = Data.response;
         if (!Array.isArray(response) || response.length === 0) {
             throw new Error('No data returned from getData');
@@ -302,28 +349,36 @@ const AttendanceReport = async(doc, center, batchNo) => {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY');
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
+
+        // Check dynamic permissions
+        const isAllowed = await checkReportPermission('REPORT_ATTENDANCE', batchInfo.batchdate);
+        if (!isAllowed) {
+            throw new Error("Download is restricted for this batch at this time.");
         }
+
+        // Convert start_time to 12-hour format
+        const formattedExamTime = formatTime(batchInfo.start_time);
 
         const data = {
             centerCode: center,
             batch: batchNo,
             examDate: examDate,
-            examTime: batchInfo.start_time,
+            examTime: formattedExamTime, // Now in 12-hour format
+            examType: response[0]?.examType || 'GCC',
             students: response.map(student => {
                 return {
                     seatNo: student.student_id.toString(),
                     name: student.fullname,
                     subject: student.subject_name_short,
                     photoBase64: student.base64,
-                    signBase64: student.sign_base64,  // Using the same path for both photo and sign
+                    signBase64: student.sign_base64 || null
                 }
             }),
             departmentName: response[0]?.departmentName || 'GCC Examination',
+            departmentExam: response[0]?.departmentExam || '',
             departmentLogo: response[0]?.logo || null
         };
-        
+
         createAttendanceReport(doc, data);
     } catch (error) {
         console.error("Error generating report:", error);

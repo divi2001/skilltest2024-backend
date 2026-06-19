@@ -1,6 +1,48 @@
 const connection = require("../config/db1");
 const moment = require('moment-timezone');
-const {decrypt} = require('../config/encrypt');
+const { decrypt } = require('../config/encrypt');
+const checkReportPermission = require('./reportPermission');
+
+// Helper function to format time to 12-hour format
+function formatTime(timeString) {
+    if (!timeString) {
+        return 'Not specified';
+    }
+
+    // Convert to string
+    const timeStr = timeString.toString();
+
+    // If it's already in HH:MM:SS format, convert to 12-hour format without seconds
+    if (timeStr.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+
+    // If it's in HH:MM format, convert to 12-hour format
+    if (timeStr.match(/^\d{1,2}:\d{2}$/)) {
+        const parts = timeStr.split(':');
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1];
+
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        const formattedHours = hours.toString().padStart(2, '0');
+
+        return `${formattedHours}:${minutes} ${ampm}`;
+    }
+
+    console.error('Unexpected time format:', timeString);
+    return timeStr;
+}
 
 async function getData(center, batchNo) {
     try {
@@ -15,18 +57,19 @@ async function getData(center, batchNo) {
 
         // console.log(batchData[0].start_time, batchData[0].batchdate);
 
-        const query = 'SELECT s.student_id, s.password , d.departmentName , d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ?';
+        const query = 'SELECT s.student_id, s.password , d.departmentName, d.departmentExam , d.logo FROM students as s JOIN departmentdb d ON s.departmentId = d.departmentId  WHERE s.center = ? AND s.batchNo = ? AND s.password IS NOT NULL';
         const [results] = await connection.query(query, [center, batchNo]);
 
         const decryptedResults = await Promise.all(results.map(async (row) => ({
             student_id: String(row.student_id),
-            password: await decrypt(row.password)
+            password: typeof row.password === 'string' ? await decrypt(row.password) : ''
         })));
 
-        return { 
-            response: decryptedResults, 
-            departmentName:results[0].departmentName,
-            logo:results[0].logo,
+        return {
+            response: decryptedResults,
+            departmentName: results[0].departmentName,
+            departmentExam: results[0].departmentExam,
+            logo: results[0].logo,
             batchData: batchData
         };
     } catch (error) {
@@ -36,34 +79,47 @@ async function getData(center, batchNo) {
 }
 
 function addHeader(doc, data) {
-    doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
+    if (data.departmentLogo) {
+        try {
+            doc.image(Buffer.from(data.departmentLogo, 'base64'), 50, 40, { width: 60, height: 60 });
+        } catch (error) {
+            console.error('Error loading department logo:', error);
+        }
+    }
 
     doc.fontSize(14).font('Helvetica-Bold')
-        .text(data.departmentName, 110, 50, {
+        .text(data.departmentName.toUpperCase(), 110, 50, {
             width: 450,
             align: 'center'
         });
 
     doc.fontSize(12).font('Helvetica')
-        .text('Skill Test Computer Shorthand Examination April 2025', 110, doc.y + 5, {
+        .text(data.departmentExam.toUpperCase(), 110, doc.y + 5, {
             width: 450,
             align: 'center'
         });
 
-    doc.moveTo(50, doc.y + 15).lineTo(550, doc.y + 15).stroke();
+    doc.fontSize(12).font('Helvetica')
+        .text('STUDENT ID AND PASSWORD', 110, doc.y + 5, {
+            width: 450,
+            align: 'center'
+        });
+
+    doc.moveTo(50, doc.y + 10).lineTo(550, doc.y + 10).stroke();
 
     doc.moveDown();
-    const yPosition = doc.y-8;
-    const fontSize = 12;
+    const yPosition = doc.y - 8;
     const spacer = '\u00A0\u00A0';
-    doc.fontSize(fontSize).font('Helvetica');
+    doc.fontSize(10).font('Helvetica');
 
-    doc.text(`CENTER CODE: ${data.centerCode}${spacer}`, 50, yPosition + 13);
-    doc.text(`BATCH: ${data.batch}${spacer}`, 185, yPosition + 13);
-    doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 275, yPosition + 13);
-    doc.text(`EXAM TIME: ${data.examTime}`, 425, yPosition + 13);
+    doc.text(`CENTER CODE: ${data.centerCode}${spacer}`, 50, yPosition + 10);
+    doc.text(`BATCH: ${data.batch}${spacer}`, 200, yPosition + 10);
+    doc.text(`EXAM DATE: ${data.examDate}${spacer}`, 300, yPosition + 10);
+    doc.text(`EXAM TIME: ${data.examTime}`, 440, yPosition + 10);
 
-    return doc.y + 20;
+    doc.y = yPosition + 30;
+
+    return doc.y;
 }
 
 function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
@@ -79,8 +135,8 @@ function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
 
     // Add vertical line in header
     doc.moveTo(tableLeft + columnWidth, currentY)
-       .lineTo(tableLeft + columnWidth, currentY + rowHeight)
-       .stroke();
+        .lineTo(tableLeft + columnWidth, currentY + rowHeight)
+        .stroke();
 
     // Draw table rows
     doc.font('Helvetica').fontSize(10);
@@ -92,8 +148,8 @@ function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
 
         // Add vertical line in row
         doc.moveTo(tableLeft + columnWidth, rowY)
-           .lineTo(tableLeft + columnWidth, rowY + rowHeight)
-           .stroke();
+            .lineTo(tableLeft + columnWidth, rowY + rowHeight)
+            .stroke();
     });
 
     return currentY + rowHeight * (students.length + 1);
@@ -101,51 +157,96 @@ function createTable(doc, students, tableLeft, currentY, maxRows, tableWidth) {
 
 function createSeatingArrangementReport(doc, data) {
     addHeader(doc, data);
-    
-    doc.fontSize(14).font('Helvetica-Bold')
-        .text('Student Id and Password', 50, 170, {
-            width: 500,
-            align: 'center'
-        });
 
     const pageWidth = doc.page.width;
     const pageHeight = doc.page.height;
-    const marginLeft = 50;
-    const marginRight = 50;
-    const marginBottom = 50;
-    const tableTop = 200;
-    const tableGap = 30; // Gap between tables
-    const tableWidth = (pageWidth - marginLeft - marginRight - tableGap) / 2;
-    const maxRowsPerTable = Math.floor((pageHeight - tableTop - marginBottom) / 20) - 1; // -1 for header
 
-    let currentY = tableTop;
+    const marginBottom = 50;
+    const rowHeight = 20;
+    const tableGap = 30;
+    const tableWidth = 230;
+
     let studentsProcessed = 0;
 
     while (studentsProcessed < data.students.length) {
-        if (currentY >= pageHeight - marginBottom) {
-            doc.addPage();
-            addHeader(doc, data);
-            currentY = tableTop;
+        const remaining = data.students.length - studentsProcessed;
+
+        const usableHeight = pageHeight - 200 - marginBottom;
+        const maxRowsPerTable = Math.floor(usableHeight / rowHeight) - 1;
+
+        const rowsThisPage = Math.min(
+            remaining,
+            maxRowsPerTable * 2
+        );
+
+        const isSingleColumn = rowsThisPage <= maxRowsPerTable;
+
+        const tablesCount = isSingleColumn ? 1 : 2;
+        const totalTableWidth =
+            isSingleColumn
+                ? tableWidth
+                : tableWidth * 2 + tableGap;
+
+        const startX = (pageWidth - totalTableWidth) / 2;
+
+        const rowsInLeftTable = isSingleColumn
+            ? rowsThisPage
+            : Math.min(maxRowsPerTable, rowsThisPage);
+
+        const rowsInRightTable = rowsThisPage - rowsInLeftTable;
+
+        const tablesHeight =
+            Math.max(rowsInLeftTable, rowsInRightTable) * rowHeight;
+
+        // ✅ Vertical centering
+        const startY = Math.max(
+            200,
+            (pageHeight - tablesHeight) / 2
+        );
+
+        // LEFT / SINGLE TABLE
+        const leftStudents = data.students.slice(
+            studentsProcessed,
+            studentsProcessed + rowsInLeftTable
+        );
+
+        const leftEndY = createTable(
+            doc,
+            leftStudents,
+            startX,
+            startY,
+            maxRowsPerTable,
+            tableWidth
+        );
+
+        studentsProcessed += rowsInLeftTable;
+
+        // RIGHT TABLE (if needed)
+        if (!isSingleColumn && rowsInRightTable > 0) {
+            const rightStudents = data.students.slice(
+                studentsProcessed,
+                studentsProcessed + rowsInRightTable
+            );
+
+            createTable(
+                doc,
+                rightStudents,
+                startX + tableWidth + tableGap,
+                startY,
+                maxRowsPerTable,
+                tableWidth
+            );
+
+            studentsProcessed += rowsInRightTable;
         }
 
-        const remainingStudents = data.students.slice(studentsProcessed);
-        const leftTableStudents = remainingStudents.slice(0, maxRowsPerTable);
-        studentsProcessed += leftTableStudents.length;
-
-        const leftTableEndY = createTable(doc, leftTableStudents, marginLeft, currentY, maxRowsPerTable, tableWidth);
-
         if (studentsProcessed < data.students.length) {
-            const rightTableStudents = remainingStudents.slice(maxRowsPerTable, maxRowsPerTable * 2);
-            studentsProcessed += rightTableStudents.length;
-
-            const rightTableX = marginLeft + tableWidth + tableGap;
-            const rightTableEndY = createTable(doc, rightTableStudents, rightTableX, currentY, maxRowsPerTable, tableWidth);
-            currentY = Math.max(leftTableEndY, rightTableEndY) + 20;
-        } else {
-            currentY = leftTableEndY + 20;
+            doc.addPage();
+            addHeader(doc, data);
         }
     }
 }
+
 
 function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     // Set the timezone to Kolkata
@@ -154,25 +255,28 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     // Parse the batchDate (which is in UTC) and convert it to Kolkata timezone
     const batchDateKolkata = moment(batchDate).tz(kolkataZone);
 
-    // Combine the Kolkata date with the provided startTime
+    // Convert the 24-hour startTime to 12-hour format first
+    const formattedStartTime = formatTime(startTime);
+
+    // Combine the Kolkata date with the provided startTime (now in 12-hour format)
     const startDateTime = moment.tz(
-        `${batchDateKolkata.format('YYYY-MM-DD')} ${startTime}`,
+        `${batchDateKolkata.format('YYYY-MM-DD')} ${formattedStartTime}`,
         'YYYY-MM-DD hh:mm A',
         kolkataZone
     );
-    
+
     // Get current time in Kolkata timezone
-    const now = moment().tz();
+    const now = moment().tz(kolkataZone);
 
     const differenceInMinutes = startDateTime.diff(now, 'minutes');
-    
+
     console.log('Batch Date (UTC):', batchDate);
     console.log('Batch Date (Kolkata):', batchDateKolkata.format('YYYY-MM-DD'));
-    // console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
+    console.log('Current Time (Kolkata):', now.format('YYYY-MM-DD hh:mm A'));
     console.log('Start Time (Kolkata):', startDateTime.format('YYYY-MM-DD hh:mm A'));
     console.log('Difference in Minutes:', differenceInMinutes);
 
-    // Return true if startTime is between 0 and 30 minutes ahead of the current time
+    // Return true if startTime is between 0 and 105 minutes ahead of the current time
     return differenceInMinutes <= 105;
 }
 
@@ -192,20 +296,25 @@ async function generateStudentIdPasswordPdf(doc, center, batchNo) {
 
         const batchInfo = Data.batchData[0];
         const examDate = moment(batchInfo.batchdate).tz('Asia/Kolkata').format('DD-MM-YYYY')
-        
-        // Uncomment the following lines if you want to check download allowance
-        if(!checkDownloadAllowedStudentLoginPass(batchInfo.start_time,batchInfo.batchdate)) {
-            throw new Error("Download not allowed at this time");
+
+        // Check dynamic permissions
+        const isAllowed = await checkReportPermission('REPORT_PASSWORD_PDF', batchInfo.batchdate, batchInfo.start_time);
+        if (!isAllowed) {
+            throw new Error("Download is restricted for this batch at this time.");
         }
+
+        // Convert start_time to 12-hour format
+        const formattedExamTime = formatTime(batchInfo.start_time);
 
         const data = {
             centerCode: center,
             batch: batchNo.toString(),
             examDate: examDate,
-            examTime: batchInfo.start_time,
+            examTime: formattedExamTime, // Now in 12-hour format
             students: response,
-            departmentName:Data.departmentName,
-            departmentLogo:Data.logo
+            departmentName: Data.departmentName,
+            departmentExam: Data.departmentExam,
+            departmentLogo: Data.logo
         };
 
         createSeatingArrangementReport(doc, data);

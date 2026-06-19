@@ -23,35 +23,35 @@ const storage = multer.diskStorage({
 });
 
 // File filter to accept only excel files
-// Enhanced file filter with MIME type fallback
+// Enhanced file filter with proper MIME type checking
 const fileFilter = (req, file, cb) => {
-  const filetypes = /xlsx|xls/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+  const allowedExtensions = /xlsx|xls/;
+  const allowedMimeTypes = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'application/vnd.ms-excel', // .xls
+    'application/octet-stream', // sometimes used for Excel
+    'application/zip' // .xlsx is technically a zip file
+  ];
+
+  const extname = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedMimeTypes.includes(file.mimetype);
 
   // Debugging logs (you can remove these after testing)
   console.log('File upload debug:');
   console.log('Original name:', file.originalname);
   console.log('Extension:', path.extname(file.originalname));
   console.log('MIME type:', file.mimetype);
+  console.log('Extension valid:', extname);
+  console.log('MIME type valid:', mimetype);
 
   // Primary check: Both MIME type and extension must match
   if (mimetype && extname) {
+    console.log('File accepted: Both MIME type and extension are valid');
     return cb(null, true);
   }
   // Fallback check: If MIME type fails but extension is good
-  else if (extname) {
+  else if (extname && !mimetype) {
     console.warn('MIME type check failed but extension is valid, allowing upload');
-    return cb(null, true);
-  }
-  // Final fallback: Check for common Excel MIME types that might vary
-  else if ([
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-    'application/vnd.ms-excel', // .xls
-    'application/octet-stream', // sometimes used for Excel
-    'application/zip' // .xlsx is technically a zip file
-  ].includes(file.mimetype) && extname) {
-    console.warn('Non-standard but acceptable MIME type with valid extension');
     return cb(null, true);
   }
   else {
@@ -59,7 +59,8 @@ const fileFilter = (req, file, cb) => {
     error.uploadError = {
       receivedMime: file.mimetype,
       receivedExt: path.extname(file.originalname),
-      allowedTypes: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel']
+      allowedMimeTypes: allowedMimeTypes,
+      allowedExtensions: ['.xlsx', '.xls']
     };
     return cb(error);
   }
@@ -69,7 +70,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 200 * 1024 * 1024 } // 10MB limit
 }).single('excelFile');
 
 // Controller method to handle file upload

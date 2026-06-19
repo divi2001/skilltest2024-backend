@@ -95,7 +95,7 @@ exports.insertExpert = async (req, res) => {
 }
 exports.getStudentsforExperts = async (req, res) => {
     const { department ,subject, stage_1, stage_3 } = req.query;
-    console.log(typeof department);
+    console.log('Received parameters:', { department, subject, stage_1, stage_3 });
     try {
         let query, queryParams = [];
         if (!stage_1 && !stage_3) {
@@ -460,25 +460,44 @@ exports.submmitedByExperts = async (req, res) => {
 
 
     const query = `
-    SELECT 
-        e.expertId,
-        e.expert_name,
-        s.subjectId,
-        s.subject_name,
-        st.departmentId,
-        erl.qset,
-        COUNT(DISTINCT erl.student_id) AS expert_assigned_count,
-        SUM(CASE WHEN erl.subm_done = 1 THEN 1 ELSE 0 END) AS submitted_students,
-        SUM(CASE WHEN erl.subm_done = 0 THEN 1 ELSE 0 END) AS pending_students
-    FROM 
-        expertdb e
-    JOIN ${tableName} erl ON e.expertId = erl.expertId
-    JOIN subjectsdb s ON erl.subjectId = s.subjectId
-    JOIN students st ON erl.student_id = st.student_id
-    GROUP BY 
-        e.expertId, e.expert_name, s.subjectId, s.subject_name, st.departmentId, erl.qset
-    ORDER BY 
-        st.departmentId, e.expertId, s.subjectId, erl.qset;`;
+        SELECT 
+            e.expertId,
+            e.expert_name,
+            s.subjectId,
+            s.subject_name,
+            st.departmentId,
+            erl.qset,
+
+            COUNT(DISTINCT erl.student_id) AS expert_assigned_count,
+
+            COUNT(DISTINCT CASE 
+                WHEN erl.subm_done = 1 THEN erl.student_id 
+            END) AS submitted_students,
+
+            COUNT(DISTINCT CASE 
+                WHEN erl.subm_done = 0 THEN erl.student_id 
+            END) AS pending_students
+
+        FROM expertdb e
+
+        JOIN ${tableName} erl 
+            ON e.expertId = erl.expertId
+
+        JOIN subjectsdb s 
+            ON erl.subjectId = s.subjectId
+        AND erl.examType = s.examType
+
+        JOIN students st 
+            ON erl.student_id = st.student_id
+
+        GROUP BY 
+            e.expertId, e.expert_name,
+            s.subjectId, s.subject_name,
+            st.departmentId, erl.qset
+
+        ORDER BY 
+            st.departmentId, e.expertId, s.subjectId, erl.qset;
+        `;
 
     try {
         const [results] = await connection.query(query);
@@ -546,16 +565,16 @@ exports.submmitedByExperts = async (req, res) => {
 
 exports.copyQsetToModqset = async (req, res) => {
     try {
-        // First, add a unique constraint to subjectId in modqsetdb
+        // First, add a unique constraint to subjectId in qsetdb
         const addUniqueConstraintQuery = `
-            ALTER TABLE modqsetdb ADD UNIQUE (subjectId);
+            ALTER TABLE qsetdb ADD UNIQUE (subjectId);
         `;
         
         await connection.query(addUniqueConstraintQuery);
 
         // Now, run your original query
         const query = `
-            INSERT INTO modqsetdb (subjectId, Q1PA, Q1PB, Q2PA, Q2PB, Q3PA, Q3PB, Q4PA, Q4PB)
+            INSERT INTO qsetdb (subjectId, Q1PA, Q1PB, Q2PA, Q2PB, Q3PA, Q3PB, Q4PA, Q4PB)
             SELECT subjectId, Q1PA, Q1PB, Q2PA, Q2PB, Q3PA, Q3PB, Q4PA, Q4PB
             FROM qsetdb
             ON DUPLICATE KEY UPDATE
@@ -578,7 +597,7 @@ exports.copyQsetToModqset = async (req, res) => {
             updatedRows: result.changedRows
         });
     } catch (error) {
-        console.error('Error updating or copying data from qsetdb to modqsetdb:', error);
+        console.error('Error updating or copying data from qsetdb to qsetdb:', error);
         res.status(500).json({ error: error.message });
     }
 };
