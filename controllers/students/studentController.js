@@ -84,7 +84,7 @@ exports.loginStudent = async (req, res) => {
         ];
         const linkedGroup = LINKED_CENTER_GROUPS.find(g => g.includes(String(examCenterCode)));
         const centersToCheck = linkedGroup || [String(examCenterCode)];
-
+        
         const placeholders = centersToCheck.map(() => '?').join(', ');
         const query4 = `SELECT * FROM pcregistration WHERE center IN (${placeholders}) AND mac_address=?`;
         const [registrations] = await connection.query(query4, [...centersToCheck, macAddress]);
