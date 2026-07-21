@@ -1,0 +1,29 @@
+{
+  "_comment": "Without this, nodemon watches the whole backend folder. The app writes into its own directory at runtime (uploads, passage-log zips, generated reports, backup json), so every upload or report download restarted the server - which wiped all in-memory sessions and logged every user out. Only restart for actual source changes.",
+  "watch": [
+    "app.js",
+    "routes",
+    "controllers",
+    "Reports",
+    "middleware",
+    "config",
+    "dto",
+    "schema"
+  ],
+  "ext": "js,json",
+  "ignore": [
+    "uploads/*",
+    "public/*",
+    "build/*",
+    "downloaded_passage_logs/*",
+    "typing_passage_logs/*",
+    "*.json",
+    "*.xlsx",
+    "*.zip",
+    "*.pdf",
+    "*.txt",
+    "*.log",
+    "node_modules/*"
+  ],
+  "delay": 2000
+}
