@@ -20,8 +20,11 @@ exports.getCurrentStudentDetails = async (req, res) => {
             queryParams.push(departmentId);
         }
 
-        // First, get all subject IDs and names
-        const [subjects] = await connection.query('SELECT subjectId, subject_name FROM subjectsdb');
+        // First, get all subject IDs and names.
+        // subjectsdb has a composite PK (subjectId, examType), so a plain SELECT returns each
+        // subjectId twice (once for GCC, once for SKILL) and doubles every row in the subjects
+        // breakdown. GROUP BY subjectId collapses them to one entry per subject.
+        const [subjects] = await connection.query('SELECT subjectId, MAX(subject_name) as subject_name FROM subjectsdb GROUP BY subjectId');
 
         // Construct dynamic parts of the query
         const subjectCounts = subjects.map(sub => `
