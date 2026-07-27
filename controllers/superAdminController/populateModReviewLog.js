@@ -2,6 +2,8 @@ const pool = require("../../config/db1");
 const createTableIfNotExists = require("../../utils/createTableIfNotExists");
 const { withDbConnectionRetry } = require("../../utils/withDbConnectionRetry");
 
+const INSERT_CHUNK_SIZE = 1000;
+
 exports.populateModReviewLog = async (req, res) => {
     const { department } = req.body;
     const startTime = Date.now();
@@ -25,6 +27,8 @@ exports.populateModReviewLog = async (req, res) => {
             await createTableIfNotExists(db, "modreviewlog");
             console.log(`[SUCCESS] modreviewlog table is ready`);
 
+            // EXISTS instead of LEFT JOIN: these tables hold multiple rows per
+            // student, so joining them fans one student out into several rows.
             const query = `
                 SELECT
                     s.student_id,
@@ -39,20 +43,22 @@ exports.populateModReviewLog = async (req, res) => {
                 FROM students s
                 LEFT JOIN departmentdb d
                     ON s.departmentId = d.departmentId
-                LEFT JOIN finalPassageSubmit fps
-                    ON s.student_id = fps.student_id
-                LEFT JOIN textlogs tl
-                    ON s.student_id = tl.student_id
                 LEFT JOIN qsetdb mq
                     ON s.subjectsId = mq.subjectId AND s.departmentId = mq.departmentId
                 WHERE
                     s.departmentId = ?
                     AND s.batchNo != 100
                     AND (
-                        fps.passageA IS NOT NULL OR
-                        fps.passageB IS NOT NULL OR
-                        tl.texta IS NOT NULL OR
-                        tl.textb IS NOT NULL
+                        EXISTS (
+                            SELECT 1 FROM finalPassageSubmit fps
+                            WHERE fps.student_id = s.student_id
+                                AND (fps.passageA IS NOT NULL OR fps.passageB IS NOT NULL)
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM textlogs tl
+                            WHERE tl.student_id = s.student_id
+                                AND (tl.texta IS NOT NULL OR tl.textb IS NOT NULL)
+                        )
                     )
                 ORDER BY s.student_id
             `;
@@ -70,7 +76,10 @@ exports.populateModReviewLog = async (req, res) => {
                 };
             }
 
-            const validRows = [];
+            // Keyed by student_id so a duplicate can never reach the temporary
+            // table's primary key, whatever the query returns.
+            const rowsByStudentId = new Map();
+            let duplicates = 0;
 
             for (const row of results) {
                 if (String(row.student_id).length < 10) {
@@ -78,11 +87,16 @@ exports.populateModReviewLog = async (req, res) => {
                     continue;
                 }
 
+                if (rowsByStudentId.has(row.student_id)) {
+                    duplicates += 1;
+                    continue;
+                }
+
                 const qset = row.qset;
                 const QPA = qset >= 1 && qset <= 4 ? row[`Q${qset}PA`] || null : null;
                 const QPB = qset >= 1 && qset <= 4 ? row[`Q${qset}PB`] || null : null;
 
-                validRows.push([
+                rowsByStudentId.set(row.student_id, [
                     row.student_id,
                     row.subjectsId,
                     row.examType,
@@ -91,6 +105,12 @@ exports.populateModReviewLog = async (req, res) => {
                     QPA,
                     QPB
                 ]);
+            }
+
+            const validRows = Array.from(rowsByStudentId.values());
+
+            if (duplicates > 0) {
+                console.log(`[INFO] Collapsed ${duplicates} duplicate student rows`);
             }
 
             if (validRows.length === 0) {
@@ -129,14 +149,17 @@ exports.populateModReviewLog = async (req, res) => {
                     )
                 `);
 
-                await db.query(
-                    `
-                    INSERT INTO tmp_modreviewlog_population
-                    (student_id, subjectId, examType, qset, departmentId, QPA, QPB)
-                    VALUES ?
-                    `,
-                    [validRows]
-                );
+                // Chunked so a large department cannot blow past max_allowed_packet.
+                for (let i = 0; i < validRows.length; i += INSERT_CHUNK_SIZE) {
+                    await db.query(
+                        `
+                        INSERT INTO tmp_modreviewlog_population
+                        (student_id, subjectId, examType, qset, departmentId, QPA, QPB)
+                        VALUES ?
+                        `,
+                        [validRows.slice(i, i + INSERT_CHUNK_SIZE)]
+                    );
+                }
 
                 const [[updateStats]] = await db.query(`
                     SELECT COUNT(*) AS count
