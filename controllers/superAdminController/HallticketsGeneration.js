@@ -101,7 +101,7 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     })
     .fontSize(11)
-    .text("GCC COMPUTER SHORTHAND EXAMINATION JANUARY 2026", centerX, 50, {
+    .text("GCC COMPUTER SHORTHAND EXAMINATION JULY 2026", centerX, 50, {
       width: textWidth,
       align: "center",
     })
@@ -200,21 +200,23 @@ async function generateStudentHallTicket(doc, studentData, assets) {
       align: "center",
     });
 
-  // if (signFile) {
-  //   doc.image(signFile, boxX + 20, 240, {
-  //     width: maxImageWidth+45,
-  //     height: maxImageHeight+45,
-  //     fit: [maxImageWidth+40, maxImageHeight+40],
-  //     align: 'center',
-  //     valign: 'center'
-  //   });
-  // }
+  if (signFile) {
+    const maxImageWidth = 40;
+    const maxImageHeight = 15;
+    doc.image(signFile, boxX + 15, 270, {
+      width: maxImageWidth+45,
+      height: maxImageHeight+45,
+      fit: [maxImageWidth+40, maxImageHeight+40],
+      align: 'center',
+      valign: 'center'
+    });
+  }
 
   // Commissioner details
   doc
     .fontSize(10)
     .font("Helvetica-Bold")
-    .text("(Anuradha Oak)", 370, 320, { align: "center" })
+    .text("(Mahesh Chothe)", 370, 320, { align: "center" })
     .fontSize(10)
     .font("Helvetica-Bold")
     .text("COMMISSIONER", 370, 335, { align: "center" })
@@ -371,7 +373,7 @@ async function loadAssets() {
   // Path to required files
   const logoPath = path.join(assetsDir, 'logo.png');
   const qrPath = path.join(assetsDir, 'qr.png');
-  const signPath = path.join(assetsDir, 'sign_anuradha_oak.png');
+  const signPath = path.join(assetsDir, '..', 'GCC Officer Signature.jpeg');
   const fontsDir = path.join(assetsDir, 'fonts');
   
   // Create fonts directory if it doesn't exist
@@ -440,6 +442,7 @@ async function loadStudentData() {
     subjectCode: row['subjectsId']?.toString(),
     batch: row['batchNo']?.toString(),
     date: row['batchdate'],
+    // date: '23-07-2026', // Use the correct date column
     examTime: row['start_time'],
     password: row['password']?.toString(),
     instituteCode: row['InstituteId']?.toString(),

@@ -509,13 +509,14 @@ const hallticketDepartmentController = {
   getDepartmentsForHallTickets: async (req, res) => {
     try {
       const query = `
-        SELECT 
+        SELECT
           departmentId,
           departmentName,
+          departmentExam,
           examType,
           departmentStatus
-        FROM departmentdb 
-        ORDER BY departmentName ASC
+        FROM departmentdb
+        ORDER BY departmentName ASC, departmentExam ASC
       `;
 
       const [departments] = await db.execute(query);
