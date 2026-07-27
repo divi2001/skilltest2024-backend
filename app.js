@@ -151,7 +151,7 @@ app.get('*', (req, res) => {
 // });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on http://checking.shorthandonlineexam.in`);
+  console.log(`✅ Server running on https://checking.shorthandonlineexam.in`);
   console.log(`✅ Max payload size: 500mb`);
 });
 
