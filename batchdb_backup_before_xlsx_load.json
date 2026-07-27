@@ -1,0 +1,47 @@
+[
+  {
+    "departmentId": 15,
+    "batchNo": 100,
+    "batchdate": "2026-06-16T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 101,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 102,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 103,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 104,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  }
+]

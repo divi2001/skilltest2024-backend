@@ -1,0 +1,302 @@
+[
+  {
+    "center": 1051,
+    "departmentId": 10,
+    "pc_count": 2,
+    "max_pc": 2
+  },
+  {
+    "center": 1151,
+    "departmentId": 17,
+    "pc_count": 23,
+    "max_pc": 55
+  },
+  {
+    "center": 1251,
+    "departmentId": 17,
+    "pc_count": 25,
+    "max_pc": 33
+  },
+  {
+    "center": 1351,
+    "departmentId": 17,
+    "pc_count": 26,
+    "max_pc": 55
+  },
+  {
+    "center": 1451,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 33
+  },
+  {
+    "center": 1551,
+    "departmentId": 17,
+    "pc_count": 40,
+    "max_pc": 50
+  },
+  {
+    "center": 1552,
+    "departmentId": 17,
+    "pc_count": 23,
+    "max_pc": 33
+  },
+  {
+    "center": 2151,
+    "departmentId": 17,
+    "pc_count": 150,
+    "max_pc": 175
+  },
+  {
+    "center": 2251,
+    "departmentId": 17,
+    "pc_count": 110,
+    "max_pc": 133
+  },
+  {
+    "center": 2351,
+    "departmentId": 17,
+    "pc_count": 100,
+    "max_pc": 105
+  },
+  {
+    "center": 3151,
+    "departmentId": 17,
+    "pc_count": 40,
+    "max_pc": 50
+  },
+  {
+    "center": 3152,
+    "departmentId": 17,
+    "pc_count": 25,
+    "max_pc": 33
+  },
+  {
+    "center": 3251,
+    "departmentId": 17,
+    "pc_count": 45,
+    "max_pc": 80
+  },
+  {
+    "center": 3351,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 65
+  },
+  {
+    "center": 4151,
+    "departmentId": 17,
+    "pc_count": 45,
+    "max_pc": 55
+  },
+  {
+    "center": 4152,
+    "departmentId": 17,
+    "pc_count": 90,
+    "max_pc": 125
+  },
+  {
+    "center": 4251,
+    "departmentId": 17,
+    "pc_count": 40,
+    "max_pc": 50
+  },
+  {
+    "center": 4252,
+    "departmentId": 17,
+    "pc_count": 60,
+    "max_pc": 75
+  },
+  {
+    "center": 4351,
+    "departmentId": 17,
+    "pc_count": 60,
+    "max_pc": 70
+  },
+  {
+    "center": 4451,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 39
+  },
+  {
+    "center": 4551,
+    "departmentId": 17,
+    "pc_count": 22,
+    "max_pc": 25
+  },
+  {
+    "center": 5151,
+    "departmentId": 17,
+    "pc_count": 120,
+    "max_pc": 150
+  },
+  {
+    "center": 5152,
+    "departmentId": 17,
+    "pc_count": 74,
+    "max_pc": 85
+  },
+  {
+    "center": 5251,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 33
+  },
+  {
+    "center": 5351,
+    "departmentId": 17,
+    "pc_count": 50,
+    "max_pc": 55
+  },
+  {
+    "center": 5352,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 36
+  },
+  {
+    "center": 5451,
+    "departmentId": 17,
+    "pc_count": 50,
+    "max_pc": 65
+  },
+  {
+    "center": 5551,
+    "departmentId": 17,
+    "pc_count": 43,
+    "max_pc": 48
+  },
+  {
+    "center": 5552,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 44
+  },
+  {
+    "center": 6151,
+    "departmentId": 17,
+    "pc_count": 45,
+    "max_pc": 53
+  },
+  {
+    "center": 6251,
+    "departmentId": 17,
+    "pc_count": 38,
+    "max_pc": 70
+  },
+  {
+    "center": 6351,
+    "departmentId": 17,
+    "pc_count": 35,
+    "max_pc": 44
+  },
+  {
+    "center": 6451,
+    "departmentId": 17,
+    "pc_count": 20,
+    "max_pc": 28
+  },
+  {
+    "center": 6551,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 79
+  },
+  {
+    "center": 6552,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 39
+  },
+  {
+    "center": 7151,
+    "departmentId": 17,
+    "pc_count": 90,
+    "max_pc": 105
+  },
+  {
+    "center": 7251,
+    "departmentId": 17,
+    "pc_count": 30,
+    "max_pc": 33
+  },
+  {
+    "center": 7351,
+    "departmentId": 17,
+    "pc_count": 25,
+    "max_pc": 31
+  },
+  {
+    "center": 7451,
+    "departmentId": 17,
+    "pc_count": 25,
+    "max_pc": 105
+  },
+  {
+    "center": 7551,
+    "departmentId": 17,
+    "pc_count": 50,
+    "max_pc": 55
+  },
+  {
+    "center": 7651,
+    "departmentId": 17,
+    "pc_count": 25,
+    "max_pc": 22
+  },
+  {
+    "center": 8151,
+    "departmentId": 17,
+    "pc_count": 42,
+    "max_pc": 52
+  },
+  {
+    "center": 8251,
+    "departmentId": 17,
+    "pc_count": 52,
+    "max_pc": 105
+  },
+  {
+    "center": 8351,
+    "departmentId": 17,
+    "pc_count": 100,
+    "max_pc": 105
+  },
+  {
+    "center": 8352,
+    "departmentId": 17,
+    "pc_count": 40,
+    "max_pc": 50
+  },
+  {
+    "center": 211151,
+    "departmentId": 11,
+    "pc_count": 125,
+    "max_pc": 150
+  },
+  {
+    "center": 211251,
+    "departmentId": 12,
+    "pc_count": 125,
+    "max_pc": 150
+  },
+  {
+    "center": 211351,
+    "departmentId": 13,
+    "pc_count": 125,
+    "max_pc": 150
+  },
+  {
+    "center": 211451,
+    "departmentId": 14,
+    "pc_count": 150,
+    "max_pc": 180
+  },
+  {
+    "center": 211551,
+    "departmentId": 15,
+    "pc_count": 150,
+    "max_pc": 180
+  }
+]

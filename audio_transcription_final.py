@@ -48,13 +48,19 @@ except ImportError:
     import librosa
     from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
 
-# Database configuration
+# Database configuration — reads from .env if available
+try:
+    import dotenv
+    dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+except ImportError:
+    pass
+
 DB_CONFIG = {
-    'host': '13.204.48.33',
-    'port': 3306,
-    'user': 'root',
-    'password': 'tanuj1221',
-    'database': 'dec25',
+    'host': os.getenv('DB_HOST', '13.204.48.33').strip('"'),
+    'port': int(os.getenv('DB_PORT', 3306)),
+    'user': os.getenv('DB_USER', 'root'),
+    'password': os.getenv('DB_PASSWORD', 'tanuj1221'),
+    'database': os.getenv('DB_DATABASE', 'skilmar26'),
     'charset': 'utf8mb4'
 }
 
@@ -121,11 +127,17 @@ def connect_db():
         print(f"✗ Database error: {e}")
         sys.exit(1)
 
-def fetch_records(conn):
-    """Fetch audio records from database."""
+def fetch_records(conn, departments=None):
+    """Fetch audio records from database, optionally filtered by departmentId."""
     cursor = conn.cursor(dictionary=True)
-    query = """
-    SELECT 
+    where = ""
+    params = []
+    if departments:
+        placeholders = ", ".join(["%s"] * len(departments))
+        where = f"WHERE a.departmentId IN ({placeholders})"
+        params = list(departments)
+    query = f"""
+    SELECT
         a.id, a.subjectId, a.qset, a.departmentId,
         a.code_a, a.code_b, a.code_t,
         a.audio1, a.audio2, a.testaudio,
@@ -134,16 +146,20 @@ def fetch_records(conn):
         s.subject_name
     FROM audiodb a
     LEFT JOIN (
-        SELECT subjectId, MAX(subject_name) as subject_name 
-        FROM subjectsdb 
+        SELECT subjectId, MAX(subject_name) as subject_name
+        FROM subjectsdb
         GROUP BY subjectId
     ) s ON a.subjectId = s.subjectId
+    {where}
     ORDER BY a.subjectId, a.qset
     """
-    cursor.execute(query)
+    cursor.execute(query, params)
     records = cursor.fetchall()
     cursor.close()
-    print(f"✓ Fetched {len(records)} audio records (Joined with Subjects)\n")
+    if departments:
+        print(f"✓ Fetched {len(records)} audio records for departments {departments} (Joined with Subjects)\n")
+    else:
+        print(f"✓ Fetched {len(records)} audio records (Joined with Subjects)\n")
     return records
 
 def detect_language(subject_name):
@@ -402,10 +418,17 @@ def main():
     
     # Connect to database
     conn = connect_db()
-    
+
+    # Parse department filter from CLI args (e.g. "14 15" or "14,15")
+    departments = None
+    if len(sys.argv) > 1:
+        raw = " ".join(sys.argv[1:]).replace(",", " ")
+        departments = [int(x) for x in raw.split() if x.strip().isdigit()]
+        print(f"Department filter: {departments}")
+
     try:
         # Fetch records
-        records = fetch_records(conn)
+        records = fetch_records(conn, departments)
         
         if not records:
             print("No audio records found.")
@@ -440,7 +463,8 @@ def main():
             print()
         
         # Generate Excel report
-        report_path = os.path.join(os.path.dirname(__file__), 'audio_transcription_report.xlsx')
+        suffix = ("_dept" + "_".join(map(str, departments))) if departments else ""
+        report_path = os.path.join(os.path.dirname(__file__), f'audio_transcription_report{suffix}.xlsx')
         generate_excel(results, report_path)
         
         # Summary

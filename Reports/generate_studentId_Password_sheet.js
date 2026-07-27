@@ -44,12 +44,12 @@ function formatTime(timeString) {
     return timeStr;
 }
 
-async function getData(center, batchNo) {
+async function getData(center, batchNo, departmentId) {
     try {
         // console.log(batchNo, center);
 
-        const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const [batchData] = await connection.query(batchQuery, [batchNo]);
+        const batchQuery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const [batchData] = await connection.query(batchQuery, [batchNo, departmentId]);
 
         if (!batchData || batchData.length === 0) {
             throw new Error("Batch not found");
@@ -280,9 +280,9 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     return differenceInMinutes <= 105;
 }
 
-async function generateStudentIdPasswordPdf(doc, center, batchNo) {
+async function generateStudentIdPasswordPdf(doc, center, batchNo, departmentId) {
     try {
-        const Data = await getData(center, batchNo);
+        const Data = await getData(center, batchNo, departmentId);
         console.log(Data);
 
         const response = Data.response;

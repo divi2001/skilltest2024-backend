@@ -1,0 +1,80 @@
+[
+  {
+    "center": 1051,
+    "departmentId": 10,
+    "centerpass": "b29d7188a06d44b6e6ba607b97f0ce8e:7dbcd8f22be7a4392a9fb4ce21cc3958",
+    "center_name": "mscepune",
+    "center_address": "Pune",
+    "pc_count": 2,
+    "max_pc": 2,
+    "attendanceroll": null,
+    "absenteereport": null,
+    "answersheet": null,
+    "blankanswersheet": null
+  },
+  {
+    "center": 211151,
+    "departmentId": 11,
+    "centerpass": "786384af20b69c6f6daad517fb7e6da6:edb0c1cb381a668ebcd12061999794fc",
+    "center_name": "NetQuiz Assessment Solutions",
+    "center_address": "700-703, 2nd Floor, Shah's Building, Opp Laxminarayan Theater, Mukund Nagar, Pune-Satara Road, Swargate, Pune, Maharashtra 411037",
+    "pc_count": 125,
+    "max_pc": 150,
+    "attendanceroll": null,
+    "absenteereport": null,
+    "answersheet": null,
+    "blankanswersheet": null
+  },
+  {
+    "center": 211251,
+    "departmentId": 12,
+    "centerpass": "f9d8908ba2c5b835739a7dbcc2564897:633e2cd63495245788d8e9fca996fbf4",
+    "center_name": "NetQuiz Assessment Solutions",
+    "center_address": "700-703, 2nd Floor, Shah's Building, Opp Laxminarayan Theater, Mukund Nagar, Pune-Satara Road, Swargate, Pune, Maharashtra 411037",
+    "pc_count": 125,
+    "max_pc": 150,
+    "attendanceroll": null,
+    "absenteereport": null,
+    "answersheet": null,
+    "blankanswersheet": null
+  },
+  {
+    "center": 211351,
+    "departmentId": 13,
+    "centerpass": "d51cf830f298dd7a5604094807707237:6674612a595f3a62c1dd95ba3bd3f50e",
+    "center_name": "NetQuiz Assessment Solutions",
+    "center_address": "700-703, 2nd Floor, Shah's Building, Opp Laxminarayan Theater, Mukund Nagar, Pune-Satara Road, Swargate, Pune, Maharashtra 411037",
+    "pc_count": 125,
+    "max_pc": 150,
+    "attendanceroll": null,
+    "absenteereport": null,
+    "answersheet": null,
+    "blankanswersheet": null
+  },
+  {
+    "center": 211451,
+    "departmentId": 14,
+    "centerpass": "40701a035bddcbf8f694b6dfdbf2b25d:156ddbc059791433f1c9b47b3e1af0ca",
+    "center_name": "NetQuiz Assessment Solutions",
+    "center_address": "700-703, 2nd Floor, Shah's Building, Opp Laxminarayan Theater, Mukund Nagar, Pune-Satara Road, Swargate, Pune, Maharashtra 411037",
+    "pc_count": 150,
+    "max_pc": 180,
+    "attendanceroll": null,
+    "absenteereport": null,
+    "answersheet": null,
+    "blankanswersheet": null
+  },
+  {
+    "center": 211551,
+    "departmentId": 15,
+    "centerpass": "b6981af3097bd55e5bd8b2f3bda75ded:177365763aeab119f45e6324e6467256",
+    "center_name": "NetQuiz Assessment Solutions",
+    "center_address": "700-703, 2nd Floor, Shah's Building, Opp Laxminarayan Theater, Mukund Nagar, Pune-Satara Road, Swargate, Pune, Maharashtra 411037",
+    "pc_count": 150,
+    "max_pc": 180,
+    "attendanceroll": null,
+    "absenteereport": null,
+    "answersheet": null,
+    "blankanswersheet": null
+  }
+]

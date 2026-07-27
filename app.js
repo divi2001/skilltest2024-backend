@@ -63,10 +63,31 @@ app.use(cors({
 }));
 
 // ✅ STEP 4: Session middleware
+// Sessions are persisted in MySQL rather than the default in-memory store. MemoryStore keeps
+// sessions in the Node process, so ANY restart - a pm2 crash-restart, a redeploy, watch-mode
+// reload - wiped every session at once and logged all centers out mid-exam (most noticeably
+// around report downloads/uploads). A DB-backed store survives restarts.
+require('dotenv').config();
+const MySQLStore = require('express-mysql-session')(session);
+const sessionStore = new MySQLStore({
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  createDatabaseTable: true,          // auto-creates the `sessions` table on first boot
+  clearExpired: true,
+  checkExpirationInterval: 15 * 60 * 1000,
+  expiration: 24 * 60 * 60 * 1000     // keep in step with cookie maxAge below
+});
+// Never let a transient store hiccup take the process down.
+sessionStore.on('error', (err) => console.error('[session store]', err.message));
+
 app.use(session({
   secret: 'divis@GeYT',
+  store: sessionStore,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,           // don't write a row for every anonymous visitor
   cookie: {
     httpOnly: true,
     // secure: process.env.NODE_ENV === "production",

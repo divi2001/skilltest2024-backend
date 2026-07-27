@@ -43,13 +43,13 @@ function formatTime(timeString) {
     return timeStr;
 }
 
-async function getData(center, batchNo) {
+async function getData(center, batchNo, departmentId) {
     try {
         // console.log(center, batchNo);
-        const query = 'SELECT s.student_id , d.departmentName, d.departmentExam,  d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? ORDER BY s.student_id ASC';
-        const response = await connection.query(query, [batchNo, center]);
-        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ?';
-        const batchData = await connection.query(batchquery, [batchNo]);
+        const query = 'SELECT s.student_id , d.departmentName, d.departmentExam,  d.logo from students as s JOIN departmentdb d ON s.departmentId = d.departmentId where s.batchNo = ? AND s.center = ? AND s.departmentId = ? ORDER BY s.student_id ASC';
+        const response = await connection.query(query, [batchNo, center, departmentId]);
+        const batchquery = 'SELECT batchdate, start_time FROM batchdb WHERE batchNo = ? AND departmentId = ?';
+        const batchData = await connection.query(batchquery, [batchNo, departmentId]);
         // console.log(response[0], batchData[0]);
 
         // Check if download is allowed
@@ -213,9 +213,9 @@ function checkDownloadAllowedStudentLoginPass(startTime, batchDate) {
     return differenceInMinutes <= 105;
 }
 
-async function generateSeatingArrangementReport(doc, center, batchNo) {
+async function generateSeatingArrangementReport(doc, center, batchNo, departmentId) {
     try {
-        const Data = await getData(center, batchNo);
+        const Data = await getData(center, batchNo, departmentId);
         console.log(Data);
 
         const response = Data.response;

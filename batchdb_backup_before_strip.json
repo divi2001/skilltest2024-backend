@@ -1,0 +1,695 @@
+[
+  {
+    "departmentId": 12,
+    "batchNo": 100,
+    "batchdate": "2026-03-03T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 201,
+    "batchdate": "2026-03-05T18:30:00.000Z",
+    "reporting_time": "08:30:00",
+    "start_time": "10:00:00",
+    "end_time": "11:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 202,
+    "batchdate": "2026-03-05T18:30:00.000Z",
+    "reporting_time": "11:00:00",
+    "start_time": "12:30:00",
+    "end_time": "14:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 203,
+    "batchdate": "2026-03-05T18:30:00.000Z",
+    "reporting_time": "13:30:00",
+    "start_time": "15:00:00",
+    "end_time": "16:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 100,
+    "batchdate": "2026-03-03T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 201,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 202,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 203,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 204,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 301,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 302,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 303,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 304,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 401,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 402,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 403,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 404,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 100,
+    "batchdate": "2026-03-03T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 201,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 202,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 203,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 204,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 301,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 302,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 303,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 304,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 401,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 402,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 403,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 404,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 14,
+    "batchNo": 100,
+    "batchdate": "2026-06-16T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 100,
+    "batchdate": "2026-06-16T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 101,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 102,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 103,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 104,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 100,
+    "batchdate": "2026-06-16T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 101,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 102,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 103,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 104,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 14,
+    "batchNo": 100,
+    "batchdate": "2026-06-16T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 100,
+    "batchdate": "2026-03-03T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 201,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 201,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 202,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 202,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 203,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 203,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 204,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 204,
+    "batchdate": "2026-03-09T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 301,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 301,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 302,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 302,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 303,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 303,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 304,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 304,
+    "batchdate": "2026-03-10T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 401,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 401,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 402,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 402,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 403,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 403,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 404,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 13,
+    "batchNo": 404,
+    "batchdate": "2026-03-11T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 100,
+    "batchdate": "2026-03-03T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 100,
+    "batchdate": "2026-03-03T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 201,
+    "batchdate": "2026-03-05T18:30:00.000Z",
+    "reporting_time": "08:30:00",
+    "start_time": "10:00:00",
+    "end_time": "11:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 202,
+    "batchdate": "2026-03-05T18:30:00.000Z",
+    "reporting_time": "11:00:00",
+    "start_time": "12:30:00",
+    "end_time": "14:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 12,
+    "batchNo": 203,
+    "batchdate": "2026-03-05T18:30:00.000Z",
+    "reporting_time": "13:30:00",
+    "start_time": "15:00:00",
+    "end_time": "16:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 100,
+    "batchdate": "2026-06-16T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 101,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "07:30:00",
+    "start_time": "09:00:00",
+    "end_time": "10:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 102,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "10:00:00",
+    "start_time": "11:30:00",
+    "end_time": "13:00:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 103,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "12:30:00",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "batchstatus": 0
+  },
+  {
+    "departmentId": 15,
+    "batchNo": 104,
+    "batchdate": "2026-06-18T18:30:00.000Z",
+    "reporting_time": "15:00:00",
+    "start_time": "16:30:00",
+    "end_time": "18:00:00",
+    "batchstatus": 0
+  }
+]

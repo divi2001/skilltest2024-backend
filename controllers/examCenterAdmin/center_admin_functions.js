@@ -40,3 +40,19 @@ exports.loginCenterAdmin = async (req, res) => {
     }
 };
 
+// Destroys the current session so the user is genuinely logged out on the server, not just
+// navigated away in the UI. Used by the center admin and department navbars.
+exports.logout = async (req, res) => {
+    if (!req.session) {
+        return res.status(200).json({ message: 'Already logged out' });
+    }
+    req.session.destroy((err) => {
+        if (err) {
+            console.log('Error destroying session:', err);
+            return res.status(500).json({ message: 'Error during logout' });
+        }
+        res.clearCookie('connect.sid');
+        return res.status(200).json({ message: 'Logged out successfully' });
+    });
+};
+
