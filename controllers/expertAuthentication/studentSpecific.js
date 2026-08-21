@@ -53,51 +53,11 @@ exports.getAllSubjects = async (req, res) => {
             ORDER BY 
                 s.subjectId, st.departmentId;
         `;
-    } else if (paper_check === 1) {
-        subjectsQuery = `
-            SELECT 
-                s.subjectId, 
-                s.subject_name, 
-                s.subject_name_short, 
-                s.daily_timer, 
-                s.passage_timer, 
-                s.demo_timer,
-                st.departmentId,
-                d.departmentName,
-                d.examType,
-                COUNT(DISTINCT CASE 
-                    WHEN m.subm_done IS NULL OR m.subm_done = 0 
-                    THEN m.student_id 
-                END) AS incomplete_count,
-                COUNT(DISTINCT m.student_id) AS total_count
-            FROM 
-                subjectsdb s
-            JOIN 
-                students st ON s.subjectId = st.subjectsId
-            JOIN 
-                departmentdb d ON st.departmentId = d.departmentId AND s.examType = d.examType
-            LEFT JOIN 
-                ${tableName} m ON s.subjectId = m.subjectId 
-                    AND m.student_id = st.student_id 
-                    AND m.expertId = ?
-            WHERE 
-                d.departmentStatus = 1
-            GROUP BY 
-                s.subjectId, 
-                s.subject_name, 
-                s.subject_name_short, 
-                s.daily_timer, 
-                s.passage_timer, 
-                s.demo_timer, 
-                st.departmentId, 
-                d.departmentName,
-                d.examType
-            HAVING 
-                incomplete_count > 0
-            ORDER BY 
-                s.subjectId, st.departmentId;
-        `;
-    } else if (super_mod === 1) {
+    } else if (paper_check === 1 || super_mod === 1) {
+        // One query for both review stages. Expert Review and Mod Review count
+        // students identically now that expertreviewlog also carries `hold`, and
+        // tableName already points at the right log - keeping two copies of this
+        // is how they drifted apart in the first place.
         subjectsQuery = `
             SELECT 
                 s.subjectId, 
@@ -258,15 +218,11 @@ exports.getQSetsForSubject = async (req, res) => {
                 res.status(200).json(qsetResults);
             }
         } else {
-            // Determine hold filter for super_mod
-            let holdFilter = '';
-            if (super_mod === 1) {
-                if (isHeld) {
-                    holdFilter = `AND ${tableName}.hold = 1`;
-                } else {
-                    holdFilter = `AND (${tableName}.hold IS NULL OR ${tableName}.hold = 0)`;
-                }
-            }
+            // Both review logs carry `hold`, so this applies to whichever table the
+            // stage uses. paper_mod took the branch above, so tableName is always set here.
+            const holdFilter = isHeld
+                ? `AND ${tableName}.hold = 1`
+                : `AND (${tableName}.hold IS NULL OR ${tableName}.hold = 0)`;
 
             if (departmentId) {
                 qsetQuery = `
@@ -515,6 +471,13 @@ exports.assignStudentForQSet = async (req, res) => {
         // Updated queries to include departmentId filtering
         let checkExistingAssignmentQuery;
         if (tableName === 'expertreviewlog') {
+            // Skip held rows so the reviewer falls through to a fresh student; ?held=true
+            // flips it to show only the held ones. Built against the erl alias rather than
+            // ${tableName}, which would not resolve inside these queries.
+            const holdFilter = isHeld
+                ? 'AND erl.hold = 1'
+                : 'AND (erl.hold IS NULL OR erl.hold = 0)';
+
             if (departmentId && departmentId !== 'undefined' && departmentId !== 'null') {
                 checkExistingAssignmentQuery = `
                     SELECT 
@@ -529,6 +492,7 @@ exports.assignStudentForQSet = async (req, res) => {
                     JOIN students s ON erl.student_id = s.student_id
                     JOIN departmentdb d ON s.departmentId = d.departmentId
                     WHERE erl.subjectId = ? AND erl.qset = ? AND erl.expertId = ? AND s.departmentId = ? AND (erl.subm_done IS NULL OR erl.subm_done = 0)
+                    ${holdFilter}
                     LIMIT 1
                 `;
             } else {
@@ -545,14 +509,14 @@ exports.assignStudentForQSet = async (req, res) => {
                     JOIN students s ON erl.student_id = s.student_id
                     JOIN departmentdb d ON s.departmentId = d.departmentId
                     WHERE erl.subjectId = ? AND erl.qset = ? AND erl.expertId = ? AND (erl.subm_done IS NULL OR erl.subm_done = 0)
+                    ${holdFilter}
                     LIMIT 1
                 `;
             }
         } else {
-            // Determine hold filter for super_mod
-            const holdFilter = (super_mod === 1) 
-                ? (isHeld ? 'AND mrl.hold = 1' : 'AND (mrl.hold IS NULL OR mrl.hold = 0)')
-                : '';
+            const holdFilter = isHeld
+                ? 'AND mrl.hold = 1'
+                : 'AND (mrl.hold IS NULL OR mrl.hold = 0)';
 
             if (departmentId && departmentId !== 'undefined' && departmentId !== 'null') {
                 checkExistingAssignmentQuery = `
@@ -629,6 +593,13 @@ exports.assignStudentForQSet = async (req, res) => {
             status = 1;
             subm_done = 0;
             subm_time = null;
+        } else if (isHeld) {
+            // The Held view revisits rows that are already on hold; it must never pull
+            // an unheld student out of the normal queue. Without this the block below
+            // would assign one and then fail to read it back (the re-read filters on
+            // hold = 1), rolling back with an opaque 500.
+            await conn.rollback();
+            return res.status(400).json({ error: 'No held students remain for this QSet.' });
         } else {
             console.log("No existing active assignment, assigning new student");
             
@@ -2163,29 +2134,141 @@ exports.submitPassageReview = async (req, res) => {
     }
 };
 
-// Get student passages from expertreviewlog with filters
-exports.getStudentPassagesWithFilters = async (req, res) => {
-    const { 
-        student_id, 
-        subjectId, 
-        examType, 
-        qset, 
-        departmentId, 
-        expertId, 
-        subm_done,
-        table 
-    } = req.query;
+// The filter dropdowns used to be populated from a full unfiltered fetch of
+// student-passages-with-filters, which pulls every passage and answer key in the
+// table — 94 MB for this dataset — purely to collect a few dozen distinct values.
+// This returns the same values in a few KB and touches no text column.
+exports.getStudentPassageFilterOptions = async (req, res) => {
+    const { table } = req.query;
 
-    console.log("getStudentPassages called with filters:", req.query);
-
-    // Validate table parameter
     if (!table || (table !== 'expertreviewlog' && table !== 'modreviewlog')) {
-        return res.status(400).json({ 
-            error: 'Invalid or missing table parameter. Must be either "expertreviewlog" or "modreviewlog"' 
+        return res.status(400).json({
+            error: 'Invalid or missing table parameter. Must be either "expertreviewlog" or "modreviewlog"'
         });
     }
 
     try {
+        const columns = ['subjectId', 'examType', 'qset', 'departmentId', 'expertId'];
+
+        const results = await Promise.all(
+            columns.map(async (column) => {
+                const [rows] = await connection.query(
+                    `SELECT DISTINCT ${column} AS value FROM ${table}
+                     WHERE ${column} IS NOT NULL ORDER BY ${column} ASC`
+                );
+                return [column, rows.map(r => r.value)];
+            })
+        );
+
+        res.status(200).json({
+            success: true,
+            table,
+            options: Object.fromEntries(results)
+        });
+    } catch (err) {
+        console.error("Error fetching filter options:", err);
+        res.status(500).json({
+            error: 'Error fetching filter options',
+            details: err.message
+        });
+    }
+};
+
+// A fanned-out copy can be missing data its sibling has (two audiodb rows for one
+// subject/qset where only one carries the passage), so score copies and keep the
+// richest one instead of whichever the join happened to emit first.
+const rowCompleteness = (row) =>
+    (row.ansPassageA ? 1 : 0) +
+    (row.ansPassageB ? 1 : 0) +
+    (row.passageA ? 1 : 0) +
+    (row.passageB ? 1 : 0) +
+    (row.QPA ? 1 : 0) +
+    (row.QPB ? 1 : 0) +
+    (row.subject_name ? 1 : 0) +
+    // The audiodb join deliberately does not match on examType, so a GCC log row
+    // can pick up a SKILL answer key. Tightening the join would strip the answer
+    // key from every row whose audiodb.examType is NULL, so prefer the matching
+    // copy here instead and leave a mismatched one in place when it is all we have.
+    (row.audioExamType && row.audioExamType === row.examType ? 1 : 0);
+
+// expertreviewlog holds one row per student — populateExpertReviewLog upserts it
+// keyed on student_id alone — but the LEFT JOINs in the query below can fan one
+// log row out into several result rows: audiodb (subjectId, qset, departmentId)
+// and qsetdb (subjectId, departmentId) have no unique key, and textlogs /
+// finalPassageSubmit hold more than one row per student in practice. Marks must be
+// calculated once per student, so collapse the fan-out before returning.
+//
+// Two different things get collapsed here and they are not equally benign:
+//   - same id seen again          -> join fan-out, the copies describe one review
+//   - different id, same student  -> genuinely duplicated log rows, a data problem
+// They are counted separately so the caller can tell one from the other.
+const dedupeByStudentId = (rows) => {
+    const bestByStudent = new Map();
+    // Nothing to key on, and bucketing them together would merge unrelated rows.
+    const unkeyedRows = [];
+    let joinDuplicates = 0;
+    let duplicateLogRows = 0;
+
+    for (const row of rows) {
+        if (row.student_id === null || row.student_id === undefined) {
+            unkeyedRows.push(row);
+            continue;
+        }
+
+        const key = String(row.student_id);
+        const kept = bestByStudent.get(key);
+
+        if (!kept) {
+            bestByStudent.set(key, row);
+            continue;
+        }
+
+        if (kept.id === row.id) {
+            joinDuplicates += 1;
+        } else {
+            duplicateLogRows += 1;
+        }
+
+        // Map.set on an existing key keeps the original insertion position, so
+        // swapping in a better copy does not disturb the id ordering below.
+        if (rowCompleteness(row) > rowCompleteness(kept)) {
+            bestByStudent.set(key, row);
+        }
+    }
+
+    // The client pages through this array directly, so restore the ORDER BY e.id
+    // the query asked for — appending the unkeyed rows would otherwise break it.
+    const deduped = [...bestByStudent.values(), ...unkeyedRows]
+        .sort((a, b) => a.id - b.id);
+
+    return { rows: deduped, joinDuplicates, duplicateLogRows };
+};
+
+// Fetches the review rows for a set of filters, already deduplicated to one row
+// per student. Rows come back WITH their answer keys attached.
+//
+// Shared by the list endpoint and by marks calculation so both operate on exactly
+// the same set of students — if calculation ran its own copy of this query the two
+// could drift apart and the marks would no longer describe what the table shows.
+const fetchReviewRows = async (filters) => {
+    const {
+        student_id,
+        subjectId,
+        examType,
+        qset,
+        departmentId,
+        expertId,
+        subm_done,
+        table
+    } = filters;
+
+    if (!table || (table !== 'expertreviewlog' && table !== 'modreviewlog')) {
+        const err = new Error('Invalid or missing table parameter. Must be either "expertreviewlog" or "modreviewlog"');
+        err.statusCode = 400;
+        throw err;
+    }
+
+    {
         // Build the WHERE clause dynamically based on provided filters
         let whereClauses = [];
         let queryParams = [];
@@ -2266,6 +2349,7 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
                 COALESCE(NULLIF(f.passageB, ''), t.textb) AS passageB,
                 aud.textPassageA AS ansPassageA,
                 aud.textPassageB AS ansPassageB,
+                aud.examType AS audioExamType,
                 ${qpaSelect},
                 ${qpbSelect}
             FROM 
@@ -2295,11 +2379,70 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
         const [results] = await connection.query(query, queryParams);
 
         console.log(`Found ${results.length} records from ${table}`);
-        
+
+        // One row per student from here on: everything downstream (the record
+        // count, the marks calculation, both Excel reports) treats one row as one
+        // student, so the joins' fan-out must not survive past this point.
+        const { rows: uniqueRows, joinDuplicates, duplicateLogRows } = dedupeByStudentId(results);
+        const removed = results.length - uniqueRows.length;
+
+        if (removed > 0) {
+            console.log(`Collapsed ${removed} duplicate row(s) to ${uniqueRows.length} unique students`);
+            console.log(`   - join fan-out copies: ${joinDuplicates}`);
+            if (duplicateLogRows > 0) {
+                // Not join noise: the same student really does have more than one
+                // row in this table, and only one of them is being evaluated.
+                console.warn(`   - [WARNING] duplicate ${table} rows for one student: ${duplicateLogRows}`);
+            }
+        }
+
+        return { rows: uniqueRows, rawCount: results.length, removed, joinDuplicates, duplicateLogRows };
+    }
+};
+
+exports.fetchReviewRows = fetchReviewRows;
+
+// Get student passages from expertreviewlog with filters
+exports.getStudentPassagesWithFilters = async (req, res) => {
+    const { departmentId, table } = req.query;
+
+    console.log("getStudentPassages called with filters:", req.query);
+
+    try {
+        const { rows: uniqueRows, rawCount, removed, joinDuplicates, duplicateLogRows } =
+            await fetchReviewRows(req.query);
+
+        // The answer key is a property of (subjectId, qset, departmentId), not of the
+        // student, but the join stamps a full copy onto every row: 42 distinct key
+        // pairs repeated across 8,583 rows here, which is 57% of the response body.
+        // Send each one once and let the client point every row at it. Rows keep the
+        // same shape once rehydrated, so nothing downstream changes.
+        //
+        // Only the HTTP response is trimmed this way — fetchReviewRows still hands
+        // marks calculation the rows with their keys attached.
+        const answerKeys = {};
+        uniqueRows.forEach(row => {
+            const key = `${row.subjectId}|${row.qset}|${row.departmentId}`;
+            const stored = answerKeys[key];
+
+            if (!stored) {
+                answerKeys[key] = { a: row.ansPassageA ?? null, b: row.ansPassageB ?? null };
+            } else if (stored.a !== (row.ansPassageA ?? null) || stored.b !== (row.ansPassageB ?? null)) {
+                // Two rows share the key but disagree on the text. Leave this row's
+                // copy inline rather than let the shared entry silently win.
+                row.answerKeyRef = null;
+                return;
+            }
+
+            row.answerKeyRef = key;
+            delete row.ansPassageA;
+            delete row.ansPassageB;
+        });
+
         // Get count of appeared students if departmentId is provided
         let appearedStudents = 0;
         let subjectWiseCount = [];
-        
+
         if (departmentId) {
             // Total appeared students
             const countQuery = `
@@ -2337,11 +2480,22 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
         
         res.status(200).json({
             success: true,
-            count: results.length,
+            // count is now unique students, which is what the client displays and
+            // what gets evaluated. raw_count keeps the pre-dedup number visible so
+            // a growing gap between the two is diagnosable rather than invisible.
+            count: uniqueRows.length,
+            raw_count: rawCount,
+            deduplication: {
+                removed,
+                join_duplicates: joinDuplicates,
+                duplicate_log_rows: duplicateLogRows
+            },
             table: table,
             appeared_students: appearedStudents,
             subject_wise_count: subjectWiseCount,
-            data: results
+            // Keyed "subjectId|qset|departmentId"; rows carry answerKeyRef into it.
+            answer_keys: answerKeys,
+            data: uniqueRows
         });
 
     } catch (err) {
@@ -2353,6 +2507,15 @@ exports.getStudentPassagesWithFilters = async (req, res) => {
     }
 };
 
+// Which review log the caller's stage works on. Same switch as submitPassageReview -
+// paper_check reviews expertreviewlog, super_mod reviews modreviewlog. Returns null
+// when the session has neither stage, and the caller answers 403.
+const reviewLogTableFor = (session) => {
+    if (session.paper_check === 1) return 'expertreviewlog';
+    if (session.super_mod === 1) return 'modreviewlog';
+    return null;
+};
+
 exports.holdPassageReview = async (req, res) => {
     if (!req.session.expertId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -2361,8 +2524,9 @@ exports.holdPassageReview = async (req, res) => {
     const { subjectId, qset, departmentId } = req.params;
     const expertId = req.session.expertId;
 
-    if (req.session.super_mod !== 1) {
-        return res.status(403).json({ error: 'Forbidden - Only moderators can place a hold' });
+    const tableName = reviewLogTableFor(req.session);
+    if (!tableName) {
+        return res.status(403).json({ error: 'Forbidden - No stages alloted' });
     }
 
     let conn;
@@ -2374,7 +2538,7 @@ exports.holdPassageReview = async (req, res) => {
         // Find the currently active assignment for this expert
         const fetchAssignmentQuery = `
             SELECT student_id
-            FROM modreviewlog
+            FROM ${tableName}
             WHERE subjectId = ? AND qset = ? AND expertId = ? AND departmentId = ? AND status = 1 AND subm_done = 0
             ORDER BY loggedin DESC
             LIMIT 1
@@ -2390,7 +2554,7 @@ exports.holdPassageReview = async (req, res) => {
 
         // Set hold = 1 for that record
         const updateQuery = `
-            UPDATE modreviewlog
+            UPDATE ${tableName}
             SET hold = 1
             WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ? AND departmentId = ?
         `;
@@ -2403,7 +2567,7 @@ exports.holdPassageReview = async (req, res) => {
 
         await conn.commit();
 
-        console.log(`Hold set for expertId: ${expertId}, studentId: ${studentId}, subjectId: ${subjectId}, qset: ${qset}, departmentId: ${departmentId}`);
+        console.log(`Hold set in ${tableName} for expertId: ${expertId}, studentId: ${studentId}, subjectId: ${subjectId}, qset: ${qset}, departmentId: ${departmentId}`);
         return res.status(200).json({
             message: 'Passage review placed on hold',
             student_id: studentId,
@@ -2417,6 +2581,77 @@ exports.holdPassageReview = async (req, res) => {
         if (conn) await conn.rollback();
         console.error('Error placing passage review on hold:', err);
         return res.status(500).json({ error: 'Error placing passage review on hold', details: err.message });
+    } finally {
+        if (conn) conn.release();
+    }
+};
+
+// Send a held student back to the normal queue. The mirror of holdPassageReview, with
+// one difference that matters: it targets the HELD assignment (AND hold = 1), so it
+// cannot silently no-op against a student who was never held.
+exports.releasePassageReview = async (req, res) => {
+    if (!req.session.expertId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { subjectId, qset, departmentId } = req.params;
+    const expertId = req.session.expertId;
+
+    const tableName = reviewLogTableFor(req.session);
+    if (!tableName) {
+        return res.status(403).json({ error: 'Forbidden - No stages alloted' });
+    }
+
+    let conn;
+
+    try {
+        conn = await connection.getConnection();
+        await conn.beginTransaction();
+
+        const fetchAssignmentQuery = `
+            SELECT student_id
+            FROM ${tableName}
+            WHERE subjectId = ? AND qset = ? AND expertId = ? AND departmentId = ? AND status = 1 AND subm_done = 0 AND hold = 1
+            ORDER BY loggedin DESC
+            LIMIT 1
+        `;
+        const [assignmentResult] = await conn.query(fetchAssignmentQuery, [subjectId, qset, expertId, departmentId]);
+
+        if (assignmentResult.length === 0) {
+            await conn.rollback();
+            return res.status(404).json({ error: 'No held assignment found to release' });
+        }
+
+        const studentId = assignmentResult[0].student_id;
+
+        const updateQuery = `
+            UPDATE ${tableName}
+            SET hold = 0
+            WHERE subjectId = ? AND qset = ? AND expertId = ? AND student_id = ? AND departmentId = ?
+        `;
+        const [updateResult] = await conn.query(updateQuery, [subjectId, qset, expertId, studentId, departmentId]);
+
+        if (updateResult.affectedRows === 0) {
+            await conn.rollback();
+            return res.status(404).json({ error: 'No matching record found to update' });
+        }
+
+        await conn.commit();
+
+        console.log(`Hold released in ${tableName} for expertId: ${expertId}, studentId: ${studentId}, subjectId: ${subjectId}, qset: ${qset}, departmentId: ${departmentId}`);
+        return res.status(200).json({
+            message: 'Passage review released from hold',
+            student_id: studentId,
+            subjectId,
+            qset,
+            departmentId,
+            hold: 0
+        });
+
+    } catch (err) {
+        if (conn) await conn.rollback();
+        console.error('Error releasing passage review from hold:', err);
+        return res.status(500).json({ error: 'Error releasing passage review from hold', details: err.message });
     } finally {
         if (conn) conn.release();
     }

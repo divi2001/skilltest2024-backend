@@ -234,7 +234,11 @@ const schema = {
         loggedin: 'DATETIME',
         status: 'BOOLEAN',
         subm_done: 'BOOLEAN DEFAULT 0',
-        subm_time: 'DATETIME'
+        subm_time: 'DATETIME',
+        // Parks a student the reviewer cannot finish yet. Held rows drop out of the
+        // normal queue and surface under their own "Held" card instead. Mirrors
+        // modreviewlog.hold below - the two review logs must stay in step.
+        hold: 'BOOLEAN DEFAULT 0'
     },
     modreviewlog: {
         id: 'BIGINT PRIMARY KEY AUTO_INCREMENT',

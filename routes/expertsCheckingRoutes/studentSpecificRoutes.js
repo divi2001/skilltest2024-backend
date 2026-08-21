@@ -28,8 +28,19 @@ router.post('/student-clear-ignore-list', examExpertAdminStudentSpecificControll
 // Passage review submission route (updated to include departmentId)
 router.post('/submit-passage-review/:subjectId/:qset/:departmentId', examExpertAdminStudentSpecificController.submitPassageReview);
 router.post('/hold-passage-review/:subjectId/:qset/:departmentId', examExpertAdminStudentSpecificController.holdPassageReview);
+router.post('/release-passage-review/:subjectId/:qset/:departmentId', examExpertAdminStudentSpecificController.releasePassageReview);
 
 // Get student passages with filters
 router.get('/student-passages-with-filters', examExpertAdminStudentSpecificController.getStudentPassagesWithFilters);
+
+// Distinct values for the filter dropdowns, without downloading any passage text
+router.get('/student-passages-filter-options', examExpertAdminStudentSpecificController.getStudentPassageFilterOptions);
+
+// Marks calculation runs server-side: the browser gets per-row scalars, never the
+// comparison payload. Detail and the student-wise report are served from the spool.
+const marksCalculationController = require('../../controllers/marksCalculationController');
+router.post('/calculate-marks', marksCalculationController.calculateMarks);
+router.get('/marks-detail/:jobId/:rowId', marksCalculationController.getMarksDetail);
+router.get('/marks-report/student-wise/:jobId', marksCalculationController.downloadStudentWiseReport);
 
 module.exports = router;

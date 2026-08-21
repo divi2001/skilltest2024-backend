@@ -1,3 +1,6 @@
+// Loaded first so anything below can read .env (PORT, DB credentials, SECRET_KEY).
+require('dotenv').config();
+
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
@@ -35,7 +38,8 @@ const evaluationRoutes = require('./routes/evaluationRoutes');
 const mockRoutes = require('./routes/mockRoutes');
 
 const app = express();
-const PORT = 3000;
+// Overridable so this API can move off 3000 when another local service is already there.
+const PORT = Number(process.env.PORT) || 3000;
 
 // ✅ STEP 1: Set INCREASED body-parser limits FIRST (BEFORE any middleware)
 app.use(bodyParser.urlencoded({ extended: true, limit: '500mb' }));
@@ -82,6 +86,34 @@ const sessionStore = new MySQLStore({
 });
 // Never let a transient store hiccup take the process down.
 sessionStore.on('error', (err) => console.error('[session store]', err.message));
+
+// The 'error' listener above is NOT enough on its own. express-mysql-session runs
+// its expired-session sweep with
+//     setInterval(this.clearExpiredSessions.bind(this), interval)
+// and clearExpiredSessions() rethrows on failure. setInterval discards the
+// returned promise, so a failed sweep becomes an unhandled rejection — which Node
+// 20 turns into a process exit — and it never reaches the 'error' listener.
+//
+// That killed the server mid-run: the 15-minute sweep fired during a long marks
+// calculation, found a pooled connection the database had already dropped, and
+// took the whole process down with ECONNRESET. Run the sweep ourselves so the
+// failure is caught. The pool discards the dead connection, so the next sweep
+// gets a fresh one and recovers on its own.
+sessionStore.clearExpirationInterval();
+const SESSION_SWEEP_INTERVAL = 15 * 60 * 1000;
+setInterval(() => {
+  sessionStore.clearExpiredSessions().catch((err) => {
+    console.error('[session store] expired-session sweep failed:', err.code || err.message);
+  });
+}, SESSION_SWEEP_INTERVAL).unref();   // must not hold the process open on shutdown
+
+// Safety net for the same class of failure anywhere else. A stray rejection
+// should be loud, not fatal — losing a 15-minute calculation to an unrelated
+// transient is worse than carrying on. uncaughtException is deliberately NOT
+// handled here: that one leaves the process in an undefined state.
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason instanceof Error ? reason.stack : reason);
+});
 
 app.use(session({
   secret: 'divis@GeYT',
@@ -145,15 +177,15 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-// app.listen(PORT, 'localhost', () => {
-//   console.log(`✅ Server running on http://localhost:${PORT}`);
-//   console.log(`✅ Max payload size: 500mb`);
-// });
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on https://checking.shorthandonlineexam.in`);
+app.listen(PORT, 'localhost', () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
   console.log(`✅ Max payload size: 500mb`);
 });
+
+// app.listen(PORT, '0.0.0.0', () => {
+//   console.log(`✅ Server running on https://checking.shorthandonlineexam.in`);
+//   console.log(`✅ Max payload size: 500mb`);
+// });
 
 // app.listen(PORT, '0.0.0.0', () => {
 //   console.log(`✅ Server running on http://103.17.193.168:${PORT}`);
